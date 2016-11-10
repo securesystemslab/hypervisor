@@ -93,11 +93,11 @@ else
 	NATIVE_AR:=ar
 
 # new settings
-#	NATIVE_CC:=/tools/bin/clang
-#	NATIVE_CXX:=/tools/bin/clang++
+#	NATIVE_CC:=$(BUILD_ABS)/../multicompiler/tools/bin/clang
+#	NATIVE_CXX:=$(BUILD_ABS)/../multicompiler/tools/bin/clang++
 #	NATIVE_ASM:=nasm
-#	NATIVE_LD:=/tools/bin/ld
-#	NATIVE_LD:=/tools/bin/clang++
+#	NATIVE_LD:=$(BUILD_ABS)/../multicompiler/tools/bin/ld
+#	NATIVE_LD:=$(BUILD_ABS)/../multicompiler/tools/bin/clang++
 #	NATIVE_AR:=ar
 endif
 
