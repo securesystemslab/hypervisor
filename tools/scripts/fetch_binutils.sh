@@ -22,21 +22,22 @@
 
 pushd /tmp/bareflank/
 
-rm -Rf binutils-*.tar.bz2
-rm -Rf binutils-*/
+#rm -Rf binutils-*.tar.bz2
+rm -Rf binutils*/
 rm -Rf src_binutils
 
 n=0
 until [ $n -ge 5 ]
 do
-    wget -nv $BINUTILS_URL && break
+    git clone --depth 1 -b random_commons-2_24 git@github.com:/securesystemslab/binutils.git && break
+#    wget -nv $BINUTILS_URL && break
     n=$[$n+1]
     sleep 15
 done
 
-tar xfv binutils-*.tar.bz2
+#tar xfv binutils-*.tar.bz2
 sleep 1
-mv binutils-*/ src_binutils
-rm -Rf binutils-*.tar.bz2
+mv binutils*/ src_binutils
+#rm -Rf binutils-*.tar.bz2
 
 popd

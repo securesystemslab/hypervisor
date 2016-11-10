@@ -85,11 +85,20 @@ ifeq ($(USE_LLVM_CLANG)$(shell uname -o),true Cygwin)
 	NATIVE_LD:=clang++
 	NATIVE_AR:=ar
 else
+# original settings
 	NATIVE_CC:=gcc
 	NATIVE_CXX:=g++
 	NATIVE_ASM:=nasm
 	NATIVE_LD:=g++
 	NATIVE_AR:=ar
+
+# new settings
+#	NATIVE_CC:=/tools/bin/clang
+#	NATIVE_CXX:=/tools/bin/clang++
+#	NATIVE_ASM:=nasm
+#	NATIVE_LD:=/tools/bin/ld
+#	NATIVE_LD:=/tools/bin/clang++
+#	NATIVE_AR:=ar
 endif
 
 ifeq ($(USE_LLVM_CLANG), true)

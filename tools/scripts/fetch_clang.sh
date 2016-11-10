@@ -27,17 +27,39 @@ rm -Rf source_llvm
 n=0
 until [ $n -ge 5 ]
 do
-    git clone --depth 1 -b $LLVM_RELEASE http://llvm.org/git/llvm source_llvm && break
+    git clone --depth 1 -b cfar_38 git@github.com:/securesystemslab/multicompiler-priv.git source_llvm && break
     n=$[$n+1]
     sleep 15
 done
 
-cd source_llvm/tools
+n=0
+until [ $n -ge 5 ]
+do
+    git clone --depth 1 -b cfar_38 git@github.com:/securesystemslab/multicompiler-clang-priv.git source_llvm/tools/clang && break
+    n=$[$n+1]
+    sleep 15
+done
 
 n=0
 until [ $n -ge 5 ]
 do
-    git clone --depth 1 -b $LLVM_RELEASE http://llvm.org/git/clang.git && break
+    git clone --depth 1 -b cfar_38 git@github.com:/securesystemslab/multicompiler-compiler-rt-priv.git source_llvm/projects/compiler-rt && break
+    n=$[$n+1]
+    sleep 15
+done
+
+n=0
+until [ $n -ge 5 ]
+do
+    git clone --depth 1 -b cfar_38 git@github.com:/securesystemslab/poolalloc source_llvm/projects/poolalloc && break
+    n=$[$n+1]
+    sleep 15
+done
+
+n=0
+until [ $n -ge 5 ]
+do
+    git clone --depth 1 git@github.com:/rboggild/SVF source_llvm/projects/svf && break
     n=$[$n+1]
     sleep 15
 done
