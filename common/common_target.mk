@@ -86,19 +86,19 @@ ifeq ($(USE_LLVM_CLANG)$(shell uname -o),true Cygwin)
 	NATIVE_AR:=ar
 else
 # original settings
-	NATIVE_CC:=gcc
-	NATIVE_CXX:=g++
-	NATIVE_ASM:=nasm
-	NATIVE_LD:=g++
-	NATIVE_AR:=ar
+	#NATIVE_CC:=gcc
+	#NATIVE_CXX:=g++
+	#NATIVE_ASM:=nasm
+	#NATIVE_LD:=g++
+	#NATIVE_AR:=ar
 
 # new settings
-#	NATIVE_CC:=$(BUILD_ABS)/../multicompiler/tools/bin/clang
-#	NATIVE_CXX:=$(BUILD_ABS)/../multicompiler/tools/bin/clang++
-#	NATIVE_ASM:=nasm
-#	NATIVE_LD:=$(BUILD_ABS)/../multicompiler/tools/bin/ld
-#	NATIVE_LD:=$(BUILD_ABS)/../multicompiler/tools/bin/clang++
-#	NATIVE_AR:=ar
+	NATIVE_CC:=$(BUILD_ABS)/../multicompiler/tools/bin/clang
+	NATIVE_CXX:=$(BUILD_ABS)/../multicompiler/tools/bin/clang++
+	NATIVE_ASM:=nasm
+	NATIVE_LD:=$(BUILD_ABS)/../multicompiler/tools/bin/ld
+	NATIVE_LD:=$(BUILD_ABS)/../multicompiler/tools/bin/clang++
+	NATIVE_AR:=ar
 endif
 
 ifeq ($(USE_LLVM_CLANG), true)
