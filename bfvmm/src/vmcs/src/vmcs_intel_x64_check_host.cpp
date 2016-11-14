@@ -21,6 +21,7 @@
 
 #include <vmcs/vmcs_intel_x64.h>
 #include <vmcs/vmcs_intel_x64_16bit_host_state_fields.h>
+#include <vmcs/vmcs_intel_x64_32bit_control_fields.h>
 
 using namespace intel_x64;
 
@@ -363,7 +364,7 @@ vmcs_intel_x64::check_host_checks_related_to_address_space_size()
 void
 vmcs_intel_x64::check_host_if_outside_ia32e_mode()
 {
-    if (msrs::ia32_efer::lma::get() != 0)
+    if (msrs::ia32_efer::lma::get())
         return;
 
     if (vmcs::vm_entry_controls::ia_32e_mode_guest::is_enabled())
@@ -376,7 +377,7 @@ vmcs_intel_x64::check_host_if_outside_ia32e_mode()
 void
 vmcs_intel_x64::check_host_vmcs_host_address_space_size_is_set()
 {
-    if (msrs::ia32_efer::lma::get() == 0)
+    if (!msrs::ia32_efer::lma::get())
         return;
 
     if (vmcs::vm_exit_controls::host_address_space_size::is_disabled())

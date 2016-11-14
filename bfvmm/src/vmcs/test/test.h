@@ -27,6 +27,7 @@
 #include <functional>
 #include <memory>
 #include <vmcs/vmcs_intel_x64.h>
+#include <vmcs/vmcs_intel_x64_32bit_control_fields.h>
 #include <memory_manager/memory_manager_x64.h>
 
 #define run_vmcs_test(cfg, ...) run_vmcs_test_with_args(gsl::cstring_span<>(__PRETTY_FUNCTION__), __LINE__, cfg, __VA_ARGS__)
@@ -296,6 +297,16 @@ private:
     void test_vmcs_host_ia32_efer_lma();
     void test_vmcs_host_ia32_efer_nxe();
     void test_vmcs_host_ia32_efer_reserved();
+    void test_vmcs_guest_es_limit();
+    void test_vmcs_guest_cs_limit();
+    void test_vmcs_guest_ss_limit();
+    void test_vmcs_guest_ds_limit();
+    void test_vmcs_guest_fs_limit();
+    void test_vmcs_guest_gs_limit();
+    void test_vmcs_guest_ldtr_limit();
+    void test_vmcs_guest_tr_limit();
+    void test_vmcs_guest_gdtr_limit();
+    void test_vmcs_guest_idtr_limit();
     void test_vmcs_guest_es_access_rights();
     void test_vmcs_guest_es_access_rights_type();
     void test_vmcs_guest_es_access_rights_s();
@@ -384,6 +395,17 @@ private:
     void test_vmcs_guest_tr_access_rights_granularity();
     void test_vmcs_guest_tr_access_rights_reserved();
     void test_vmcs_guest_tr_access_rights_unusable();
+    void test_vmcs_guest_interruptibility_state();
+    void test_vmcs_guest_interruptibility_state_blocking_by_sti();
+    void test_vmcs_guest_interruptibility_state_blocking_by_mov_ss();
+    void test_vmcs_guest_interruptibility_state_blocking_by_smi();
+    void test_vmcs_guest_interruptibility_state_blocking_by_nmi();
+    void test_vmcs_guest_interruptibility_state_enclave_interruption();
+    void test_vmcs_guest_interruptibility_state_reserved();
+    void test_vmcs_guest_activity_state();
+    void test_vmcs_guest_smbase();
+    void test_vmcs_guest_ia32_sysenter_cs();
+    void test_vmcs_vmx_preemption_timer_value();
     void test_vmcs_pin_based_vm_execution_controls();
     void test_vmcs_pin_based_vm_execution_controls_external_interrupt_exiting();
     void test_vmcs_pin_based_vm_execution_controls_nmi_exiting();
@@ -466,6 +488,8 @@ private:
     void test_vmcs_secondary_processor_based_vm_execution_controls_enable_pml();
     void test_vmcs_secondary_processor_based_vm_execution_controls_ept_violation_ve();
     void test_vmcs_secondary_processor_based_vm_execution_controls_enable_xsaves_xrstors();
+    void test_vmcs_ple_gap();
+    void test_vmcs_ple_window();
 
     void test_check_vmcs_control_state();
     void test_checks_on_vm_execution_control_fields();

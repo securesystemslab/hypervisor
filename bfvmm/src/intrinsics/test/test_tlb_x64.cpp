@@ -19,26 +19,17 @@
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-#ifndef DEBUG_X64_H
-#define DEBUG_X64_H
+#include <test.h>
+#include <intrinsics/tlb_x64.h>
 
-extern "C" uint64_t __read_dr7(void) noexcept;
-extern "C" void __write_dr7(uint64_t val) noexcept;
+using namespace x64;
 
-// *INDENT-OFF*
+extern "C" void
+__invlpg(const void *virt) noexcept
+{ (void) virt; }
 
-namespace x64
+void
+intrinsics_ut::test_tlb_x64_invlpg()
 {
-namespace dr7
-{
-    inline auto get() noexcept
-    { return __read_dr7(); }
-
-    template<class T, class = typename std::enable_if<std::is_integral<T>::value>::type>
-    void set(T val) noexcept { __write_dr7(val); }
+    this->expect_no_exception([&] { tlb::invlpg(this); });
 }
-}
-
-// *INDENT-ON*
-
-#endif

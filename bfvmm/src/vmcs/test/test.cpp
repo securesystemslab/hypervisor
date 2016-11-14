@@ -386,6 +386,16 @@ vmcs_ut::list()
     this->test_vmcs_host_ia32_efer_lma();
     this->test_vmcs_host_ia32_efer_nxe();
     this->test_vmcs_host_ia32_efer_reserved();
+    this->test_vmcs_guest_es_limit();
+    this->test_vmcs_guest_cs_limit();
+    this->test_vmcs_guest_ss_limit();
+    this->test_vmcs_guest_ds_limit();
+    this->test_vmcs_guest_fs_limit();
+    this->test_vmcs_guest_gs_limit();
+    this->test_vmcs_guest_ldtr_limit();
+    this->test_vmcs_guest_tr_limit();
+    this->test_vmcs_guest_gdtr_limit();
+    this->test_vmcs_guest_idtr_limit();
     this->test_vmcs_guest_es_access_rights();
     this->test_vmcs_guest_es_access_rights_type();
     this->test_vmcs_guest_es_access_rights_s();
@@ -474,6 +484,17 @@ vmcs_ut::list()
     this->test_vmcs_guest_tr_access_rights_granularity();
     this->test_vmcs_guest_tr_access_rights_reserved();
     this->test_vmcs_guest_tr_access_rights_unusable();
+    this->test_vmcs_guest_interruptibility_state();
+    this->test_vmcs_guest_interruptibility_state_blocking_by_sti();
+    this->test_vmcs_guest_interruptibility_state_blocking_by_mov_ss();
+    this->test_vmcs_guest_interruptibility_state_blocking_by_smi();
+    this->test_vmcs_guest_interruptibility_state_blocking_by_nmi();
+    this->test_vmcs_guest_interruptibility_state_enclave_interruption();
+    this->test_vmcs_guest_interruptibility_state_reserved();
+    this->test_vmcs_guest_activity_state();
+    this->test_vmcs_guest_smbase();
+    this->test_vmcs_guest_ia32_sysenter_cs();
+    this->test_vmcs_vmx_preemption_timer_value();
     this->test_vmcs_pin_based_vm_execution_controls();
     this->test_vmcs_pin_based_vm_execution_controls_external_interrupt_exiting();
     this->test_vmcs_pin_based_vm_execution_controls_nmi_exiting();
@@ -556,6 +577,8 @@ vmcs_ut::list()
     this->test_vmcs_secondary_processor_based_vm_execution_controls_enable_pml();
     this->test_vmcs_secondary_processor_based_vm_execution_controls_ept_violation_ve();
     this->test_vmcs_secondary_processor_based_vm_execution_controls_enable_xsaves_xrstors();
+    this->test_vmcs_ple_gap();
+    this->test_vmcs_ple_window();
 
     this->test_check_vmcs_control_state();
     this->test_checks_on_vm_execution_control_fields();

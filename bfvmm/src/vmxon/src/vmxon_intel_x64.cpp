@@ -92,13 +92,13 @@ vmxon_intel_x64::check_cpuid_vmx_supported()
 void
 vmxon_intel_x64::check_vmx_capabilities_msr()
 {
-    if (msrs::ia32_vmx_basic::physical_address_width::get() != 0)
+    if (msrs::ia32_vmx_basic::physical_address_width::get())
         throw std::logic_error("invalid physical address width");
 
     if (msrs::ia32_vmx_basic::memory_type::get() != x64::memory_type::write_back)
         throw std::logic_error("invalid memory type");
 
-    if (msrs::ia32_vmx_basic::true_based_controls::get() == 0)
+    if (!msrs::ia32_vmx_basic::true_based_controls::get())
         throw std::logic_error("invalid vmx true based controls");
 }
 
@@ -127,14 +127,14 @@ vmxon_intel_x64::check_ia32_vmx_cr4_fixed_msr()
 void
 vmxon_intel_x64::check_ia32_feature_control_msr()
 {
-    if (msrs::ia32_feature_control::lock_bit::get() == 0)
+    if (!msrs::ia32_feature_control::lock_bit::get())
         throw std::logic_error("vmx lock bit == 0 is unsupported");
 }
 
 void
 vmxon_intel_x64::check_v8086_disabled()
 {
-    if (rflags::virtual_8086_mode::get() != 0)
+    if (rflags::virtual_8086_mode::get())
         throw std::logic_error("v8086 mode is not supported");
 }
 
