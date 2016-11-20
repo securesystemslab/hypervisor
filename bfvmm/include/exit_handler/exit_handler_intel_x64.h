@@ -23,8 +23,11 @@
 #define EXIT_HANDLER_INTEL_X64_H
 
 #include <memory>
+
+#include <json.h>
 #include <vmcall_interface.h>
 #include <vmcs/vmcs_intel_x64.h>
+#include <memory_manager/map_ptr_x64.h>
 
 // -----------------------------------------------------------------------------
 // Exit Handler
@@ -53,7 +56,7 @@ public:
     /// @expects none
     /// @ensures none
     ///
-    exit_handler_intel_x64();
+    exit_handler_intel_x64() = default;
 
     /// Destructor
     ///
@@ -148,13 +151,21 @@ protected:
     virtual void advance_rip() noexcept;
     virtual void unimplemented_handler() noexcept;
 
-    virtual std::string exit_reason_to_str(uint64_t exit_reason);
-
     virtual void handle_vmcall_versions(vmcall_registers_t &regs);
     virtual void handle_vmcall_registers(vmcall_registers_t &regs);
     virtual void handle_vmcall_data(vmcall_registers_t &regs);
     virtual void handle_vmcall_event(vmcall_registers_t &regs);
     virtual void handle_vmcall_unittest(vmcall_registers_t &regs);
+
+    virtual void handle_vmcall_data_string_unformatted(vmcall_registers_t &regs, const std::string &str,
+            const bfn::unique_map_ptr_x64<char> &omap);
+
+    virtual void handle_vmcall_data_string_json(vmcall_registers_t &regs, const json &str,
+            const bfn::unique_map_ptr_x64<char> &omap);
+
+    virtual void handle_vmcall_data_binary_unformatted(vmcall_registers_t &regs,
+            const bfn::unique_map_ptr_x64<char> &imap,
+            const bfn::unique_map_ptr_x64<char> &omap);
 
 protected:
 
@@ -163,13 +174,25 @@ protected:
     friend class exit_handler_intel_x64_ut;
     friend exit_handler_intel_x64 setup_ehlr(const std::shared_ptr<vmcs_intel_x64> &vmcs);
 
-    uint64_t m_exit_reason;
-    uint64_t m_exit_qualification;
-    uint64_t m_exit_instruction_length;
-    uint64_t m_exit_instruction_information;
-
     std::shared_ptr<vmcs_intel_x64> m_vmcs;
     std::shared_ptr<state_save_intel_x64> m_state_save;
+
+private:
+
+#ifdef INCLUDE_LIBCXX_UNITTESTS
+
+    void unittest_1001_containers_array() const;
+    void unittest_1002_containers_vector() const;
+    void unittest_1003_containers_deque() const;
+    void unittest_1004_containers_forward_list() const;
+    void unittest_1005_containers_list() const;
+    void unittest_1006_containers_stack() const;
+    void unittest_1007_containers_queue() const;
+    void unittest_1008_containers_priority_queue() const;
+    void unittest_1009_containers_set() const;
+    void unittest_100A_containers_map() const;
+
+#endif
 
 private:
 
@@ -179,80 +202,5 @@ private:
     virtual void set_state_save(const std::shared_ptr<state_save_intel_x64> &state_save)
     { m_state_save = state_save; }
 };
-
-// -----------------------------------------------------------------------------
-// Exit Handler Exit Reasons
-// -----------------------------------------------------------------------------
-
-// *INDENT-OFF*
-
-namespace intel_x64
-{
-namespace exit_reason
-{
-    constexpr const auto exception_or_non_maskable_interrupt            = 0UL;
-    constexpr const auto external_interrupt                             = 1UL;
-    constexpr const auto triple_fault                                   = 2UL;
-    constexpr const auto init_signal                                    = 3UL;
-    constexpr const auto sipi                                           = 4UL;
-    constexpr const auto smi                                            = 5UL;
-    constexpr const auto other_smi                                      = 6UL;
-    constexpr const auto interrupt_window                               = 7UL;
-    constexpr const auto nmi_window                                     = 8UL;
-    constexpr const auto task_switch                                    = 9UL;
-    constexpr const auto cpuid                                          = 10UL;
-    constexpr const auto getsec                                         = 11UL;
-    constexpr const auto hlt                                            = 12UL;
-    constexpr const auto invd                                           = 13UL;
-    constexpr const auto invlpg                                         = 14UL;
-    constexpr const auto rdpmc                                          = 15UL;
-    constexpr const auto rdtsc                                          = 16UL;
-    constexpr const auto rsm                                            = 17UL;
-    constexpr const auto vmcall                                         = 18UL;
-    constexpr const auto vmclear                                        = 19UL;
-    constexpr const auto vmlaunch                                       = 20UL;
-    constexpr const auto vmptrld                                        = 21UL;
-    constexpr const auto vmptrst                                        = 22UL;
-    constexpr const auto vmread                                         = 23UL;
-    constexpr const auto vmresume                                       = 24UL;
-    constexpr const auto vmwrite                                        = 25UL;
-    constexpr const auto vmxoff                                         = 26UL;
-    constexpr const auto vmxon                                          = 27UL;
-    constexpr const auto control_register_accesses                      = 28UL;
-    constexpr const auto mov_dr                                         = 29UL;
-    constexpr const auto io_instruction                                 = 30UL;
-    constexpr const auto rdmsr                                          = 31UL;
-    constexpr const auto wrmsr                                          = 32UL;
-    constexpr const auto vm_entry_failure_invalid_guest_state           = 33UL;
-    constexpr const auto vm_entry_failure_msr_loading                   = 34UL;
-    constexpr const auto mwait                                          = 36UL;
-    constexpr const auto monitor_trap_flag                              = 37UL;
-    constexpr const auto monitor                                        = 39UL;
-    constexpr const auto pause                                          = 40UL;
-    constexpr const auto vm_entry_failure_machine_check_event           = 41UL;
-    constexpr const auto tpr_below_threshold                            = 43UL;
-    constexpr const auto apic_access                                    = 44UL;
-    constexpr const auto virtualized_eoi                                = 45UL;
-    constexpr const auto access_to_gdtr_or_idtr                         = 46UL;
-    constexpr const auto access_to_ldtr_or_tr                           = 47UL;
-    constexpr const auto ept_violation                                  = 48UL;
-    constexpr const auto ept_misconfiguration                           = 49UL;
-    constexpr const auto invept                                         = 50UL;
-    constexpr const auto rdtscp                                         = 51UL;
-    constexpr const auto vmx_preemption_timer_expired                   = 52UL;
-    constexpr const auto invvpid                                        = 53UL;
-    constexpr const auto wbinvd                                         = 54UL;
-    constexpr const auto xsetbv                                         = 55UL;
-    constexpr const auto apic_write                                     = 56UL;
-    constexpr const auto rdrand                                         = 57UL;
-    constexpr const auto invpcid                                        = 58UL;
-    constexpr const auto vmfunc                                         = 59UL;
-    constexpr const auto rdseed                                         = 61UL;
-    constexpr const auto xsaves                                         = 63UL;
-    constexpr const auto xrstors                                        = 64UL;
-}
-}
-
-// *INDENT-ON*
 
 #endif

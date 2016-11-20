@@ -40,32 +40,32 @@ __outb(uint16_t port, uint8_t val) noexcept
 void
 serial_ut::test_serial_null_intrinsics()
 {
-    EXPECT_NO_EXCEPTION(std::make_shared<serial_port_intel_x64>());
+    EXPECT_NO_EXCEPTION(std::make_unique<serial_port_intel_x64>());
 }
 
 void
 serial_ut::test_serial_success()
 {
-    EXPECT_TRUE(serial_port_intel_x64::instance()->port() == DEFAULT_COM_PORT);
+    EXPECT_TRUE(serial_port_intel_x64::instance()->port() == serial_intel_x64::DEFAULT_COM_PORT);
     EXPECT_TRUE(serial_port_intel_x64::instance()->baud_rate() == serial_port_intel_x64::DEFAULT_BAUD_RATE);
     EXPECT_TRUE(serial_port_intel_x64::instance()->data_bits() == serial_port_intel_x64::DEFAULT_DATA_BITS);
     EXPECT_TRUE(serial_port_intel_x64::instance()->stop_bits() == serial_port_intel_x64::DEFAULT_STOP_BITS);
     EXPECT_TRUE(serial_port_intel_x64::instance()->parity_bits() == serial_port_intel_x64::DEFAULT_PARITY_BITS);
 
-    EXPECT_TRUE((g_ports[DEFAULT_COM_PORT + BAUD_RATE_LO_REG]) == ((serial_port_intel_x64::DEFAULT_BAUD_RATE & 0x00FF) >> 0));
-    EXPECT_TRUE((g_ports[DEFAULT_COM_PORT + BAUD_RATE_HI_REG]) == ((serial_port_intel_x64::DEFAULT_BAUD_RATE & 0xFF00) >> 8));
-    EXPECT_TRUE((g_ports[DEFAULT_COM_PORT + FIFO_CONTROL_REG] & FIFO_CONTROL_ENABLE_FIFOS) != 0);
-    EXPECT_TRUE((g_ports[DEFAULT_COM_PORT + FIFO_CONTROL_REG] & FIFO_CONTROL_CLEAR_RECIEVE_FIFO) != 0);
-    EXPECT_TRUE((g_ports[DEFAULT_COM_PORT + FIFO_CONTROL_REG] & FIFO_CONTROL_CLEAR_TRANSMIT_FIFO) != 0);
-    EXPECT_TRUE((g_ports[DEFAULT_COM_PORT + LINE_CONTROL_REG] & LINE_CONTROL_DATA_MASK) == serial_port_intel_x64::DEFAULT_DATA_BITS);
-    EXPECT_TRUE((g_ports[DEFAULT_COM_PORT + LINE_CONTROL_REG] & LINE_CONTROL_STOP_MASK) == serial_port_intel_x64::DEFAULT_STOP_BITS);
-    EXPECT_TRUE((g_ports[DEFAULT_COM_PORT + LINE_CONTROL_REG] & LINE_CONTROL_PARITY_MASK) == serial_port_intel_x64::DEFAULT_PARITY_BITS);
+    EXPECT_TRUE((g_ports[serial_intel_x64::DEFAULT_COM_PORT + serial_intel_x64::baud_rate_lo_reg]) == ((serial_port_intel_x64::DEFAULT_BAUD_RATE & 0x00FF) >> 0));
+    EXPECT_TRUE((g_ports[serial_intel_x64::DEFAULT_COM_PORT + serial_intel_x64::baud_rate_hi_reg]) == ((serial_port_intel_x64::DEFAULT_BAUD_RATE & 0xFF00) >> 8));
+    EXPECT_TRUE((g_ports[serial_intel_x64::DEFAULT_COM_PORT + serial_intel_x64::fifo_control_reg] & serial_intel_x64::fifo_control_enable_fifos) != 0);
+    EXPECT_TRUE((g_ports[serial_intel_x64::DEFAULT_COM_PORT + serial_intel_x64::fifo_control_reg] & serial_intel_x64::fifo_control_clear_recieve_fifo) != 0);
+    EXPECT_TRUE((g_ports[serial_intel_x64::DEFAULT_COM_PORT + serial_intel_x64::fifo_control_reg] & serial_intel_x64::fifo_control_clear_transmit_fifo) != 0);
+    EXPECT_TRUE((g_ports[serial_intel_x64::DEFAULT_COM_PORT + serial_intel_x64::line_control_reg] & serial_intel_x64::line_control_data_mask) == serial_port_intel_x64::DEFAULT_DATA_BITS);
+    EXPECT_TRUE((g_ports[serial_intel_x64::DEFAULT_COM_PORT + serial_intel_x64::line_control_reg] & serial_intel_x64::line_control_stop_mask) == serial_port_intel_x64::DEFAULT_STOP_BITS);
+    EXPECT_TRUE((g_ports[serial_intel_x64::DEFAULT_COM_PORT + serial_intel_x64::line_control_reg] & serial_intel_x64::line_control_parity_mask) == serial_port_intel_x64::DEFAULT_PARITY_BITS);
 }
 
 void
 serial_ut::test_serial_set_baud_rate_success()
 {
-    auto serial = std::make_shared<serial_port_intel_x64>();
+    auto serial = std::make_unique<serial_port_intel_x64>();
 
     serial->set_baud_rate(serial_port_intel_x64::baud_rate_50);
     EXPECT_TRUE(serial->baud_rate() == serial_port_intel_x64::baud_rate_50);
@@ -108,7 +108,7 @@ serial_ut::test_serial_set_baud_rate_success()
 void
 serial_ut::test_serial_set_data_bits_success()
 {
-    auto serial = std::make_shared<serial_port_intel_x64>();
+    auto serial = std::make_unique<serial_port_intel_x64>();
 
     serial->set_data_bits(serial_port_intel_x64::char_length_5);
     EXPECT_TRUE(serial->data_bits() == serial_port_intel_x64::char_length_5);
@@ -123,9 +123,9 @@ serial_ut::test_serial_set_data_bits_success()
 void
 serial_ut::test_serial_set_data_bits_success_extra_bits()
 {
-    auto serial = std::make_shared<serial_port_intel_x64>();
+    auto serial = std::make_unique<serial_port_intel_x64>();
 
-    auto bits = serial_port_intel_x64::DEFAULT_DATA_BITS | ~LINE_CONTROL_DATA_MASK;
+    auto bits = serial_port_intel_x64::DEFAULT_DATA_BITS | ~serial_intel_x64::line_control_data_mask;
     serial->set_data_bits(static_cast<serial_port_intel_x64::data_bits_t>(bits));
 
     EXPECT_TRUE(serial->data_bits() == serial_port_intel_x64::DEFAULT_DATA_BITS);
@@ -136,7 +136,7 @@ serial_ut::test_serial_set_data_bits_success_extra_bits()
 void
 serial_ut::test_serial_set_stop_bits_success()
 {
-    auto serial = std::make_shared<serial_port_intel_x64>();
+    auto serial = std::make_unique<serial_port_intel_x64>();
 
     serial->set_stop_bits(serial_port_intel_x64::stop_bits_1);
     EXPECT_TRUE(serial->stop_bits() == serial_port_intel_x64::stop_bits_1);
@@ -147,9 +147,9 @@ serial_ut::test_serial_set_stop_bits_success()
 void
 serial_ut::test_serial_set_stop_bits_success_extra_bits()
 {
-    auto serial = std::make_shared<serial_port_intel_x64>();
+    auto serial = std::make_unique<serial_port_intel_x64>();
 
-    auto bits = serial_port_intel_x64::DEFAULT_STOP_BITS | ~LINE_CONTROL_STOP_MASK;
+    auto bits = serial_port_intel_x64::DEFAULT_STOP_BITS | ~serial_intel_x64::line_control_stop_mask;
     serial->set_stop_bits(static_cast<serial_port_intel_x64::stop_bits_t>(bits));
 
     EXPECT_TRUE(serial->data_bits() == serial_port_intel_x64::DEFAULT_DATA_BITS);
@@ -160,7 +160,7 @@ serial_ut::test_serial_set_stop_bits_success_extra_bits()
 void
 serial_ut::test_serial_set_parity_bits_success()
 {
-    auto serial = std::make_shared<serial_port_intel_x64>();
+    auto serial = std::make_unique<serial_port_intel_x64>();
 
     serial->set_parity_bits(serial_port_intel_x64::parity_none);
     EXPECT_TRUE(serial->parity_bits() == serial_port_intel_x64::parity_none);
@@ -177,9 +177,9 @@ serial_ut::test_serial_set_parity_bits_success()
 void
 serial_ut::test_serial_set_parity_bits_success_extra_bits()
 {
-    auto serial = std::make_shared<serial_port_intel_x64>();
+    auto serial = std::make_unique<serial_port_intel_x64>();
 
-    auto bits = serial_port_intel_x64::DEFAULT_PARITY_BITS | ~LINE_CONTROL_PARITY_MASK;
+    auto bits = serial_port_intel_x64::DEFAULT_PARITY_BITS | ~serial_intel_x64::line_control_parity_mask;
     serial->set_parity_bits(static_cast<serial_port_intel_x64::parity_bits_t>(bits));
 
     EXPECT_TRUE(serial->data_bits() == serial_port_intel_x64::DEFAULT_DATA_BITS);
@@ -190,17 +190,17 @@ serial_ut::test_serial_set_parity_bits_success_extra_bits()
 void
 serial_ut::test_serial_write_character()
 {
-    g_ports[DEFAULT_COM_PORT + LINE_STATUS_REG] = 0xFF;
+    g_ports[serial_intel_x64::DEFAULT_COM_PORT + serial_intel_x64::line_status_reg] = 0xFF;
 
-    auto serial = std::make_shared<serial_port_intel_x64>();
+    auto serial = std::make_unique<serial_port_intel_x64>();
     serial->write('c');
 }
 
 void
 serial_ut::test_serial_write_string()
 {
-    g_ports[DEFAULT_COM_PORT + LINE_STATUS_REG] = 0xFF;
+    g_ports[serial_intel_x64::DEFAULT_COM_PORT + serial_intel_x64::line_status_reg] = 0xFF;
 
-    auto serial = std::make_shared<serial_port_intel_x64>();
+    auto serial = std::make_unique<serial_port_intel_x64>();
     serial->write("hello world");
 }

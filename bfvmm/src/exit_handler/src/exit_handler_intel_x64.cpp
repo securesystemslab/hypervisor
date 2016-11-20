@@ -21,12 +21,10 @@
 
 #include <gsl/gsl>
 
-#include <json.h>
 #include <debug.h>
 #include <constants.h>
 #include <error_codes.h>
 #include <guard_exceptions.h>
-#include <memory_manager/map_ptr_x64.h>
 #include <memory_manager/memory_manager_x64.h>
 #include <exit_handler/exit_handler_intel_x64.h>
 #include <exit_handler/exit_handler_intel_x64_entry.h>
@@ -38,6 +36,10 @@
 #include <intrinsics/vmx_intel_x64.h>
 
 #include <vmcs/vmcs_intel_x64_32bit_guest_state_fields.h>
+#include <vmcs/vmcs_intel_x64_32bit_read_only_data_fields.h>
+#include <vmcs/vmcs_intel_x64_natural_width_guest_state_fields.h>
+#include <vmcs/vmcs_intel_x64_natural_width_read_only_data_fields.h>
+#include <vmcs/vmcs_intel_x64_64bit_guest_state_fields.h>
 
 using namespace x64;
 using namespace intel_x64;
@@ -45,265 +47,248 @@ using namespace intel_x64;
 #include <mutex>
 std::mutex g_unimplemented_handler_mutex;
 
-exit_handler_intel_x64::exit_handler_intel_x64() :
-    m_exit_reason(0),
-    m_exit_qualification(0),
-    m_exit_instruction_length(0),
-    m_exit_instruction_information(0)
-{
-}
-
 void
 exit_handler_intel_x64::dispatch()
 {
-    m_exit_reason =
-        vm::read(VMCS_EXIT_REASON);
-    m_exit_qualification =
-        vm::read(VMCS_EXIT_QUALIFICATION);
-    m_exit_instruction_length =
-        vm::read(VMCS_VM_EXIT_INSTRUCTION_LENGTH);
-    m_exit_instruction_information =
-        vm::read(VMCS_VM_EXIT_INSTRUCTION_INFORMATION);
-
-    switch (m_exit_reason & 0x0000FFFF)
+    switch (vmcs::exit_reason::basic_exit_reason::get())
     {
-        case exit_reason::exception_or_non_maskable_interrupt:
+        case vmcs::exit_reason::basic_exit_reason::exception_or_non_maskable_interrupt:
             handle_exception_or_non_maskable_interrupt();
             break;
 
-        case exit_reason::external_interrupt:
+        case vmcs::exit_reason::basic_exit_reason::external_interrupt:
             handle_external_interrupt();
             break;
 
-        case exit_reason::triple_fault:
+        case vmcs::exit_reason::basic_exit_reason::triple_fault:
             handle_triple_fault();
             break;
 
-        case exit_reason::init_signal:
+        case vmcs::exit_reason::basic_exit_reason::init_signal:
             handle_init_signal();
             break;
 
-        case exit_reason::sipi:
+        case vmcs::exit_reason::basic_exit_reason::sipi:
             handle_sipi();
             break;
 
-        case exit_reason::smi:
+        case vmcs::exit_reason::basic_exit_reason::smi:
             handle_smi();
             break;
 
-        case exit_reason::other_smi:
+        case vmcs::exit_reason::basic_exit_reason::other_smi:
             handle_other_smi();
             break;
 
-        case exit_reason::interrupt_window:
+        case vmcs::exit_reason::basic_exit_reason::interrupt_window:
             handle_interrupt_window();
             break;
 
-        case exit_reason::nmi_window:
+        case vmcs::exit_reason::basic_exit_reason::nmi_window:
             handle_nmi_window();
             break;
 
-        case exit_reason::task_switch:
+        case vmcs::exit_reason::basic_exit_reason::task_switch:
             handle_task_switch();
             break;
 
-        case exit_reason::cpuid:
+        case vmcs::exit_reason::basic_exit_reason::cpuid:
             handle_cpuid();
             break;
 
-        case exit_reason::getsec:
+        case vmcs::exit_reason::basic_exit_reason::getsec:
             handle_getsec();
             break;
 
-        case exit_reason::hlt:
+        case vmcs::exit_reason::basic_exit_reason::hlt:
             handle_hlt();
             break;
 
-        case exit_reason::invd:
+        case vmcs::exit_reason::basic_exit_reason::invd:
             handle_invd();
             break;
 
-        case exit_reason::invlpg:
+        case vmcs::exit_reason::basic_exit_reason::invlpg:
             handle_invlpg();
             break;
 
-        case exit_reason::rdpmc:
+        case vmcs::exit_reason::basic_exit_reason::rdpmc:
             handle_rdpmc();
             break;
 
-        case exit_reason::rdtsc:
+        case vmcs::exit_reason::basic_exit_reason::rdtsc:
             handle_rdtsc();
             break;
 
-        case exit_reason::rsm:
+        case vmcs::exit_reason::basic_exit_reason::rsm:
             handle_rsm();
             break;
 
-        case exit_reason::vmcall:
+        case vmcs::exit_reason::basic_exit_reason::vmcall:
             handle_vmcall();
             break;
 
-        case exit_reason::vmclear:
+        case vmcs::exit_reason::basic_exit_reason::vmclear:
             handle_vmclear();
             break;
 
-        case exit_reason::vmlaunch:
+        case vmcs::exit_reason::basic_exit_reason::vmlaunch:
             handle_vmlaunch();
             break;
 
-        case exit_reason::vmptrld:
+        case vmcs::exit_reason::basic_exit_reason::vmptrld:
             handle_vmptrld();
             break;
 
-        case exit_reason::vmptrst:
+        case vmcs::exit_reason::basic_exit_reason::vmptrst:
             handle_vmptrst();
             break;
 
-        case exit_reason::vmread:
+        case vmcs::exit_reason::basic_exit_reason::vmread:
             handle_vmread();
             break;
 
-        case exit_reason::vmresume:
+        case vmcs::exit_reason::basic_exit_reason::vmresume:
             handle_vmresume();
             break;
 
-        case exit_reason::vmwrite:
+        case vmcs::exit_reason::basic_exit_reason::vmwrite:
             handle_vmwrite();
             break;
 
-        case exit_reason::vmxoff:
+        case vmcs::exit_reason::basic_exit_reason::vmxoff:
             handle_vmxoff();
             break;
 
-        case exit_reason::vmxon:
+        case vmcs::exit_reason::basic_exit_reason::vmxon:
             handle_vmxon();
             break;
 
-        case exit_reason::control_register_accesses:
+        case vmcs::exit_reason::basic_exit_reason::control_register_accesses:
             handle_control_register_accesses();
             break;
 
-        case exit_reason::mov_dr:
+        case vmcs::exit_reason::basic_exit_reason::mov_dr:
             handle_mov_dr();
             break;
 
-        case exit_reason::io_instruction:
+        case vmcs::exit_reason::basic_exit_reason::io_instruction:
             handle_io_instruction();
             break;
 
-        case exit_reason::rdmsr:
+        case vmcs::exit_reason::basic_exit_reason::rdmsr:
             handle_rdmsr();
             break;
 
-        case exit_reason::wrmsr:
+        case vmcs::exit_reason::basic_exit_reason::wrmsr:
             handle_wrmsr();
             break;
 
-        case exit_reason::vm_entry_failure_invalid_guest_state:
+        case vmcs::exit_reason::basic_exit_reason::vm_entry_failure_invalid_guest_state:
             handle_vm_entry_failure_invalid_guest_state();
             break;
 
-        case exit_reason::vm_entry_failure_msr_loading:
+        case vmcs::exit_reason::basic_exit_reason::vm_entry_failure_msr_loading:
             handle_vm_entry_failure_msr_loading();
             break;
 
-        case exit_reason::mwait:
+        case vmcs::exit_reason::basic_exit_reason::mwait:
             handle_mwait();
             break;
 
-        case exit_reason::monitor_trap_flag:
+        case vmcs::exit_reason::basic_exit_reason::monitor_trap_flag:
             handle_monitor_trap_flag();
             break;
 
-        case exit_reason::monitor:
+        case vmcs::exit_reason::basic_exit_reason::monitor:
             handle_monitor();
             break;
 
-        case exit_reason::pause:
+        case vmcs::exit_reason::basic_exit_reason::pause:
             handle_pause();
             break;
 
-        case exit_reason::vm_entry_failure_machine_check_event:
+        case vmcs::exit_reason::basic_exit_reason::vm_entry_failure_machine_check_event:
             handle_vm_entry_failure_machine_check_event();
             break;
 
-        case exit_reason::tpr_below_threshold:
+        case vmcs::exit_reason::basic_exit_reason::tpr_below_threshold:
             handle_tpr_below_threshold();
             break;
 
-        case exit_reason::apic_access:
+        case vmcs::exit_reason::basic_exit_reason::apic_access:
             handle_apic_access();
             break;
 
-        case exit_reason::virtualized_eoi:
+        case vmcs::exit_reason::basic_exit_reason::virtualized_eoi:
             handle_virtualized_eoi();
             break;
 
-        case exit_reason::access_to_gdtr_or_idtr:
+        case vmcs::exit_reason::basic_exit_reason::access_to_gdtr_or_idtr:
             handle_access_to_gdtr_or_idtr();
             break;
 
-        case exit_reason::access_to_ldtr_or_tr:
+        case vmcs::exit_reason::basic_exit_reason::access_to_ldtr_or_tr:
             handle_access_to_ldtr_or_tr();
             break;
 
-        case exit_reason::ept_violation:
+        case vmcs::exit_reason::basic_exit_reason::ept_violation:
             handle_ept_violation();
             break;
 
-        case exit_reason::ept_misconfiguration:
+        case vmcs::exit_reason::basic_exit_reason::ept_misconfiguration:
             handle_ept_misconfiguration();
             break;
 
-        case exit_reason::invept:
+        case vmcs::exit_reason::basic_exit_reason::invept:
             handle_invept();
             break;
 
-        case exit_reason::rdtscp:
+        case vmcs::exit_reason::basic_exit_reason::rdtscp:
             handle_rdtscp();
             break;
 
-        case exit_reason::vmx_preemption_timer_expired:
+        case vmcs::exit_reason::basic_exit_reason::vmx_preemption_timer_expired:
             handle_vmx_preemption_timer_expired();
             break;
 
-        case exit_reason::invvpid:
+        case vmcs::exit_reason::basic_exit_reason::invvpid:
             handle_invvpid();
             break;
 
-        case exit_reason::wbinvd:
+        case vmcs::exit_reason::basic_exit_reason::wbinvd:
             handle_wbinvd();
             break;
 
-        case exit_reason::xsetbv:
+        case vmcs::exit_reason::basic_exit_reason::xsetbv:
             handle_xsetbv();
             break;
 
-        case exit_reason::apic_write:
+        case vmcs::exit_reason::basic_exit_reason::apic_write:
             handle_apic_write();
             break;
 
-        case exit_reason::rdrand:
+        case vmcs::exit_reason::basic_exit_reason::rdrand:
             handle_rdrand();
             break;
 
-        case exit_reason::invpcid:
+        case vmcs::exit_reason::basic_exit_reason::invpcid:
             handle_invpcid();
             break;
 
-        case exit_reason::vmfunc:
+        case vmcs::exit_reason::basic_exit_reason::vmfunc:
             handle_vmfunc();
             break;
 
-        case exit_reason::rdseed:
+        case vmcs::exit_reason::basic_exit_reason::rdseed:
             handle_rdseed();
             break;
 
-        case exit_reason::xsaves:
+        case vmcs::exit_reason::basic_exit_reason::xsaves:
             handle_xsaves();
             break;
 
-        case exit_reason::xrstors:
+        case vmcs::exit_reason::basic_exit_reason::xrstors:
             handle_xrstors();
             break;
 
@@ -591,28 +576,28 @@ exit_handler_intel_x64::handle_rdmsr()
             msr = vmcs::guest_ia32_debugctl::get();
             break;
         case msrs::ia32_pat::addr:
-            msr = vm::read(VMCS_GUEST_IA32_PAT);
+            msr = vmcs::guest_ia32_pat::get();
             break;
         case msrs::ia32_efer::addr:
             msr = vmcs::guest_ia32_efer::get();
             break;
         case msrs::ia32_perf_global_ctrl::addr:
-            msr = vm::read(VMCS_GUEST_IA32_PERF_GLOBAL_CTRL);
+            msr = vmcs::guest_ia32_perf_global_ctrl::get();
             break;
         case msrs::ia32_sysenter_cs::addr:
             msr = vmcs::guest_ia32_sysenter_cs::get();
             break;
         case msrs::ia32_sysenter_esp::addr:
-            msr = vm::read(VMCS_GUEST_IA32_SYSENTER_ESP);
+            msr = vmcs::guest_ia32_sysenter_esp::get();
             break;
         case msrs::ia32_sysenter_eip::addr:
-            msr = vm::read(VMCS_GUEST_IA32_SYSENTER_EIP);
+            msr = vmcs::guest_ia32_sysenter_eip::get();
             break;
         case msrs::ia32_fs_base::addr:
-            msr = vm::read(VMCS_GUEST_FS_BASE);
+            msr = vmcs::guest_fs_base::get();
             break;
         case msrs::ia32_gs_base::addr:
-            msr = vm::read(VMCS_GUEST_GS_BASE);
+            msr = vmcs::guest_gs_base::get();
             break;
         default:
             msr = msrs::get(m_state_save->rcx);
@@ -657,28 +642,28 @@ exit_handler_intel_x64::handle_wrmsr()
             vmcs::guest_ia32_debugctl::set(msr);
             break;
         case msrs::ia32_pat::addr:
-            vm::write(VMCS_GUEST_IA32_PAT, msr);
+            vmcs::guest_ia32_pat::set(msr);
             break;
         case msrs::ia32_efer::addr:
             vmcs::guest_ia32_efer::set(msr);
             break;
         case msrs::ia32_perf_global_ctrl::addr:
-            vm::write(VMCS_GUEST_IA32_PERF_GLOBAL_CTRL, msr);
+            vmcs::guest_ia32_perf_global_ctrl::set(msr);
             break;
         case msrs::ia32_sysenter_cs::addr:
             vmcs::guest_ia32_sysenter_cs::set(msr);
             break;
         case msrs::ia32_sysenter_esp::addr:
-            vm::write(VMCS_GUEST_IA32_SYSENTER_ESP, msr);
+            vmcs::guest_ia32_sysenter_esp::set(msr);
             break;
         case msrs::ia32_sysenter_eip::addr:
-            vm::write(VMCS_GUEST_IA32_SYSENTER_EIP, msr);
+            vmcs::guest_ia32_sysenter_eip::set(msr);
             break;
         case msrs::ia32_fs_base::addr:
-            vm::write(VMCS_GUEST_FS_BASE, msr);
+            vmcs::guest_fs_base::set(msr);
             break;
         case msrs::ia32_gs_base::addr:
-            vm::write(VMCS_GUEST_GS_BASE, msr);
+            vmcs::guest_gs_base::set(msr);
             break;
         default:
             msrs::set(m_state_save->rcx, msr);
@@ -799,7 +784,7 @@ exit_handler_intel_x64::handle_xrstors()
 void
 exit_handler_intel_x64::advance_rip() noexcept
 {
-    m_state_save->rip += m_exit_instruction_length;
+    m_state_save->rip += vmcs::vm_exit_instruction_length::get();
 }
 
 void
@@ -812,17 +797,17 @@ exit_handler_intel_x64::unimplemented_handler() noexcept
     bferror << "Unimplemented Exit Handler: " << bfendl;
     bferror << "----------------------------------------------------" << bfendl;
     bferror << "- exit reason: "
-            << view_as_pointer(m_exit_reason) << bfendl;
+            << view_as_pointer(vmcs::exit_reason::get()) << bfendl;
     bferror << "- exit reason string: "
-            << exit_reason_to_str(m_exit_reason & 0x0000FFFF) << bfendl;
+            << vmcs::exit_reason::basic_exit_reason::description() << bfendl;
     bferror << "- exit qualification: "
-            << view_as_pointer(m_exit_qualification) << bfendl;
+            << view_as_pointer(vmcs::exit_qualification::get()) << bfendl;
     bferror << "- instruction length: "
-            << view_as_pointer(m_exit_instruction_length) << bfendl;
+            << view_as_pointer(vmcs::vm_exit_instruction_length::get()) << bfendl;
     bferror << "- instruction information: "
-            << view_as_pointer(m_exit_instruction_information) << bfendl;
+            << view_as_pointer(vmcs::vm_exit_instruction_information::get()) << bfendl;
 
-    if ((m_exit_reason & 0x80000000) != 0)
+    if (vmcs::exit_reason::vm_entry_failure::is_enabled())
     {
         bferror << bfendl;
         bferror << "VM-entry failure detected!!!" << bfendl;
@@ -839,196 +824,6 @@ exit_handler_intel_x64::unimplemented_handler() noexcept
     g_unimplemented_handler_mutex.unlock();
 
     this->halt();
-}
-
-std::string
-exit_handler_intel_x64::exit_reason_to_str(uint64_t exit_reason)
-{
-    switch (exit_reason)
-    {
-        case exit_reason::exception_or_non_maskable_interrupt:
-            return "exception_or_non_maskable_interrupt";
-
-        case exit_reason::external_interrupt:
-            return "external_interrupt";
-
-        case exit_reason::triple_fault:
-            return "triple_fault";
-
-        case exit_reason::init_signal:
-            return "init_signal";
-
-        case exit_reason::sipi:
-            return "sipi";
-
-        case exit_reason::smi:
-            return "smi";
-
-        case exit_reason::other_smi:
-            return "other_smi";
-
-        case exit_reason::interrupt_window:
-            return "interrupt_window";
-
-        case exit_reason::nmi_window:
-            return "nmi_window";
-
-        case exit_reason::task_switch:
-            return "task_switch";
-
-        case exit_reason::cpuid:
-            return "cpuid";
-
-        case exit_reason::getsec:
-            return "getsec";
-
-        case exit_reason::hlt:
-            return "hlt";
-
-        case exit_reason::invd:
-            return "invd";
-
-        case exit_reason::invlpg:
-            return "invlpg";
-
-        case exit_reason::rdpmc:
-            return "rdpmc";
-
-        case exit_reason::rdtsc:
-            return "rdtsc";
-
-        case exit_reason::rsm:
-            return "rsm";
-
-        case exit_reason::vmcall:
-            return "vmcall";
-
-        case exit_reason::vmclear:
-            return "vmclear";
-
-        case exit_reason::vmlaunch:
-            return "vmlaunch";
-
-        case exit_reason::vmptrld:
-            return "vmptrld";
-
-        case exit_reason::vmptrst:
-            return "vmptrst";
-
-        case exit_reason::vmread:
-            return "vmread";
-
-        case exit_reason::vmresume:
-            return "vmresume";
-
-        case exit_reason::vmwrite:
-            return "vmwrite";
-
-        case exit_reason::vmxoff:
-            return "vmxoff";
-
-        case exit_reason::vmxon:
-            return "vmxon";
-
-        case exit_reason::control_register_accesses:
-            return "control_register_accesses";
-
-        case exit_reason::mov_dr:
-            return "mov_dr";
-
-        case exit_reason::io_instruction:
-            return "io_instruction";
-
-        case exit_reason::rdmsr:
-            return "rdmsr";
-
-        case exit_reason::wrmsr:
-            return "wrmsr";
-
-        case exit_reason::vm_entry_failure_invalid_guest_state:
-            return "vm_entry_failure_invalid_guest_state";
-
-        case exit_reason::vm_entry_failure_msr_loading:
-            return "vm_entry_failure_msr_loading";
-
-        case exit_reason::mwait:
-            return "mwait";
-
-        case exit_reason::monitor_trap_flag:
-            return "monitor_trap_flag";
-
-        case exit_reason::monitor:
-            return "monitor";
-
-        case exit_reason::pause:
-            return "pause";
-
-        case exit_reason::vm_entry_failure_machine_check_event:
-            return "vm_entry_failure_machine_check_event";
-
-        case exit_reason::tpr_below_threshold:
-            return "tpr_below_threshold";
-
-        case exit_reason::apic_access:
-            return "apic_access";
-
-        case exit_reason::virtualized_eoi:
-            return "virtualized_eoi";
-
-        case exit_reason::access_to_gdtr_or_idtr:
-            return "access_to_gdtr_or_idtr";
-
-        case exit_reason::access_to_ldtr_or_tr:
-            return "access_to_ldtr_or_tr";
-
-        case exit_reason::ept_violation:
-            return "ept_violation";
-
-        case exit_reason::ept_misconfiguration:
-            return "ept_misconfiguration";
-
-        case exit_reason::invept:
-            return "invept";
-
-        case exit_reason::rdtscp:
-            return "rdtscp";
-
-        case exit_reason::vmx_preemption_timer_expired:
-            return "vmx_preemption_timer_expired";
-
-        case exit_reason::invvpid:
-            return "invvpid";
-
-        case exit_reason::wbinvd:
-            return "wbinvd";
-
-        case exit_reason::xsetbv:
-            return "xsetbv";
-
-        case exit_reason::apic_write:
-            return "apic_write";
-
-        case exit_reason::rdrand:
-            return "rdrand";
-
-        case exit_reason::invpcid:
-            return "invpcid";
-
-        case exit_reason::vmfunc:
-            return "vmfunc";
-
-        case exit_reason::rdseed:
-            return "rdseed";
-
-        case exit_reason::xsaves:
-            return "xsaves";
-
-        case exit_reason::xrstors:
-            return "xrstors";
-
-        default:
-            return "unknown";
-    };
 }
 
 void
@@ -1087,57 +882,26 @@ exit_handler_intel_x64::handle_vmcall_data(vmcall_registers_t &regs)
     expects(regs.r06 <= VMCALL_IN_BUFFER_SIZE);
     expects(regs.r09 <= VMCALL_OUT_BUFFER_SIZE);
 
+    auto &&imap = bfn::make_unique_map_x64<char>(regs.r05, vmcs::guest_cr3::get(), regs.r06);
+    auto &&omap = bfn::make_unique_map_x64<char>(regs.r08, vmcs::guest_cr3::get(), regs.r09);
+
     switch (regs.r04)
     {
         case VMCALL_DATA_STRING_UNFORMATTED:
         {
-            auto &&istr = bfn::make_unique_map_x64<char>(regs.r05, vmcs::guest_cr3::get(), regs.r06);
-            auto &&ostr = bfn::make_unique_map_x64<char>(regs.r08, vmcs::guest_cr3::get(), regs.r09);
-
-            bfdebug << "received in vmm: " << std::string(istr.get(), regs.r06) << bfendl;
-
-            __builtin_memset(ostr.get(), 0, regs.r09);
-            __builtin_memcpy(ostr.get(), istr.get(), regs.r06);
-
-            regs.r07 = VMCALL_DATA_STRING_UNFORMATTED;
-            regs.r09 = regs.r06;
-
+            handle_vmcall_data_string_unformatted(regs, std::string(imap.get(), regs.r06), omap);
             break;
         }
 
         case VMCALL_DATA_STRING_JSON:
         {
-            auto &&istr = bfn::make_unique_map_x64<char>(regs.r05, vmcs::guest_cr3::get(), regs.r06);
-            auto &&ostr = bfn::make_unique_map_x64<char>(regs.r08, vmcs::guest_cr3::get(), regs.r09);
-
-            bfdebug << "received in vmm: " << json::parse(std::string(istr.get(), regs.r06)) << bfendl;
-
-            __builtin_memset(ostr.get(), 0, regs.r09);
-            __builtin_memcpy(ostr.get(), istr.get(), regs.r06);
-
-            regs.r07 = VMCALL_DATA_STRING_JSON;
-            regs.r09 = regs.r06;
-
+            handle_vmcall_data_string_json(regs, json::parse(std::string(imap.get(), regs.r06)), omap);
             break;
         }
 
         case VMCALL_DATA_BINARY_UNFORMATTED:
         {
-            auto &&istr = bfn::make_unique_map_x64<char>(regs.r05, vmcs::guest_cr3::get(), regs.r06);
-            auto &&ostr = bfn::make_unique_map_x64<char>(regs.r08, vmcs::guest_cr3::get(), regs.r09);
-
-            __builtin_memset(ostr.get(), 0, regs.r09);
-            __builtin_memcpy(ostr.get(), istr.get(), regs.r06);
-
-            regs.r07 = VMCALL_DATA_BINARY_UNFORMATTED;
-            regs.r09 = regs.r06;
-
-            bfdebug << "received binary data:" << bfendl;
-            bfdebug << "    - in_addr: " << view_as_pointer(regs.r05) << bfendl;
-            bfdebug << "    - in_size: " << regs.r06 << bfendl;
-            bfdebug << "    - out_addr: " << view_as_pointer(regs.r08) << bfendl;
-            bfdebug << "    - out_size: " << regs.r09 << bfendl;
-
+            handle_vmcall_data_binary_unformatted(regs, imap, omap);
             break;
         }
 
@@ -1154,8 +918,47 @@ exit_handler_intel_x64::handle_vmcall_event(vmcall_registers_t &regs)
 }
 
 void
-exit_handler_intel_x64::handle_vmcall_unittest(vmcall_registers_t &regs)
+exit_handler_intel_x64::handle_vmcall_data_string_unformatted(vmcall_registers_t &regs, const std::string &str,
+        const bfn::unique_map_ptr_x64<char> &omap)
 {
-    bfdebug << "vmcall unittest:" << bfendl;
-    bfdebug << "r02: " << view_as_pointer(regs.r02) << bfendl;
+    bfdebug << "received in vmm: " << str << bfendl;
+
+    __builtin_memset(omap.get(), 0, regs.r09);
+    __builtin_memcpy(omap.get(), str.data(), str.length());
+
+    regs.r07 = VMCALL_DATA_STRING_UNFORMATTED;
+    regs.r09 = regs.r06;
+}
+
+void
+exit_handler_intel_x64::handle_vmcall_data_string_json(vmcall_registers_t &regs, const json &str,
+        const bfn::unique_map_ptr_x64<char> &omap)
+{
+    auto dump = str.dump();
+
+    bfdebug << "received in vmm: " << dump << bfendl;
+
+    __builtin_memset(omap.get(), 0, regs.r09);
+    __builtin_memcpy(omap.get(), dump.data(), dump.length());
+
+    regs.r07 = VMCALL_DATA_STRING_JSON;
+    regs.r09 = regs.r06;
+}
+
+void
+exit_handler_intel_x64::handle_vmcall_data_binary_unformatted(vmcall_registers_t &regs,
+        const bfn::unique_map_ptr_x64<char> &imap,
+        const bfn::unique_map_ptr_x64<char> &omap)
+{
+    __builtin_memset(omap.get(), 0, regs.r09);
+    __builtin_memcpy(omap.get(), imap.get(), regs.r06);
+
+    regs.r07 = VMCALL_DATA_BINARY_UNFORMATTED;
+    regs.r09 = regs.r06;
+
+    bfdebug << "received binary data:" << bfendl;
+    bfdebug << "    - in_addr: " << view_as_pointer(regs.r05) << bfendl;
+    bfdebug << "    - in_size: " << regs.r06 << bfendl;
+    bfdebug << "    - out_addr: " << view_as_pointer(regs.r08) << bfendl;
+    bfdebug << "    - out_size: " << regs.r09 << bfendl;
 }

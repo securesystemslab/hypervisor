@@ -31,8 +31,13 @@
 #include <vmcs/vmcs_intel_x64_16bit_host_state_fields.h>
 #include <vmcs/vmcs_intel_x64_16bit_guest_state_fields.h>
 #include <vmcs/vmcs_intel_x64_32bit_guest_state_fields.h>
+#include <vmcs/vmcs_intel_x64_32bit_host_state_field.h>
+#include <vmcs/vmcs_intel_x64_natural_width_guest_state_fields.h>
 #include <memory_manager/memory_manager_x64.h>
 #include <exit_handler/exit_handler_intel_x64_support.h>
+#include <vmcs/vmcs_intel_x64_natural_width_host_state_fields.h>
+#include <vmcs/vmcs_intel_x64_64bit_guest_state_fields.h>
+#include <vmcs/vmcs_intel_x64_64bit_host_state_fields.h>
 
 using namespace x64;
 using namespace intel_x64;
@@ -108,7 +113,7 @@ vmcs_intel_x64::launch(const std::shared_ptr<vmcs_intel_x64_state> &host_state,
 void
 vmcs_intel_x64::promote()
 {
-    vmcs_promote(vm::read(VMCS_HOST_GS_BASE));
+    vmcs_promote(vmcs::host_gs_base::get());
 
     throw std::runtime_error("vmcs promote failed");
 }
@@ -282,11 +287,11 @@ vmcs_intel_x64::write_16bit_guest_state(const std::shared_ptr<vmcs_intel_x64_sta
 void
 vmcs_intel_x64::write_64bit_guest_state(const std::shared_ptr<vmcs_intel_x64_state> &state)
 {
-    vm::write(VMCS_VMCS_LINK_POINTER, 0xFFFFFFFFFFFFFFFF);
+    vmcs::vmcs_link_pointer::set(0xFFFFFFFFFFFFFFFF);
     vmcs::guest_ia32_debugctl::set(state->ia32_debugctl_msr());
-    vm::write(VMCS_GUEST_IA32_PAT, state->ia32_pat_msr());
+    vmcs::guest_ia32_pat::set(state->ia32_pat_msr());
     vmcs::guest_ia32_efer::set(state->ia32_efer_msr());
-    vm::write(VMCS_GUEST_IA32_PERF_GLOBAL_CTRL, state->ia32_perf_global_ctrl_msr());
+    vmcs::guest_ia32_perf_global_ctrl::set(state->ia32_perf_global_ctrl_msr());
 
     // unused: VMCS_GUEST_PDPTE0
     // unused: VMCS_GUEST_PDPTE1
@@ -333,23 +338,23 @@ vmcs_intel_x64::write_natural_guest_state(const std::shared_ptr<vmcs_intel_x64_s
     vmcs::guest_cr3::set(state->cr3());
     vmcs::guest_cr4::set(state->cr4());
 
-    vm::write(VMCS_GUEST_ES_BASE, state->es_base());
-    vm::write(VMCS_GUEST_CS_BASE, state->cs_base());
-    vm::write(VMCS_GUEST_SS_BASE, state->ss_base());
-    vm::write(VMCS_GUEST_DS_BASE, state->ds_base());
-    vm::write(VMCS_GUEST_FS_BASE, state->ia32_fs_base_msr());
-    vm::write(VMCS_GUEST_GS_BASE, state->ia32_gs_base_msr());
-    vm::write(VMCS_GUEST_LDTR_BASE, state->ldtr_base());
-    vm::write(VMCS_GUEST_TR_BASE, state->tr_base());
+    vmcs::guest_es_base::set(state->es_base());
+    vmcs::guest_cs_base::set(state->cs_base());
+    vmcs::guest_ss_base::set(state->ss_base());
+    vmcs::guest_ds_base::set(state->ds_base());
+    vmcs::guest_fs_base::set(state->ia32_fs_base_msr());
+    vmcs::guest_gs_base::set(state->ia32_gs_base_msr());
+    vmcs::guest_ldtr_base::set(state->ldtr_base());
+    vmcs::guest_tr_base::set(state->tr_base());
 
-    vm::write(VMCS_GUEST_GDTR_BASE, state->gdt_base());
-    vm::write(VMCS_GUEST_IDTR_BASE, state->idt_base());
+    vmcs::guest_gdtr_base::set(state->gdt_base());
+    vmcs::guest_idtr_base::set(state->idt_base());
 
-    vm::write(VMCS_GUEST_DR7, state->dr7());
+    vmcs::guest_dr7::set(state->dr7());
     vmcs::guest_rflags::set(state->rflags());
 
-    vm::write(VMCS_GUEST_IA32_SYSENTER_ESP, state->ia32_sysenter_esp_msr());
-    vm::write(VMCS_GUEST_IA32_SYSENTER_EIP, state->ia32_sysenter_eip_msr());
+    vmcs::guest_ia32_sysenter_esp::set(state->ia32_sysenter_esp_msr());
+    vmcs::guest_ia32_sysenter_eip::set(state->ia32_sysenter_eip_msr());
 
     // unused: VMCS_GUEST_RSP, see m_intrinsics->vmlaunch()
     // unused: VMCS_GUEST_RIP, see m_intrinsics->vmlaunch()
@@ -371,15 +376,15 @@ vmcs_intel_x64::write_16bit_host_state(const std::shared_ptr<vmcs_intel_x64_stat
 void
 vmcs_intel_x64::write_64bit_host_state(const std::shared_ptr<vmcs_intel_x64_state> &state)
 {
-    vm::write(VMCS_HOST_IA32_PAT, state->ia32_pat_msr());
+    vmcs::host_ia32_pat::set(state->ia32_pat_msr());
     vmcs::host_ia32_efer::set(state->ia32_efer_msr());
-    vm::write(VMCS_HOST_IA32_PERF_GLOBAL_CTRL, state->ia32_perf_global_ctrl_msr());
+    vmcs::host_ia32_perf_global_ctrl::set(state->ia32_perf_global_ctrl_msr());
 }
 
 void
 vmcs_intel_x64::write_32bit_host_state(const std::shared_ptr<vmcs_intel_x64_state> &state)
 {
-    vm::write(VMCS_HOST_IA32_SYSENTER_CS, state->ia32_sysenter_cs_msr());
+    vmcs::host_ia32_sysenter_cs::set(state->ia32_sysenter_cs_msr());
 }
 
 void
@@ -399,18 +404,18 @@ vmcs_intel_x64::write_natural_host_state(const std::shared_ptr<vmcs_intel_x64_st
     vmcs::host_cr3::set(state->cr3());
     vmcs::host_cr4::set(state->cr4());
 
-    vm::write(VMCS_HOST_FS_BASE, state->ia32_fs_base_msr());
-    vm::write(VMCS_HOST_GS_BASE, reinterpret_cast<uintptr_t>(m_state_save.get()));
-    vm::write(VMCS_HOST_TR_BASE, state->tr_base());
+    vmcs::host_fs_base::set(state->ia32_fs_base_msr());
+    vmcs::host_gs_base::set(reinterpret_cast<uintptr_t>(m_state_save.get()));
+    vmcs::host_tr_base::set(state->tr_base());
 
-    vm::write(VMCS_HOST_GDTR_BASE, state->gdt_base());
-    vm::write(VMCS_HOST_IDTR_BASE, state->idt_base());
+    vmcs::host_gdtr_base::set(state->gdt_base());
+    vmcs::host_idtr_base::set(state->idt_base());
 
-    vm::write(VMCS_HOST_IA32_SYSENTER_ESP, state->ia32_sysenter_esp_msr());
-    vm::write(VMCS_HOST_IA32_SYSENTER_EIP, state->ia32_sysenter_eip_msr());
+    vmcs::host_ia32_sysenter_esp::set(state->ia32_sysenter_esp_msr());
+    vmcs::host_ia32_sysenter_eip::set(state->ia32_sysenter_eip_msr());
 
-    vm::write(VMCS_HOST_RSP, reinterpret_cast<uintptr_t>(exit_handler_stack));
-    vm::write(VMCS_HOST_RIP, reinterpret_cast<uintptr_t>(exit_handler_entry));
+    vmcs::host_rsp::set(reinterpret_cast<uintptr_t>(exit_handler_stack));
+    vmcs::host_rip::set(reinterpret_cast<uintptr_t>(exit_handler_entry));
 }
 
 void
