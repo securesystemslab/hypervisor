@@ -89,25 +89,24 @@ else
 endif
 
 ifeq ($(NATIVE_USE_LLVM_CLANG), true)
-	NATIVE_CC:=clang
-	NATIVE_CXX:=clang++
-	NATIVE_ASM:=nasm
-	NATIVE_LD:=clang++
-	NATIVE_AR:=ar
-else
-# original settings
-	#NATIVE_CC:=gcc
-	#NATIVE_CXX:=g++
+	#NATIVE_CC:=clang
+	#NATIVE_CXX:=clang++
 	#NATIVE_ASM:=nasm
-	#NATIVE_LD:=g++
+	#NATIVE_LD:=clang++
 	#NATIVE_AR:=ar
-
+	
 # new settings
 	NATIVE_CC:=$(BUILD_ABS)/../multicompiler/tools/bin/clang
 	NATIVE_CXX:=$(BUILD_ABS)/../multicompiler/tools/bin/clang++
 	NATIVE_ASM:=nasm
-	NATIVE_LD:=$(BUILD_ABS)/../multicompiler/tools/bin/ld
+	#NATIVE_LD:=$(BUILD_ABS)/../multicompiler/tools/bin/ld
 	NATIVE_LD:=$(BUILD_ABS)/../multicompiler/tools/bin/clang++
+	NATIVE_AR:=ar
+else
+	NATIVE_CC:=gcc
+	NATIVE_CXX:=g++
+	NATIVE_ASM:=nasm
+	NATIVE_LD:=g++
 	NATIVE_AR:=ar
 endif
 
