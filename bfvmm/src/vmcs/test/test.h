@@ -108,12 +108,14 @@ protected:
                             const std::vector<struct control_flow_path> &cfg,
                             R(vmcs_intel_x64::*mf)(Args...), Args &&... args)
     {
-        for (const auto &path : cfg)
+        for (int i = 0; static_cast<size_t>(i) < cfg.size(); i++)
         {
             MockRepository mocks;
             auto mm = mocks.Mock<memory_manager_x64>();
 
             setup_mock(mocks, mm);
+
+            auto path = cfg[static_cast<size_t>(i)];
             path.setup();
 
             RUN_UNITTEST_WITH_MOCKS(mocks, [&]
@@ -122,9 +124,9 @@ protected:
                 auto func = std::bind(std::forward<decltype(mf)>(mf), &vmcs, std::forward<Args>(args)...);
 
                 if (path.throws_exception)
-                    this->expect_exception_with_args(std::forward<decltype(func)>(func), path.exception, fut, line);
+                    this->expect_exception_with_args(func, path.exception, fut, line, i);
                 else
-                    this->expect_no_exception_with_args(std::forward<decltype(func)>(func), fut, line);
+                    this->expect_no_exception_with_args(func, fut, line, i);
             });
         }
     }
@@ -1039,6 +1041,31 @@ private:
     void test_check_host_vmcs_host_address_space_size_is_set();
     void test_check_host_host_address_space_disabled();
     void test_check_host_host_address_space_enabled();
+
+    void test_debug_dump();
+    void test_debug_dump_16bit_control_fields();
+    void test_debug_dump_16bit_guest_state_fields();
+    void test_debug_dump_16bit_host_state_fields();
+    void test_debug_dump_64bit_control_fields();
+    void test_debug_dump_64bit_read_only_data_field();
+    void test_debug_dump_64bit_guest_state_fields();
+    void test_debug_dump_64bit_host_state_fields();
+    void test_debug_dump_32bit_control_fields();
+    void test_debug_dump_32bit_read_only_data_fields();
+    void test_debug_dump_32bit_guest_state_fields();
+    void test_debug_dump_32bit_host_state_field();
+    void test_debug_dump_natural_width_control_fields();
+    void test_debug_dump_natural_width_read_only_data_fields();
+    void test_debug_dump_natural_width_guest_state_fields();
+    void test_debug_dump_natural_width_host_state_fields();
+    void test_debug_dump_vmx_controls();
+    void test_debug_dump_pin_based_vm_execution_controls();
+    void test_debug_dump_primary_processor_based_vm_execution_controls();
+    void test_debug_dump_secondary_processor_based_vm_execution_controls();
+    void test_debug_dump_vm_exit_control_fields();
+    void test_debug_dump_vm_entry_control_fields();
+    void test_debug_dump_vmcs_field();
+    void test_debug_dump_vm_control();
 };
 
 #endif
