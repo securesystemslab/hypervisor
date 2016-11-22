@@ -91,7 +91,7 @@ install_docker_1604() {
     sudo add-apt-repository "deb https://apt.dockerproject.org/repo ubuntu-xenial main"
 
     sudo apt-get update
-    sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" docker-engine
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" docker
 }
 
 install_docker_1404() {
@@ -150,7 +150,7 @@ case $( grep ^VERSION_ID= /etc/os-release | cut -d'=' -f 2 | tr -d '"' ) in
     install_common_packages
     install_clang_1604
     install_docker_1604
-    prepare_docker
+    #prepare_docker
     ;;
 
 14.04)
