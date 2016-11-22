@@ -47,6 +47,7 @@ if [[ -z "$CUSTOM_CLANG_URL" ]]; then
 else
     clang_url=$CUSTOM_CLANG_URL
 fi
+
 n=0
 until [ $n -ge 5 ]
 do
@@ -57,6 +58,16 @@ do
 done
 
 #cd source_llvm/tools
+
+n=0
+until [ $n -ge 5 ]
+do
+    #git clone --depth 1 -b $clang_branch $clang_url && break
+    git clone --depth 1 -b cfar_38 git@github.com:/securesystemslab/multicompiler-clang-priv.git source_llvm/tools/clang && break
+    n=$[$n+1]
+    sleep 15
+done
+
 
 n=0
 until [ $n -ge 5 ]
