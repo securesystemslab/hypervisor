@@ -91,7 +91,7 @@ install_docker_1604() {
     sudo add-apt-repository "deb https://apt.dockerproject.org/repo ubuntu-xenial main"
 
     sudo apt-get update
-    sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" docker
+    sudo DEBIAN_FRONTEND=noninteractive apt-get install --yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" docker.io
 }
 
 install_docker_1404() {
