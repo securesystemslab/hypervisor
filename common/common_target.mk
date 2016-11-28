@@ -83,11 +83,11 @@ CROSS_OUTDIR:=$(CROSS_OUTDIR)/cross
 # Exectuables
 ################################################################################
 
-NATIVE_CC:=$(CC)
-NATIVE_CXX:=$(CXX)
-NATIVE_ASM:=nasm
-NATIVE_LD:=$(CXX)
-NATIVE_AR:=$(AR)
+#NATIVE_CC:=$(CC)
+#NATIVE_CXX:=$(CXX)
+#NATIVE_ASM:=nasm
+#NATIVE_LD:=$(CXX)
+#NATIVE_AR:=$(AR)
 	
 # new settings
 	NATIVE_CC:=$(BUILD_ABS)/../multicompiler/tools/bin/clang
