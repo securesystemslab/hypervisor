@@ -20,41 +20,14 @@
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-#ifndef VMCS_INTEL_X64_64BIT_READ_ONLY_DATA_FIELD_H
-#define VMCS_INTEL_X64_64BIT_READ_ONLY_DATA_FIELD_H
+#include <vmcs/vmcs_intel_x64_check.h>
 
-#include <bitmanip.h>
-#include <vmcs/vmcs_intel_x64.h>
-#include <intrinsics/msrs_intel_x64.h>
+using namespace intel_x64;
 
-// *INDENT-OFF*
-
-namespace intel_x64
+void
+vmcs::check::all()
 {
-namespace vmcs
-{
-
-namespace guest_physical_address
-{
-    constexpr const auto addr = 0x0000000000002400UL;
-    constexpr const auto name = "guest_physical_address";
-
-    inline auto exists() noexcept
-    {
-        return msrs::ia32_vmx_true_procbased_ctls::activate_secondary_controls::is_allowed1() &&
-               msrs::ia32_vmx_procbased_ctls2::enable_ept::is_allowed1();
-    }
-
-    inline auto get()
-    { return get_vmcs_field(addr, name, exists()); }
-
-    inline auto get_if_exists(bool verbose = false) noexcept
-    { return get_vmcs_field_if_exists(addr, name, verbose, exists()); }
+    vmcs::check::control_vmx_controls_all();
+    vmcs::check::host_state_all();
+    vmcs::check::guest_state_all();
 }
-
-}
-}
-
-// *INDENT-ON*
-
-#endif
