@@ -56,7 +56,7 @@ public:
     /// @expects none
     /// @ensures none
     ///
-    exit_handler_intel_x64() = default;
+    exit_handler_intel_x64();
 
     /// Destructor
     ///
@@ -105,33 +105,46 @@ protected:
     void handle_vmcall_event(vmcall_registers_t &regs);
     void handle_vmcall_unittest(vmcall_registers_t &regs);
 
-    void handle_vmcall_data_string_unformatted(
+    virtual void handle_vmcall_data_string_unformatted(
         vmcall_registers_t &regs, const std::string &str,
         const bfn::unique_map_ptr_x64<char> &omap);
 
-    void handle_vmcall_data_string_json(
+    virtual void handle_vmcall_data_string_json(
         vmcall_registers_t &regs, const json &str,
         const bfn::unique_map_ptr_x64<char> &omap);
 
-    void handle_vmcall_data_binary_unformatted(
+    virtual void handle_vmcall_data_binary_unformatted(
         vmcall_registers_t &regs,
         const bfn::unique_map_ptr_x64<char> &imap,
         const bfn::unique_map_ptr_x64<char> &omap);
 
-protected:
+    void reply_with_string(
+        vmcall_registers_t &regs, const std::string &str,
+        const bfn::unique_map_ptr_x64<char> &omap);
+
+    void reply_with_json(
+        vmcall_registers_t &regs, const json &str,
+        const bfn::unique_map_ptr_x64<char> &omap);
+
+    vmcs_intel_x64 *m_vmcs;
+    state_save_intel_x64 *m_state_save;
+
+private:
 
     friend class vcpu_ut;
     friend class vcpu_intel_x64;
     friend class exit_handler_intel_x64_ut;
-    friend exit_handler_intel_x64 setup_ehlr(const std::shared_ptr<vmcs_intel_x64> &vmcs);
+    friend exit_handler_intel_x64 setup_ehlr(gsl::not_null<vmcs_intel_x64 *> vmcs);
 
-    std::shared_ptr<vmcs_intel_x64> m_vmcs;
-    std::shared_ptr<state_save_intel_x64> m_state_save;
+    virtual void set_vmcs(gsl::not_null<vmcs_intel_x64 *> vmcs)
+    { m_vmcs = vmcs; }
+
+    virtual void set_state_save(gsl::not_null<state_save_intel_x64 *> state_save)
+    { m_state_save = state_save; }
 
 private:
 
 #ifdef INCLUDE_LIBCXX_UNITTESTS
-
     void unittest_1001_containers_array() const;
     void unittest_1002_containers_vector() const;
     void unittest_1003_containers_deque() const;
@@ -143,15 +156,10 @@ private:
     void unittest_1009_containers_set() const;
     void unittest_100A_containers_map() const;
 
+    void unittest_1100_io_cout() const;
+    void unittest_1101_io_manipulators() const;
 #endif
 
-private:
-
-    virtual void set_vmcs(const std::shared_ptr<vmcs_intel_x64> &vmcs)
-    { m_vmcs = vmcs; }
-
-    virtual void set_state_save(const std::shared_ptr<state_save_intel_x64> &state_save)
-    { m_state_save = state_save; }
 };
 
 #endif

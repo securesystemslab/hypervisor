@@ -22,33 +22,39 @@
 #include <vmcs/vmcs_intel_x64_vmm_state.h>
 #include <memory_manager/root_page_table_x64.h>
 
-#include <intrinsics/crs_intel_x64.h>
-#include <intrinsics/msrs_intel_x64.h>
-
 using namespace x64;
 using namespace intel_x64;
 
-vmcs_intel_x64_vmm_state::vmcs_intel_x64_vmm_state() :
-    m_gdt{7},
-    m_idt{256}
+tss_x64 g_tss{};
+gdt_x64 g_gdt{7};
+idt_x64 g_idt{256};
+
+static auto gdt_setup = false;
+
+vmcs_intel_x64_vmm_state::vmcs_intel_x64_vmm_state()
 {
-    m_gdt.set_access_rights(1, access_rights::ring0_cs_descriptor);
-    m_gdt.set_access_rights(2, access_rights::ring0_ss_descriptor);
-    m_gdt.set_access_rights(3, access_rights::ring0_fs_descriptor);
-    m_gdt.set_access_rights(4, access_rights::ring0_gs_descriptor);
-    m_gdt.set_access_rights(5, access_rights::ring0_tr_descriptor);
+    if (!gdt_setup)
+    {
+        g_gdt.set_access_rights(1, access_rights::ring0_cs_descriptor);
+        g_gdt.set_access_rights(2, access_rights::ring0_ss_descriptor);
+        g_gdt.set_access_rights(3, access_rights::ring0_fs_descriptor);
+        g_gdt.set_access_rights(4, access_rights::ring0_gs_descriptor);
+        g_gdt.set_access_rights(5, access_rights::ring0_tr_descriptor);
 
-    m_gdt.set_base(1, 0);
-    m_gdt.set_base(2, 0);
-    m_gdt.set_base(3, 0);
-    m_gdt.set_base(4, 0);
-    m_gdt.set_base(5, reinterpret_cast<uint64_t>(&m_tss));
+        g_gdt.set_base(1, 0);
+        g_gdt.set_base(2, 0);
+        g_gdt.set_base(3, 0);
+        g_gdt.set_base(4, 0);
+        g_gdt.set_base(5, reinterpret_cast<gdt_x64::base_type>(&g_tss));
 
-    m_gdt.set_limit(1, 0xFFFFFFFF);
-    m_gdt.set_limit(2, 0xFFFFFFFF);
-    m_gdt.set_limit(3, 0xFFFFFFFF);
-    m_gdt.set_limit(4, 0xFFFFFFFF);
-    m_gdt.set_limit(5, sizeof(m_tss));
+        g_gdt.set_limit(1, 0xFFFFFFFF);
+        g_gdt.set_limit(2, 0xFFFFFFFF);
+        g_gdt.set_limit(3, 0xFFFFFFFF);
+        g_gdt.set_limit(4, 0xFFFFFFFF);
+        g_gdt.set_limit(5, sizeof(g_tss));
+
+        gdt_setup = true;
+    }
 
     m_cs_index = 1;
     m_ss_index = 2;
@@ -56,11 +62,11 @@ vmcs_intel_x64_vmm_state::vmcs_intel_x64_vmm_state() :
     m_gs_index = 4;
     m_tr_index = 5;
 
-    m_cs = gsl::narrow_cast<uint16_t>(m_cs_index << 3);
-    m_ss = gsl::narrow_cast<uint16_t>(m_ss_index << 3);
-    m_fs = gsl::narrow_cast<uint16_t>(m_fs_index << 3);
-    m_gs = gsl::narrow_cast<uint16_t>(m_gs_index << 3);
-    m_tr = gsl::narrow_cast<uint16_t>(m_tr_index << 3);
+    m_cs = gsl::narrow_cast<segment_register::type>(m_cs_index << 3);
+    m_ss = gsl::narrow_cast<segment_register::type>(m_ss_index << 3);
+    m_fs = gsl::narrow_cast<segment_register::type>(m_fs_index << 3);
+    m_gs = gsl::narrow_cast<segment_register::type>(m_gs_index << 3);
+    m_tr = gsl::narrow_cast<segment_register::type>(m_tr_index << 3);
 
     m_cr0 = 0;
     m_cr0 |= cr0::protection_enable::mask;

@@ -55,15 +55,15 @@ struct cpuid_regs
 };
 
 
-extern std::map<msrs::field_type, msrs::value_type> g_msrs;
-extern std::map<vmcs::field_type, vmcs::value_type> g_vmcs_fields;
+extern std::map<uint32_t, uint64_t> g_msrs;
+extern std::map<uint64_t, uint64_t> g_vmcs_fields;
 extern std::map<uint32_t, uint32_t> g_eax_cpuid;
 extern bool g_virt_to_phys_return_nullptr;
 extern bool g_phys_to_virt_return_nullptr;
-extern uint64_t g_test_addr;
-extern uint64_t g_virt_apic_addr;
-extern uint64_t g_vmcs_link_addr;
-extern uint64_t g_pdpt_addr;
+extern uintptr_t g_test_addr;
+extern uintptr_t g_virt_apic_addr;
+extern uintptr_t g_vmcs_link_addr;
+extern uintptr_t g_pdpt_addr;
 extern struct cpuid_regs g_cpuid_regs;
 
 extern uint8_t g_virt_apic_mem[0x81];
@@ -1249,6 +1249,72 @@ private:
     void test_debug_dump_vm_entry_control_fields();
     void test_debug_dump_vmcs_field();
     void test_debug_dump_vm_control();
+
+    void test_state();
+    void test_state_segment_registers();
+    void test_state_control_registers();
+    void test_state_debug_registers();
+    void test_state_rflags();
+    void test_state_gdt_base();
+    void test_state_idt_base();
+    void test_state_gdt_limit();
+    void test_state_idt_limit();
+    void test_state_segment_registers_limit();
+    void test_state_segment_registers_access_rights();
+    void test_state_segment_register_base();
+    void test_state_msrs();
+    void test_state_dump();
+
+    void test_host_vm_state();
+    void test_host_vm_state_segment_registers();
+    void test_host_vm_state_control_registers();
+    void test_host_vm_state_debug_registers();
+    void test_host_vm_state_rflags();
+    void test_host_vm_state_gdt_base();
+    void test_host_vm_state_idt_base();
+    void test_host_vm_state_gdt_limit();
+    void test_host_vm_state_idt_limit();
+    void test_host_vm_state_es_limit();
+    void test_host_vm_state_cs_limit();
+    void test_host_vm_state_ss_limit();
+    void test_host_vm_state_ds_limit();
+    void test_host_vm_state_fs_limit();
+    void test_host_vm_state_gs_limit();
+    void test_host_vm_state_tr_limit();
+    void test_host_vm_state_ldtr_limit();
+    void test_host_vm_state_es_access_rights();
+    void test_host_vm_state_cs_access_rights();
+    void test_host_vm_state_ss_access_rights();
+    void test_host_vm_state_ds_access_rights();
+    void test_host_vm_state_fs_access_rights();
+    void test_host_vm_state_gs_access_rights();
+    void test_host_vm_state_tr_access_rights();
+    void test_host_vm_state_ldtr_access_rights();
+    void test_host_vm_state_es_base();
+    void test_host_vm_state_cs_base();
+    void test_host_vm_state_ss_base();
+    void test_host_vm_state_ds_base();
+    void test_host_vm_state_fs_base();
+    void test_host_vm_state_gs_base();
+    void test_host_vm_state_tr_base();
+    void test_host_vm_state_ldtr_base();
+    void test_host_vm_state_ia32_msrs();
+    void test_host_vm_state_dump();
+
+    void test_vmm_state_gdt_not_setup();
+    void test_vmm_state();
+    void test_vmm_state_segment_registers();
+    void test_vmm_state_control_registers();
+    void test_vmm_state_rflags();
+    void test_vmm_state_gdt_base();
+    void test_vmm_state_idt_base();
+    void test_vmm_state_gdt_limit();
+    void test_vmm_state_idt_limit();
+    void test_vmm_state_segment_registers_limit();
+    void test_vmm_state_segment_registers_access_rights();
+    void test_vmm_state_segment_registers_base();
+    void test_vmm_state_ia32_efer_msr();
+    void test_vmm_state_dump();
 };
 
 #endif

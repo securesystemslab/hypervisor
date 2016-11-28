@@ -22,7 +22,7 @@
 #include <exception.h>
 #include <vcpu/vcpu.h>
 
-vcpu::vcpu(uint64_t id, std::shared_ptr<debug_ring> dr) :
+vcpu::vcpu(vcpuid::type id, std::unique_ptr<debug_ring> dr) :
     m_id(id),
     m_debug_ring(std::move(dr)),
     m_is_running(false),
@@ -31,21 +31,22 @@ vcpu::vcpu(uint64_t id, std::shared_ptr<debug_ring> dr) :
     if ((id & vcpuid::reserved) != 0)
         throw std::invalid_argument("invalid vcpuid");
 
-    if (!m_debug_ring) m_debug_ring = std::make_shared<debug_ring>(id);
+    if (!m_debug_ring)
+        m_debug_ring = std::make_unique<debug_ring>(id);
 }
 
 void
-vcpu::init(void *attr)
+vcpu::init(user_data *data)
 {
-    (void) attr;
+    (void) data;
 
     m_is_initialized = true;
 }
 
 void
-vcpu::fini(void *attr)
+vcpu::fini(user_data *data)
 {
-    (void) attr;
+    (void) data;
 
     if (m_is_running)
         this->hlt();
@@ -54,23 +55,21 @@ vcpu::fini(void *attr)
 }
 
 void
-vcpu::run(void *attr)
+vcpu::run(user_data *data)
 {
-    (void) attr;
+    (void) data;
 
     m_is_running = true;
 }
 
 void
-vcpu::hlt(void *attr)
+vcpu::hlt(user_data *data)
 {
-    (void) attr;
+    (void) data;
 
     m_is_running = false;
 }
 
 void
 vcpu::write(const std::string &str) noexcept
-{
-    m_debug_ring->write(str);
-}
+{ m_debug_ring->write(str); }

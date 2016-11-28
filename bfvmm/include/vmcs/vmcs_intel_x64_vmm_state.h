@@ -27,9 +27,9 @@
 #include <debug.h>
 #include <vmcs/vmcs_intel_x64_state.h>
 
-#include <intrinsics/gdt_x64.h>
-#include <intrinsics/idt_x64.h>
-#include <intrinsics/tss_x64.h>
+extern tss_x64 g_tss;
+extern gdt_x64 g_gdt;
+extern idt_x64 g_idt;
 
 /// VMCS VMM State
 ///
@@ -52,43 +52,72 @@ public:
     vmcs_intel_x64_vmm_state();
     ~vmcs_intel_x64_vmm_state() override = default;
 
-    uint16_t cs() const override { return m_cs; }
-    uint16_t ss() const override { return m_ss; }
-    uint16_t fs() const override { return m_fs; }
-    uint16_t gs() const override { return m_gs; }
-    uint16_t tr() const override { return m_tr; }
+    x64::segment_register::type cs() const override
+    { return m_cs; }
+    x64::segment_register::type ss() const override
+    { return m_ss; }
+    x64::segment_register::type fs() const override
+    { return m_fs; }
+    x64::segment_register::type gs() const override
+    { return m_gs; }
+    x64::segment_register::type tr() const override
+    { return m_tr; }
 
-    uint64_t cr0() const override { return m_cr0; }
-    uint64_t cr3() const override { return m_cr3; }
-    uint64_t cr4() const override { return m_cr4; }
+    intel_x64::cr0::value_type cr0() const override
+    { return m_cr0; }
+    intel_x64::cr3::value_type cr3() const override
+    { return m_cr3; }
+    intel_x64::cr4::value_type cr4() const override
+    { return m_cr4; }
 
-    uint64_t rflags() const override { return m_rflags; }
+    x64::rflags::value_type rflags() const override
+    { return m_rflags; }
 
-    uint64_t gdt_base() const override { return m_gdt.base(); }
-    uint64_t idt_base() const override { return m_idt.base(); }
+    gdt_x64::integer_pointer gdt_base() const override
+    { return g_gdt.base(); }
+    idt_x64::integer_pointer idt_base() const override
+    { return g_idt.base(); }
 
-    uint16_t gdt_limit() const override { return m_gdt.limit(); }
-    uint16_t idt_limit() const override { return m_idt.limit(); }
+    gdt_x64::size_type gdt_limit() const override
+    { return g_gdt.limit(); }
+    idt_x64::size_type idt_limit() const override
+    { return g_idt.limit(); }
 
-    uint32_t cs_limit() const override { return m_gdt.limit(m_cs_index); }
-    uint32_t ss_limit() const override { return m_gdt.limit(m_ss_index); }
-    uint32_t fs_limit() const override { return m_gdt.limit(m_fs_index); }
-    uint32_t gs_limit() const override { return m_gdt.limit(m_gs_index); }
-    uint32_t tr_limit() const override { return m_gdt.limit(m_tr_index); }
+    gdt_x64::limit_type cs_limit() const override
+    { return g_gdt.limit(m_cs_index); }
+    gdt_x64::limit_type ss_limit() const override
+    { return g_gdt.limit(m_ss_index); }
+    gdt_x64::limit_type fs_limit() const override
+    { return g_gdt.limit(m_fs_index); }
+    gdt_x64::limit_type gs_limit() const override
+    { return g_gdt.limit(m_gs_index); }
+    gdt_x64::limit_type tr_limit() const override
+    { return g_gdt.limit(m_tr_index); }
 
-    uint32_t cs_access_rights() const override { return m_gdt.access_rights(m_cs_index); }
-    uint32_t ss_access_rights() const override { return m_gdt.access_rights(m_ss_index); }
-    uint32_t fs_access_rights() const override { return m_gdt.access_rights(m_fs_index); }
-    uint32_t gs_access_rights() const override { return m_gdt.access_rights(m_gs_index); }
-    uint32_t tr_access_rights() const override { return m_gdt.access_rights(m_tr_index); }
+    gdt_x64::access_rights_type cs_access_rights() const override
+    { return g_gdt.access_rights(m_cs_index); }
+    gdt_x64::access_rights_type ss_access_rights() const override
+    { return g_gdt.access_rights(m_ss_index); }
+    gdt_x64::access_rights_type fs_access_rights() const override
+    { return g_gdt.access_rights(m_fs_index); }
+    gdt_x64::access_rights_type gs_access_rights() const override
+    { return g_gdt.access_rights(m_gs_index); }
+    gdt_x64::access_rights_type tr_access_rights() const override
+    { return g_gdt.access_rights(m_tr_index); }
 
-    uint64_t cs_base() const override { return m_gdt.base(m_cs_index); }
-    uint64_t ss_base() const override { return m_gdt.base(m_ss_index); }
-    uint64_t fs_base() const override { return m_gdt.base(m_fs_index); }
-    uint64_t gs_base() const override { return m_gdt.base(m_gs_index); }
-    uint64_t tr_base() const override { return m_gdt.base(m_tr_index); }
+    gdt_x64::base_type cs_base() const override
+    { return g_gdt.base(m_cs_index); }
+    gdt_x64::base_type ss_base() const override
+    { return g_gdt.base(m_ss_index); }
+    gdt_x64::base_type fs_base() const override
+    { return g_gdt.base(m_fs_index); }
+    gdt_x64::base_type gs_base() const override
+    { return g_gdt.base(m_gs_index); }
+    gdt_x64::base_type tr_base() const override
+    { return g_gdt.base(m_tr_index); }
 
-    uint64_t ia32_efer_msr() const override { return m_ia32_efer_msr; }
+    intel_x64::msrs::value_type ia32_efer_msr() const override
+    { return m_ia32_efer_msr; }
 
     void dump() const override
     {
@@ -98,85 +127,81 @@ public:
 
         bfdebug << bfendl;
         bfdebug << "segment selectors:" << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(m_cs) << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(m_ss) << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(m_fs) << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(m_gs) << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(m_tr) << bfendl;
+        bfdebug << "    - m_cs: " << view_as_pointer(m_cs) << bfendl;
+        bfdebug << "    - m_ss: " << view_as_pointer(m_ss) << bfendl;
+        bfdebug << "    - m_fs: " << view_as_pointer(m_fs) << bfendl;
+        bfdebug << "    - m_gs: " << view_as_pointer(m_gs) << bfendl;
+        bfdebug << "    - m_tr: " << view_as_pointer(m_tr) << bfendl;
 
         bfdebug << bfendl;
         bfdebug << "segment base:" << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(cs_base()) << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(ss_base()) << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(fs_base()) << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(gs_base()) << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(tr_base()) << bfendl;
+        bfdebug << "    - cs_base(): " << view_as_pointer(cs_base()) << bfendl;
+        bfdebug << "    - ss_base(): " << view_as_pointer(ss_base()) << bfendl;
+        bfdebug << "    - fs_base(): " << view_as_pointer(fs_base()) << bfendl;
+        bfdebug << "    - gs_base(): " << view_as_pointer(gs_base()) << bfendl;
+        bfdebug << "    - tr_base(): " << view_as_pointer(tr_base()) << bfendl;
 
         bfdebug << bfendl;
         bfdebug << "segment limit:" << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(cs_limit()) << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(ss_limit()) << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(fs_limit()) << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(gs_limit()) << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(tr_limit()) << bfendl;
+        bfdebug << "    - cs_limit(): " << view_as_pointer(cs_limit()) << bfendl;
+        bfdebug << "    - ss_limit(): " << view_as_pointer(ss_limit()) << bfendl;
+        bfdebug << "    - fs_limit(): " << view_as_pointer(fs_limit()) << bfendl;
+        bfdebug << "    - gs_limit(): " << view_as_pointer(gs_limit()) << bfendl;
+        bfdebug << "    - tr_limit(): " << view_as_pointer(tr_limit()) << bfendl;
 
         bfdebug << bfendl;
         bfdebug << "segment acess rights:" << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(cs_access_rights()) << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(ss_access_rights()) << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(fs_access_rights()) << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(gs_access_rights()) << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(tr_access_rights()) << bfendl;
+        bfdebug << "    - cs_access_rights(): " << view_as_pointer(cs_access_rights()) << bfendl;
+        bfdebug << "    - ss_access_rights(): " << view_as_pointer(ss_access_rights()) << bfendl;
+        bfdebug << "    - fs_access_rights(): " << view_as_pointer(fs_access_rights()) << bfendl;
+        bfdebug << "    - gs_access_rights(): " << view_as_pointer(gs_access_rights()) << bfendl;
+        bfdebug << "    - tr_access_rights(): " << view_as_pointer(tr_access_rights()) << bfendl;
 
         bfdebug << bfendl;
         bfdebug << "registers:" << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(m_cr0) << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(m_cr3) << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(m_cr4) << bfendl;
+        bfdebug << "    - m_cr0: " << view_as_pointer(m_cr0) << bfendl;
+        bfdebug << "    - m_cr3: " << view_as_pointer(m_cr3) << bfendl;
+        bfdebug << "    - m_cr4: " << view_as_pointer(m_cr4) << bfendl;
 
         bfdebug << bfendl;
         bfdebug << "flags:" << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(m_rflags) << bfendl;
+        bfdebug << "    - m_rflags: " << view_as_pointer(m_rflags) << bfendl;
 
         bfdebug << bfendl;
         bfdebug << "gdt/idt:" << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(m_gdt.base()) << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(m_gdt.limit()) << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(m_idt.base()) << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(m_idt.limit()) << bfendl;
+        bfdebug << "    - g_gdt.base(): " << view_as_pointer(g_gdt.base()) << bfendl;
+        bfdebug << "    - g_gdt.limit(): " << view_as_pointer(g_gdt.limit()) << bfendl;
+        bfdebug << "    - g_idt.base(): " << view_as_pointer(g_idt.base()) << bfendl;
+        bfdebug << "    - g_idt.limit(): " << view_as_pointer(g_idt.limit()) << bfendl;
 
         bfdebug << bfendl;
         bfdebug << "model specific registers:" << bfendl;
-        bfdebug << std::setw(35) << view_as_pointer(m_ia32_efer_msr) << bfendl;
+        bfdebug << "    - m_ia32_efer_msr: " << view_as_pointer(m_ia32_efer_msr) << bfendl;
 
         bfdebug << bfendl;
     }
 
 private:
 
-    uint16_t m_cs;
-    uint16_t m_ss;
-    uint16_t m_fs;
-    uint16_t m_gs;
-    uint16_t m_tr;
+    x64::segment_register::type m_cs;
+    x64::segment_register::type m_ss;
+    x64::segment_register::type m_fs;
+    x64::segment_register::type m_gs;
+    x64::segment_register::type m_tr;
 
-    uint16_t m_cs_index;
-    uint16_t m_ss_index;
-    uint16_t m_fs_index;
-    uint16_t m_gs_index;
-    uint16_t m_tr_index;
+    x64::segment_register::type m_cs_index;
+    x64::segment_register::type m_ss_index;
+    x64::segment_register::type m_fs_index;
+    x64::segment_register::type m_gs_index;
+    x64::segment_register::type m_tr_index;
 
-    uint64_t m_cr0;
-    uint64_t m_cr3;
-    uint64_t m_cr4;
+    intel_x64::cr0::value_type m_cr0;
+    intel_x64::cr3::value_type m_cr3;
+    intel_x64::cr4::value_type m_cr4;
 
-    uint64_t m_rflags;
+    x64::rflags::value_type m_rflags;
 
-    tss_x64 m_tss;
-    gdt_x64 m_gdt;
-    idt_x64 m_idt;
-
-    uint64_t m_ia32_efer_msr;
+    intel_x64::msrs::value_type m_ia32_efer_msr;
 };
 
 #endif
