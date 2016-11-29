@@ -83,19 +83,11 @@ CROSS_OUTDIR:=$(CROSS_OUTDIR)/cross
 # Exectuables
 ################################################################################
 
-#NATIVE_CC:=$(CC)
-#NATIVE_CXX:=$(CXX)
-#NATIVE_ASM:=nasm
-#NATIVE_LD:=$(CXX)
-#NATIVE_AR:=$(AR)
-	
-# new settings
-	NATIVE_CC:=$(BUILD_ABS)/../multicompiler/tools/bin/clang
-	NATIVE_CXX:=$(BUILD_ABS)/../multicompiler/tools/bin/clang++
-	NATIVE_ASM:=nasm
-	#NATIVE_LD:=$(BUILD_ABS)/../multicompiler/tools/bin/ld
-	NATIVE_LD:=$(BUILD_ABS)/../multicompiler/tools/bin/clang++
-	NATIVE_AR:=ar
+NATIVE_CC:=$(CC)
+NATIVE_CXX:=$(CXX)
+NATIVE_ASM:=nasm
+NATIVE_LD:=$(CXX)
+NATIVE_AR:=$(AR)
 
 ifeq ($(findstring clang,$(COMPILER)),clang)
 	CROSS_CC:=$(BUILD_ABS)/build_scripts/x86_64-bareflank-clang
@@ -129,7 +121,7 @@ RMDIR:=rmdir --ignore-fail-on-non-empty -p
 # to customize the builds system, while also suppliying these flags to our
 # dependencies.
 
-NATIVE_CCFLAGS+=-Wall ${MULTICOMPILER_FLAGS}
+NATIVE_CCFLAGS+=-Wall
 NATIVE_CCFLAGS+=-Wextra
 NATIVE_CCFLAGS+=-Wpedantic
 NATIVE_CCFLAGS+=-Wshadow
@@ -146,7 +138,7 @@ ifeq ($(DYNAMIC_ANALYSIS_ENABLED), true)
 	NATIVE_CCFLAGS+=-fno-sanitize=alignment
 endif
 
-CROSS_CCFLAGS+=-Wall ${MULTICOMPILER_FLAGS}
+CROSS_CCFLAGS+=-Wall
 CROSS_CCFLAGS+=-Wextra
 CROSS_CCFLAGS+=-Wpedantic
 CROSS_CCFLAGS+=-Wshadow
@@ -189,7 +181,7 @@ endif
 # to customize the builds system, while also suppliying these flags to our
 # dependencies.
 
-NATIVE_CXXFLAGS+=-Wall ${MULTICOMPILER_FLAGS}
+NATIVE_CXXFLAGS+=-Wall
 NATIVE_CXXFLAGS+=-Wextra
 NATIVE_CXXFLAGS+=-Wpedantic
 NATIVE_CXXFLAGS+=-Wctor-dtor-privacy
@@ -212,7 +204,7 @@ ifeq ($(DYNAMIC_ANALYSIS_ENABLED), true)
 	NATIVE_CXXFLAGS+=-fno-sanitize=alignment
 endif
 
-CROSS_CXXFLAGS+=-Wall ${MULTICOMPILER_FLAGS}
+CROSS_CXXFLAGS+=-Wall
 CROSS_CXXFLAGS+=-Wextra
 CROSS_CXXFLAGS+=-Wpedantic
 CROSS_CXXFLAGS+=-Wctor-dtor-privacy
