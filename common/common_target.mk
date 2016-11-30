@@ -90,10 +90,10 @@ CROSS_OUTDIR:=$(CROSS_OUTDIR)/cross
 #NATIVE_AR:=$(AR)
 
 
-NATIVE_CC:=$(CC)
-NATIVE_CXX:=$(CXX)
+NATIVE_CC:=$(BUILD_ABS)/../multicompiler/tools/bin/clang
+NATIVE_CXX:=$(BUILD_ABS)/../multicompiler/tools/bin/clang++
 NATIVE_ASM:=nasm
-NATIVE_LD:=$(CXX)
+NATIVE_LD:=$(BUILD_ABS)/../multicompiler/tools/bin/clang++
 NATIVE_AR:=$(AR)
 
 
