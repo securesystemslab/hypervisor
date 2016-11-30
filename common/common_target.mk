@@ -83,11 +83,20 @@ CROSS_OUTDIR:=$(CROSS_OUTDIR)/cross
 # Exectuables
 ################################################################################
 
+#NATIVE_CC:=$(CC)
+#NATIVE_CXX:=$(CXX)
+#NATIVE_ASM:=nasm
+#NATIVE_LD:=$(CXX)
+#NATIVE_AR:=$(AR)
+
+
 NATIVE_CC:=$(CC)
 NATIVE_CXX:=$(CXX)
 NATIVE_ASM:=nasm
 NATIVE_LD:=$(CXX)
 NATIVE_AR:=$(AR)
+
+
 
 ifeq ($(findstring clang,$(COMPILER)),clang)
 	CROSS_CC:=$(BUILD_ABS)/build_scripts/x86_64-bareflank-clang
@@ -138,7 +147,7 @@ ifeq ($(DYNAMIC_ANALYSIS_ENABLED), true)
 	NATIVE_CCFLAGS+=-fno-sanitize=alignment
 endif
 
-CROSS_CCFLAGS+=-Wall
+CROSS_CCFLAGS+=-Wall $(MULTICOMPILER_FLAGS)
 CROSS_CCFLAGS+=-Wextra
 CROSS_CCFLAGS+=-Wpedantic
 CROSS_CCFLAGS+=-Wshadow
@@ -204,7 +213,7 @@ ifeq ($(DYNAMIC_ANALYSIS_ENABLED), true)
 	NATIVE_CXXFLAGS+=-fno-sanitize=alignment
 endif
 
-CROSS_CXXFLAGS+=-Wall
+CROSS_CXXFLAGS+=-Wall $(MULTICOMPILER_FLAGS)
 CROSS_CXXFLAGS+=-Wextra
 CROSS_CXXFLAGS+=-Wpedantic
 CROSS_CXXFLAGS+=-Wctor-dtor-privacy
