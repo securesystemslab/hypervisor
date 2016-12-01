@@ -83,19 +83,18 @@ CROSS_OUTDIR:=$(CROSS_OUTDIR)/cross
 # Exectuables
 ################################################################################
 
-#NATIVE_CC:=$(CC)
-#NATIVE_CXX:=$(CXX)
-#NATIVE_ASM:=nasm
-#NATIVE_LD:=$(CXX)
-#NATIVE_AR:=$(AR)
-
-
-NATIVE_CC:=$(BUILD_ABS)/../multicompiler/tools/bin/clang
-NATIVE_CXX:=$(BUILD_ABS)/../multicompiler/tools/bin/clang++
+NATIVE_CC:=$(CC)
+NATIVE_CXX:=$(CXX)
 NATIVE_ASM:=nasm
-NATIVE_LD:=$(BUILD_ABS)/../multicompiler/tools/bin/clang++
+NATIVE_LD:=$(CXX)
 NATIVE_AR:=$(AR)
 
+
+#NATIVE_CC:=$(BUILD_ABS)/../multicompiler/tools/bin/clang
+#NATIVE_CXX:=$(BUILD_ABS)/../multicompiler/tools/bin/clang++
+#NATIVE_ASM:=nasm
+#NATIVE_LD:=$(BUILD_ABS)/../multicompiler/tools/bin/clang++
+#NATIVE_AR:=$(AR)
 
 
 ifeq ($(findstring clang,$(COMPILER)),clang)
@@ -147,7 +146,7 @@ ifeq ($(DYNAMIC_ANALYSIS_ENABLED), true)
 	NATIVE_CCFLAGS+=-fno-sanitize=alignment
 endif
 
-CROSS_CCFLAGS+=-Wall $(MULTICOMPILER_FLAGS)
+CROSS_CCFLAGS+=-Wall
 CROSS_CCFLAGS+=-Wextra
 CROSS_CCFLAGS+=-Wpedantic
 CROSS_CCFLAGS+=-Wshadow
@@ -213,7 +212,7 @@ ifeq ($(DYNAMIC_ANALYSIS_ENABLED), true)
 	NATIVE_CXXFLAGS+=-fno-sanitize=alignment
 endif
 
-CROSS_CXXFLAGS+=-Wall $(MULTICOMPILER_FLAGS)
+CROSS_CXXFLAGS+=-Wall
 CROSS_CXXFLAGS+=-Wextra
 CROSS_CXXFLAGS+=-Wpedantic
 CROSS_CXXFLAGS+=-Wctor-dtor-privacy
