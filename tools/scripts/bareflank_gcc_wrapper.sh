@@ -72,7 +72,7 @@ fi
 
 if [[ $0 == *"clang" ]]; then
     if [[ $LOCAL_COMPILER == "true" ]]; then
-        COMPILER="$HOME/compilers/$compiler/bin/clang --target=x86_64-elf -Qunused-arguments"
+        COMPILER="$HOME/compilers/$compiler/bin/clang --target=x86_64-elf -Qunused-arguments $MULTICOMPILER_FLAGS"
     else
         COMPILER="docker run $DOCKER_ARGS /tmp/compilers/$compiler/bin/clang --target=x86_64-elf -Qunused-arguments"
     fi
@@ -88,7 +88,7 @@ fi
 
 if [[ $0 == *"clang++" ]]; then
     if [[ $LOCAL_COMPILER == "true" ]]; then
-        COMPILER="$HOME/compilers/$compiler/bin/clang++ --target=x86_64-elf -Qunused-arguments"
+        COMPILER="$HOME/compilers/$compiler/bin/clang++ --target=x86_64-elf -Qunused-arguments $MULTICOMPILER_FLAGS"
     else
         COMPILER="docker run $DOCKER_ARGS /tmp/compilers/$compiler/bin/clang++ --target=x86_64-elf -Qunused-arguments"
     fi
@@ -128,7 +128,7 @@ if [[ $0 == *"docker" ]]; then
 fi
 
 if [[ $LOCAL_COMPILER == "true" ]]; then
-    LINKER="$HOME/compilers/$compiler/bin/x86_64-elf-ld"
+    LINKER="$HOME/compilers/$compiler/bin/x86_64-elf-ld $MULTICOMPILER_FLAGS"
 else
     LINKER="docker run $DOCKER_ARGS /tmp/compilers/$compiler/bin/x86_64-elf-ld"
 fi
@@ -178,6 +178,15 @@ do
     fi
 
     # Compile Only Flags
+
+    #if [[ $ARG == "-mllvm -" ]]; then
+        ##COMPILE_ARGS[$COMPILE_ARGS_INDEX]=$ARG;
+        ##COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
+        #continue;
+    #fi
+
+
+
     if [[ $ARG == "-m"* ]]; then
         COMPILE_ARGS[$COMPILE_ARGS_INDEX]=$ARG;
         COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
@@ -311,6 +320,7 @@ if [[ -n "$SOURCE_ARGS" ]]; then
         COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
     fi
 
+    echo -e "\n$COMPILER $SYSROOT_INC_PATH ${COMPILE_ARGS[*]} ${COMMON_ARGS[*]} ${SOURCE_ARGS[*]}\n"
     $COMPILER $SYSROOT_INC_PATH ${COMPILE_ARGS[*]} ${COMMON_ARGS[*]} ${SOURCE_ARGS[*]}
 fi
 
@@ -318,4 +328,5 @@ if [[ $COMPILE_ONLY == "yes" ]]; then
     exit 0
 fi
 
+echo -e "\n\n $LINKER ${OBJECT_FILE_ARGS[*]} ${LINK_ARGS[*]} ${COMMON_ARGS[*]} -z max-page-size=4096 -z common-page-size=4096 -z relro -z now \n\n"
 $LINKER ${OBJECT_FILE_ARGS[*]} ${LINK_ARGS[*]} ${COMMON_ARGS[*]} -z max-page-size=4096 -z common-page-size=4096 -z relro -z now
