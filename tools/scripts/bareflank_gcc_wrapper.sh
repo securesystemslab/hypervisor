@@ -128,7 +128,7 @@ if [[ $0 == *"docker" ]]; then
 fi
 
 if [[ $LOCAL_COMPILER == "true" ]]; then
-    LINKER="$HOME/compilers/$compiler/bin/x86_64-elf-ld $MULTICOMPILER_FLAGS"
+    LINKER="$HOME/compilers/$compiler/bin/x86_64-elf-ld"
 else
     LINKER="docker run $DOCKER_ARGS /tmp/compilers/$compiler/bin/x86_64-elf-ld"
 fi
@@ -178,15 +178,6 @@ do
     fi
 
     # Compile Only Flags
-
-    #if [[ $ARG == "-mllvm -" ]]; then
-        ##COMPILE_ARGS[$COMPILE_ARGS_INDEX]=$ARG;
-        ##COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
-        #continue;
-    #fi
-
-
-
     if [[ $ARG == "-m"* ]]; then
         COMPILE_ARGS[$COMPILE_ARGS_INDEX]=$ARG;
         COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
