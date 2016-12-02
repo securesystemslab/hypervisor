@@ -128,7 +128,7 @@ if [[ $0 == *"docker" ]]; then
 fi
 
 if [[ $LOCAL_COMPILER == "true" ]]; then
-    LINKER="$HOME/compilers/$compiler/bin/x86_64-elf-ld"
+    LINKER="$HOME/compilers/$compiler/bin/x86_64-elf-ld $MULTICOMPILER_FLAGS"
 else
     LINKER="docker run $DOCKER_ARGS /tmp/compilers/$compiler/bin/x86_64-elf-ld"
 fi
@@ -319,5 +319,6 @@ if [[ $COMPILE_ONLY == "yes" ]]; then
     exit 0
 fi
 
-echo -e "\n\n $LINKER ${OBJECT_FILE_ARGS[*]} ${LINK_ARGS[*]} ${COMMON_ARGS[*]} -z max-page-size=4096 -z common-page-size=4096 -z relro -z now \n\n"
 $LINKER ${OBJECT_FILE_ARGS[*]} ${LINK_ARGS[*]} ${COMMON_ARGS[*]} -z max-page-size=4096 -z common-page-size=4096 -z relro -z now
+
+echo -e '\n\n $LINKER ${OBJECT_FILE_ARGS[*]} ${LINK_ARGS[*]} ${COMMON_ARGS[*]} -z max-page-size=4096 -z common-page-size=4096 -z relro -z now \n\n'

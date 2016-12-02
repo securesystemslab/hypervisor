@@ -214,7 +214,8 @@ endif
 
 #CROSS_CXXFLAGS+=-Wall  -flto -Xlinker --plugin-opt -Xlinker -shuffle-globals -Xlinker --sort-common=random
 #CROSS_CXXFLAGS+=-Wall  -mllvm -time-passes -flto -Xlinker --plugin-opt -Xlinker -random-seed=10
-CROSS_CXXFLAGS+=-Wall  ${CUSTOM}
+#CROSS_CXXFLAGS+=-Wall  ${CUSTOM}
+CROSS_CXXFLAGS+=-Wall
 CROSS_CXXFLAGS+=-Wextra
 CROSS_CXXFLAGS+=-Wpedantic
 CROSS_CXXFLAGS+=-Wctor-dtor-privacy
