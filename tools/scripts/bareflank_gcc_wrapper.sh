@@ -128,7 +128,7 @@ if [[ $0 == *"docker" ]]; then
 fi
 
 if [[ $LOCAL_COMPILER == "true" ]]; then
-    LINKER="$HOME/compilers/$compiler/bin/x86_64-elf-ld $MULTICOMPILER_FLAGS"
+    LINKER="$HOME/compilers/$compiler/bin/x86_64-elf-ld"
 else
     LINKER="docker run $DOCKER_ARGS /tmp/compilers/$compiler/bin/x86_64-elf-ld"
 fi
