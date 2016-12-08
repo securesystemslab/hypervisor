@@ -27,7 +27,7 @@ pushd /tmp/bareflank/build_clang
 
 cmake -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD="X86" -DCMAKE_INSTALL_PREFIX=$PREFIX -DLLVM_BINUTILS_INCDIR=../src_binutils/include ../source_llvm/
 
-make -j$(nproc)
+make -j2
 make install
 
 popd
