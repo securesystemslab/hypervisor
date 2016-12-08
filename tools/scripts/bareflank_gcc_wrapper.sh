@@ -20,7 +20,7 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-%ENV_SOURCE%
+source /home/paul/workspace/bareflank/hypervisor/env.sh
 
 # ------------------------------------------------------------------------------
 # Docker Setup
@@ -304,6 +304,8 @@ fi
 # Execute
 # ------------------------------------------------------------------------------
 
+    SED_LINK=$(clang++ -### "$@" 2>&1 > /dev/null | sed -n -e 's/^.*ld"//p')
+    SED_COMP=$(clang++ -### "$@" 2>&1 > /dev/null | sed -n -e 's/^.*clang"//p')
 if [[ -n "$SOURCE_ARGS" ]]; then
 
     if [[ ! $COMPILE_ONLY == "yes" ]]; then
@@ -311,14 +313,18 @@ if [[ -n "$SOURCE_ARGS" ]]; then
         COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
     fi
 
+
     #echo -e "\n$COMPILER $SYSROOT_INC_PATH ${COMPILE_ARGS[*]} ${COMMON_ARGS[*]} ${SOURCE_ARGS[*]}\n"
-    $COMPILER $SYSROOT_INC_PATH ${COMPILE_ARGS[*]} ${COMMON_ARGS[*]} ${SOURCE_ARGS[*]}
+    #$COMPILER $SYSROOT_INC_PATH ${COMPILE_ARGS[*]} ${COMMON_ARGS[*]} ${SOURCE_ARGS[*]}
 fi
 
 if [[ $COMPILE_ONLY == "yes" ]]; then
     exit 0
 fi
 
-$COMPILER ${OBJECT_FILE_ARGS[*]} ${LINK_ARGS[*]} ${COMMON_ARGS[*]} -z max-page-size=4096 -z common-page-size=4096 -z relro -z now
+#$LINKER ${OBJECT_FILE_ARGS[*]} ${LINK_ARGS[*]} ${COMMON_ARGS[*]} -z max-page-size=4096 -z common-page-size=4096 -z relro -z now
+
+$LINKER ${SED_LINK} -z max-page-size=4096 -z common-page-size=4096 -z relro -z now
+
 
 #echo -e '\n\n $LINKER ${OBJECT_FILE_ARGS[*]} ${LINK_ARGS[*]} ${COMMON_ARGS[*]} -z max-page-size=4096 -z common-page-size=4096 -z relro -z now \n\n'
