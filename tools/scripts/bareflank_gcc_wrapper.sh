@@ -277,13 +277,13 @@ do
     # This is a specific set of options for passing arguments to the gold linker
     # for plugin support
     if [[ $ARG == "-Wl,--plugin-opt"* ]]; then
-        echo "Processing Plugin Option...."
-        echo Initial Linker Arg = $ARG
+        #echo "Processing Plugin Option...."
+        #echo Initial Linker Arg = $ARG
         COMPILE_ARGS[$COMPILE_ARGS_INDEX]=$ARG;
         COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
         ARG=${ARG/-Wl,/}
         ARG=${ARG/,/ }
-        echo Transformed Linker Arg = $ARG
+        #echo Transformed Linker Arg = $ARG
         LINK_ARGS[$LINK_ARGS_INDEX]="--plugin $HOME/compilers/$compiler/lib/LLVMgold.so $ARG";
         LINK_ARGS_INDEX=$((LINK_ARGS_INDEX + 1));
         continue;
@@ -291,7 +291,7 @@ do
 
     ## pass arguments directly to the linker through the compiler
     if [[ $ARG == "-Wl,"* ]]; then
-        echo Initial Linker Arg = $ARG
+        #echo Initial Linker Arg = $ARG
 
         # store original arg in temp variable for use in COMPILE_ARGS
         myTemp=$ARG;
@@ -300,11 +300,11 @@ do
 
         # we must be careful not to pass -z defs to libc++abi
         if [[ $ARG == "-z defs" ]]; then
-            echo Args not Transformed
+            #echo Args not Transformed
             continue;
         fi
 
-        echo Transformed Linker Arg = $ARG
+        #echo Transformed Linker Arg = $ARG
         LINK_ARGS[$LINK_ARGS_INDEX]=$ARG;
         LINK_ARGS_INDEX=$((LINK_ARGS_INDEX + 1));
 
@@ -398,14 +398,16 @@ if [[ -n "$SOURCE_ARGS" ]]; then
 fi
 
 if [[ $COMPILE_ONLY == "yes" ]]; then
-echo -e "\n\n"
-echo Compiler args = ${COMPILE_ARGS[*]}
-echo -e "\n\n"
+    # Debug Output  --uncomment these lines to debug argument processing
+    # placed after compile and link commands so they won't interfere with
+    # configuration tools
+    #echo -e "\n\n"
+    #echo Compiler args = ${COMPILE_ARGS[*]}
+    #echo -e "\n\n"
     exit 0
 fi
 
 $LINKER  ${OBJECT_FILE_ARGS[*]} ${LINK_ARGS[*]} -z max-page-size=4096 -z common-page-size=4096 -z relro -z now
-#gdb --args $LINKER  ${OBJECT_FILE_ARGS[*]} ${LINK_ARGS[*]} -z max-page-size=4096 -z common-page-size=4096 -z relro -z now
 
 # Debug Output  --uncomment these lines to debug argument processing
 # placed after compile and link commands so they won't interfere with
