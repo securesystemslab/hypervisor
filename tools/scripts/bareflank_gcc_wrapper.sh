@@ -20,7 +20,7 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-source /home/paul/workspace/bareflank/hypervisor/env.sh
+%ENV_SOURCE%
 
 # ------------------------------------------------------------------------------
 # Docker Setup
@@ -72,7 +72,7 @@ fi
 
 if [[ $0 == *"clang" ]]; then
     if [[ $LOCAL_COMPILER == "true" ]]; then
-        COMPILER="$HOME/compilers/$compiler/bin/clang --target=x86_64-elf -Qunused-arguments $MULTICOMPILER_FLAGS"
+        COMPILER="$HOME/compilers/$compiler/bin/clang --target=x86_64-elf -Qunused-arguments"
     else
         COMPILER="docker run $DOCKER_ARGS /tmp/compilers/$compiler/bin/clang --target=x86_64-elf -Qunused-arguments"
     fi
@@ -88,7 +88,7 @@ fi
 
 if [[ $0 == *"clang++" ]]; then
     if [[ $LOCAL_COMPILER == "true" ]]; then
-        COMPILER="$HOME/compilers/$compiler/bin/clang++ --target=x86_64-elf -Qunused-arguments $MULTICOMPILER_FLAGS"
+        COMPILER="$HOME/compilers/$compiler/bin/clang++ --target=x86_64-elf -Qunused-arguments"
     else
         COMPILER="docker run $DOCKER_ARGS /tmp/compilers/$compiler/bin/clang++ --target=x86_64-elf -Qunused-arguments"
     fi
@@ -274,8 +274,10 @@ do
     # -W options must be handled together, in order from strongest to weakest
     # this compiler option must be handled after other -W arguments are processed
 
-    # This is clang/llvm specific for using plugins
+    # This is a specific set of options for passing arguments to the gold linker
+    # for plugin support
     if [[ $ARG == "-Wl,--plugin-opt"* ]]; then
+        echo "Processing Plugin Option...."
         COMPILE_ARGS[$COMPILE_ARGS_INDEX]=$ARG;
         COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
         ARG=${ARG/-Wl,/}
@@ -285,6 +287,7 @@ do
         continue;
     fi
 
+    # pass arguments directly to the linker through the compiler
     if [[ $ARG == "-Wl,"* ]]; then
         echo Linker Arg = $ARG
         COMPILE_ARGS[$COMPILE_ARGS_INDEX]=$ARG;
@@ -296,6 +299,7 @@ do
         continue;
     fi
 
+    # add any remaining -W args to COMPILE_ARGS
     if [[ $ARG == "-W"* ]]; then
         COMPILE_ARGS[$COMPILE_ARGS_INDEX]=$ARG;
         COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
@@ -334,8 +338,8 @@ do
         continue;
     fi
 
-    # Common Flags
-
+    # Common Flags, for both linker and compiler are thus far unclassified,
+    # so add them to each list to preserve argument ordering
     COMPILE_ARGS[$COMPILE_ARGS_INDEX]=$ARG;
     COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
 
@@ -388,6 +392,8 @@ fi
 
 $LINKER ${OBJECT_FILE_ARGS[*]} ${LINK_ARGS[*]} -z max-page-size=4096 -z common-page-size=4096 -z relro -z now
 
+# Debug Output 
+echo -e "\n\n"
 echo Compiler args = ${COMPILE_ARGS[*]}
 
 echo -e "\n\n"
