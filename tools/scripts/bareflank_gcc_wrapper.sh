@@ -154,20 +154,39 @@ done
 # Filter Arguments
 # ------------------------------------------------------------------------------
 
-COMMON_ARGS_INDEX=0
 COMPILE_ARGS_INDEX=0
 LINK_ARGS_INDEX=0
 SOURCE_ARGS_INDEX=0
 OBJECT_FILE_ARGS_INDEX=0
 
-COMMON_ARGS[$COMMON_ARGS_INDEX]=
 COMPILE_ARGS[$COMPILE_ARGS_INDEX]=
 LINK_ARGS[$LINK_ARGS_INDEX]=
 SOURCE_ARGS[$SOURCE_ARGS_INDEX]=
 OBJECT_FILE_ARGS[$OBJECT_FILE_ARGS_INDEX]=
 
-for ARG in "$@"
+# store CLI arguments in an array for direct iteration
+argArray=("$@")
+
+# We store values in two lists, one for compiler options: COMPILER_ARGS
+# and the other for linker options LINK_ARGS.
+# The algorithm filters known compiler flags from the LINK_ARGS
+# And filters most linker options from COMPILER_ARGS
+# We loop over argArray directly, so we can handle positional arguments
+# and not separate a positional argument from its precursor
+# By only using 2 lists, we are able to preserve the order of CLI Arguments
+#
+# This system is a brittle, and relies completely on the correctness of
+# the conditional checks implemented within this block, as well as the order
+# in which options are filtered. In essence we are reimplementing a
+# functionality built into standard compilers without using the full list
+# of compiler options. If it was desirable to use a compiler with
+# different flags, such as the Intel compiler, this script will need to 
+# be refactored to handle the different arguments. 
+for ((i=0; i < ${#argArray[@]}; i++))
 do
+    # get next argument
+    ARG=${argArray[i]};
+
     # Ignored Flags
     if [[ $ARG == "-stdlib=libc++" ]]; then
         continue;
@@ -178,6 +197,23 @@ do
     fi
 
     # Compile Only Flags
+
+    # -mllvm takes a positional argument afterwards
+    if [[ $ARG == "-mllvm" ]]; then
+        COMPILE_ARGS[$COMPILE_ARGS_INDEX]="$ARG ${argArray[i+1]}";
+        COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
+        ((i++));
+        continue;
+    fi
+
+    # -Xclang takes a positional argument afterwards
+    if [[ $ARG == "-Xclang" ]]; then
+        COMPILE_ARGS[$COMPILE_ARGS_INDEX]="$ARG ${argArray[i+1]}";
+        COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
+        ((i++));
+        continue;
+    fi
+
     if [[ $ARG == "-m"* ]]; then
         COMPILE_ARGS[$COMPILE_ARGS_INDEX]=$ARG;
         COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
@@ -185,12 +221,6 @@ do
     fi
 
     if [[ $ARG == "-f"* ]]; then
-        COMPILE_ARGS[$COMPILE_ARGS_INDEX]=$ARG;
-        COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
-        continue;
-    fi
-
-    if [[ $ARG == "-W"* ]]; then
         COMPILE_ARGS[$COMPILE_ARGS_INDEX]=$ARG;
         COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
         continue;
@@ -226,17 +256,49 @@ do
     fi
 
     # Link Only Flags
-    if [[ $ARG == "-Wl,"* ]]; then
+
+    if [[ $ARG == "-Xlinker" ]]; then
+        COMPILE_ARGS[$COMPILE_ARGS_INDEX]="$ARG ${argArray[i+1]}";
+        COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
+        ((i++));
+        continue;
+    fi
+
+
+    if [[ $ARG == "-rdynamic" ]]; then
+        LINK_ARGS[$LINK_ARGS_INDEX]="-export-dynamic"
+        LINK_ARGS_INDEX=$((LINK_ARGS_INDEX + 1));
+        continue;
+    fi
+
+    # -W options must be handled together, in order from strongest to weakest
+    # this compiler option must be handled after other -W arguments are processed
+
+    # This is clang/llvm specific for using plugins
+    if [[ $ARG == "-Wl,--plugin-opt"* ]]; then
+        COMPILE_ARGS[$COMPILE_ARGS_INDEX]=$ARG;
+        COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
         ARG=${ARG/-Wl,/}
         ARG=${ARG/,/ }
+        LINK_ARGS[$LINK_ARGS_INDEX]="--plugin $HOME/compilers/$compiler/lib/LLVMgold.so $ARG";
+        LINK_ARGS_INDEX=$((LINK_ARGS_INDEX + 1));
+        continue;
+    fi
+
+    if [[ $ARG == "-Wl,"* ]]; then
+        echo Linker Arg = $ARG
+        COMPILE_ARGS[$COMPILE_ARGS_INDEX]=$ARG;
+        COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
+        ARG=${ARG/-Wl,/}
+        ARG=${ARG/,/=}
         LINK_ARGS[$LINK_ARGS_INDEX]=$ARG;
         LINK_ARGS_INDEX=$((LINK_ARGS_INDEX + 1));
         continue;
     fi
 
-    if [[ $ARG == "-rdynamic" ]]; then
-        LINK_ARGS[$LINK_ARGS_INDEX]="-export-dynamic"
-        LINK_ARGS_INDEX=$((LINK_ARGS_INDEX + 1));
+    if [[ $ARG == "-W"* ]]; then
+        COMPILE_ARGS[$COMPILE_ARGS_INDEX]=$ARG;
+        COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
         continue;
     fi
 
@@ -273,9 +335,12 @@ do
     fi
 
     # Common Flags
-    COMMON_ARGS[$COMMON_ARGS_INDEX]=$ARG;
-    COMMON_ARGS_INDEX=$((COMMON_ARGS_INDEX + 1));
 
+    COMPILE_ARGS[$COMPILE_ARGS_INDEX]=$ARG;
+    COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
+
+    LINK_ARGS[$LINK_ARGS_INDEX]=$ARG;
+    LINK_ARGS_INDEX=$((LINK_ARGS_INDEX + 1));
 done
 
 # ------------------------------------------------------------------------------
@@ -304,8 +369,6 @@ fi
 # Execute
 # ------------------------------------------------------------------------------
 
-    SED_LINK=$(clang++ -### "$@" 2>&1 > /dev/null | sed -n -e 's/^.*ld"//p')
-    SED_COMP=$(clang++ -### "$@" 2>&1 > /dev/null | sed -n -e 's/^.*clang"//p')
 if [[ -n "$SOURCE_ARGS" ]]; then
 
     if [[ ! $COMPILE_ONLY == "yes" ]]; then
@@ -313,18 +376,22 @@ if [[ -n "$SOURCE_ARGS" ]]; then
         COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
     fi
 
-
-    #echo -e "\n$COMPILER $SYSROOT_INC_PATH ${COMPILE_ARGS[*]} ${COMMON_ARGS[*]} ${SOURCE_ARGS[*]}\n"
-    #$COMPILER $SYSROOT_INC_PATH ${COMPILE_ARGS[*]} ${COMMON_ARGS[*]} ${SOURCE_ARGS[*]}
+    $COMPILER $SYSROOT_INC_PATH ${COMPILE_ARGS[*]} ${SOURCE_ARGS[*]}
 fi
 
 if [[ $COMPILE_ONLY == "yes" ]]; then
+echo -e "\n\n"
+echo Compiler args = ${COMPILE_ARGS[*]}
+echo -e "\n\n"
     exit 0
 fi
 
-#$LINKER ${OBJECT_FILE_ARGS[*]} ${LINK_ARGS[*]} ${COMMON_ARGS[*]} -z max-page-size=4096 -z common-page-size=4096 -z relro -z now
+$LINKER ${OBJECT_FILE_ARGS[*]} ${LINK_ARGS[*]} -z max-page-size=4096 -z common-page-size=4096 -z relro -z now
 
-$LINKER ${SED_LINK} -z max-page-size=4096 -z common-page-size=4096 -z relro -z now
+echo Compiler args = ${COMPILE_ARGS[*]}
 
+echo -e "\n\n"
 
-#echo -e '\n\n $LINKER ${OBJECT_FILE_ARGS[*]} ${LINK_ARGS[*]} ${COMMON_ARGS[*]} -z max-page-size=4096 -z common-page-size=4096 -z relro -z now \n\n'
+echo Linker args = ${LINK_ARGS[*]}
+echo -e "\n\n"
+
