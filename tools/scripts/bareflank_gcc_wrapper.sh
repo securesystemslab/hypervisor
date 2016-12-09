@@ -278,24 +278,38 @@ do
     # for plugin support
     if [[ $ARG == "-Wl,--plugin-opt"* ]]; then
         echo "Processing Plugin Option...."
+        echo Initial Linker Arg = $ARG
         COMPILE_ARGS[$COMPILE_ARGS_INDEX]=$ARG;
         COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
         ARG=${ARG/-Wl,/}
         ARG=${ARG/,/ }
+        echo Transformed Linker Arg = $ARG
         LINK_ARGS[$LINK_ARGS_INDEX]="--plugin $HOME/compilers/$compiler/lib/LLVMgold.so $ARG";
         LINK_ARGS_INDEX=$((LINK_ARGS_INDEX + 1));
         continue;
     fi
 
-    # pass arguments directly to the linker through the compiler
+    ## pass arguments directly to the linker through the compiler
     if [[ $ARG == "-Wl,"* ]]; then
-        echo Linker Arg = $ARG
-        COMPILE_ARGS[$COMPILE_ARGS_INDEX]=$ARG;
-        COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
+        echo Initial Linker Arg = $ARG
+
+        # store original arg in temp variable for use in COMPILE_ARGS
+        myTemp=$ARG;
         ARG=${ARG/-Wl,/}
-        ARG=${ARG/,/=}
+        ARG=${ARG/,/ }
+
+        # we must be careful not to pass -z defs to libc++abi
+        if [[ $ARG == "-z defs" ]]; then
+            echo Args not Transformed
+            continue;
+        fi
+
+        echo Transformed Linker Arg = $ARG
         LINK_ARGS[$LINK_ARGS_INDEX]=$ARG;
         LINK_ARGS_INDEX=$((LINK_ARGS_INDEX + 1));
+
+        COMPILE_ARGS[$COMPILE_ARGS_INDEX]=$myTemp;
+        COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
         continue;
     fi
 
@@ -390,14 +404,17 @@ echo -e "\n\n"
     exit 0
 fi
 
-$LINKER ${OBJECT_FILE_ARGS[*]} ${LINK_ARGS[*]} -z max-page-size=4096 -z common-page-size=4096 -z relro -z now
+$LINKER  ${OBJECT_FILE_ARGS[*]} ${LINK_ARGS[*]} -z max-page-size=4096 -z common-page-size=4096 -z relro -z now
+#gdb --args $LINKER  ${OBJECT_FILE_ARGS[*]} ${LINK_ARGS[*]} -z max-page-size=4096 -z common-page-size=4096 -z relro -z now
 
-# Debug Output 
-echo -e "\n\n"
-echo Compiler args = ${COMPILE_ARGS[*]}
+# Debug Output  --uncomment these lines to debug argument processing
+# placed after compile and link commands so they won't interfere with
+# configuration tools
+#echo -e "\n\n"
+#echo Compiler args = ${COMPILE_ARGS[*]}
 
-echo -e "\n\n"
+#echo -e "\n\n"
 
-echo Linker args = ${LINK_ARGS[*]}
-echo -e "\n\n"
+#echo Linker args = ${LINK_ARGS[*]}
+#echo -e "\n\n"
 
