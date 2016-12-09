@@ -408,6 +408,7 @@ if [[ $COMPILE_ONLY == "yes" ]]; then
 fi
 
 $LINKER  ${OBJECT_FILE_ARGS[*]} ${LINK_ARGS[*]} -z max-page-size=4096 -z common-page-size=4096 -z relro -z now
+#gdb --args $LINKER  ${OBJECT_FILE_ARGS[*]} ${LINK_ARGS[*]} -z max-page-size=4096 -z common-page-size=4096 -z relro -z now
 
 # Debug Output  --uncomment these lines to debug argument processing
 # placed after compile and link commands so they won't interfere with
