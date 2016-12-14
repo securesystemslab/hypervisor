@@ -59,9 +59,9 @@ install_clang_18() {
     sudo apt-get install --yes clang-3.8
     sudo apt-get install --yes clang++-3.8
     sudo apt-get install --yes clang-tidy-3.8
-    sudo ln -s /usr/bin/clang-3.8 /usr/bin/clang
-    sudo ln -s /usr/bin/clang++-3.8 /usr/bin/clang++
-    sudo ln -s /usr/bin/clang-tidy-3.8 /usr/bin/clang-tidy
+    #sudo ln -s /usr/bin/clang-3.8 /usr/bin/clang
+    #sudo ln -s /usr/bin/clang++-3.8 /usr/bin/clang++
+    #sudo ln -s /usr/bin/clang-tidy-3.8 /usr/bin/clang-tidy
 }
 
 install_clang_17() {

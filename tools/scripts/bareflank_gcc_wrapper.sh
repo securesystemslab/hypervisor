@@ -225,6 +225,18 @@ do
         continue;
     fi
 
+    if [[ $ARG == "-flto" ]]; then
+        COMPILE_ARGS[$COMPILE_ARGS_INDEX]=$ARG;
+        COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
+        
+        if [[ $0 == *"clang"* ]]; then
+            LINK_ARGS[$LINK_ARGS_INDEX]="--plugin $HOME/compilers/$compiler/lib/LLVMgold.so";
+            LINK_ARGS_INDEX=$((LINK_ARGS_INDEX + 1));
+        fi
+
+        continue;
+    fi
+
     if [[ $ARG == "-f"* ]]; then
         COMPILE_ARGS[$COMPILE_ARGS_INDEX]=$ARG;
         COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
