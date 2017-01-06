@@ -230,7 +230,7 @@ do
         COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
         
         if [[ $0 == *"clang"* ]]; then
-            LINK_ARGS[$LINK_ARGS_INDEX]="--plugin $HOME/compilers/$compiler/lib/LLVMgold.so";
+            LINK_ARGS=("--plugin $HOME/compilers/$compiler/lib/LLVMgold.so" "${LINK_ARGS[@]}");
             LINK_ARGS_INDEX=$((LINK_ARGS_INDEX + 1));
         fi
 
@@ -291,19 +291,7 @@ do
     # -W options must be handled together, in order from strongest to weakest
     # this compiler option must be handled after other -W arguments are processed
 
-    # This is a specific set of options for passing arguments to the gold linker
-    # for plugin support
-    if [[ $ARG == "-Wl,--plugin-opt"* ]]; then
-        COMPILE_ARGS[$COMPILE_ARGS_INDEX]=$ARG;
-        COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
-        ARG=${ARG/-Wl,/}
-        ARG=${ARG/,/ }
-        LINK_ARGS[$LINK_ARGS_INDEX]="--plugin $HOME/compilers/$compiler/lib/LLVMgold.so $ARG";
-        LINK_ARGS_INDEX=$((LINK_ARGS_INDEX + 1));
-        continue;
-    fi
-
-    ## pass arguments directly to the linker through the compiler
+    ## pass arguments directly to the linker through the compiler/wrapper
     if [[ $ARG == "-Wl,"* ]]; then
 
         # store original arg in temp variable for use in COMPILE_ARGS
