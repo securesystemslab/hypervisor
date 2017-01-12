@@ -277,6 +277,8 @@ do
     if [[ $ARG == "-Xlinker" ]]; then
         COMPILE_ARGS[$COMPILE_ARGS_INDEX]="$ARG ${argArray[i+1]}";
         COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX + 1));
+        LINK_ARGS[$LINK_ARGS_INDEX]=${argArray[i+1]};
+        LINK_ARGS_INDEX=$((LINK_ARGS_INDEX + 1));
         ((i++));
         continue;
     fi
