@@ -90,3 +90,30 @@ __attribute__((weak)) __vmlaunch(void) noexcept
     std::cerr << __FUNC__ << " called" << '\n';
     abort();
 }
+
+extern "C" bool
+__attribute__((weak)) __vmlaunch_demote(void) noexcept
+{
+    std::cerr << __FUNC__ << " called" << '\n';
+    abort();
+}
+
+extern "C" void
+__attribute__((weak)) __invept(uint64_t type, void *ptr) noexcept
+{
+    (void) type;
+    (void) ptr;
+
+    std::cerr << __FUNC__ << " called" << '\n';
+    abort();
+}
+
+extern "C" void
+__attribute__((weak)) __invvipd(uint64_t type, void *ptr) noexcept
+{
+    (void) type;
+    (void) ptr;
+
+    std::cerr << __FUNC__ << " called" << '\n';
+    abort();
+}

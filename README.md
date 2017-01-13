@@ -47,16 +47,16 @@ In addition to Bareflank’s lightweight, modular design, the entire
 hypervisor has been written using test driven development. As such, all
 of Bareflank’s code comes complete with a set of unit tests to validate
 that the provided code works as expected. These tests are validated using
-[Coveralls](https://coveralls.io/github/Bareflank/hypervisor), and 
-[Travis CI](https://travis-ci.org/Bareflank/hypervisor) has been setup to 
-test styling via 
+[Coveralls](https://coveralls.io/github/Bareflank/hypervisor), and
+[Travis CI](https://travis-ci.org/Bareflank/hypervisor) has been setup to
+test styling via
 [Astyle](http://astyle.sourceforge.net), and static / dynamic analysis
 via [Coverity](https://scan.coverity.com/projects/bareflank-hypervisor),
-[Clang Tidy](http://clang.llvm.org/extra/clang-tidy/), and [Google's 
-Sanitizers](https://github.com/google/sanitizers). In addition, we adhere 
-to the 
+[Clang Tidy](http://clang.llvm.org/extra/clang-tidy/), and [Google's
+Sanitizers](https://github.com/google/sanitizers). In addition, we adhere
+to the
 [CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/325),
-and the 
+and the
 [C++ Core Guidelines](https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md)
 including support for the [Guideline Support Library](https://github.com/Microsoft/GSL).
 
@@ -96,16 +96,18 @@ a clear method for extending the hypervisor via inheritance, but also to
 provide access to the C++ STL to reduce the time it takes to prototype and
 implement new technologies. For example, suppose you’re writing an
 introspection hypervisor that needs to store the different system calls that
-are being made in a hash table for fast lookups. Doing this in an existing C
-based hypervisor might require you to create your own hash table implementation.
+are being made in a data structure for fast lookups. Doing this in an existing C
+based hypervisor might require you to create your own data structure.
 This same implementation is trivial with the STL's existing data structures.
 With Bareflank's design, you can focus on the goal of your project, and less
 on implementing the foundation needed to support your project.
 
 Bareflank will always maintain the "bare minimum" needed to stand up a
-hypervisor. Future repositories/projects will be created that extend
-the hypervisor to add additional API support for common research tasks (e.g.
-VT-x APIs, LibVMI APIs, and even guest support APIs). Long term, it is our
+hypervisor. Additional repositories like the
+[Extended APIs](https://github.com/Bareflank/extended_apis) repo and the
+[Hyperkernel](https://github.com/Bareflank/hyperkernel) repo have been created
+that extend the hypervisor to add additional API support for common research tasks (e.g.
+VT-x / VT-d APIs and guest support APIs). Long term, it is our
 hope that others will leverage Bareflank to create hypervisors
 capable of competing with existing type 1 and type 2 open source hypervisors,
 but Bareflank itself will remain focused on the bare minimum scaffolding.
@@ -203,34 +205,35 @@ For more detailed instructions please read the following (based on which OS you 
 
 [Driver Entry Documentation](https://github.com/Bareflank/hypervisor/tree/master/bfdrivers/src/arch)
 
-## Extended APIs
+## Extended APIs / Hyperkernel
 
-Bareflank's main goal is to provide the "bare" minimum hypervisor.
-Since Bareflank supports C++ 11/14, multiple operating systems,
-and a full toolstack, it's not as simple as say
-[SimpleVisor](https://github.com/ionescu007/SimpleVisor), but still
-adheres to the same basic principles of leaving out the complexity
-of a full blown hypervisor in favor of an implementation that is simple to
-read and follow.
+Since Bareflank only provides the bare minimum implementation, we have created
+two other repositories that extend Bareflank to provide additional
+capabilities that you might find useful. The Extended APIs repo provides
+additional APIs around Intel's VT-x / VT-d. Likely most users of Bareflank will
+find these APIs useful. The Hyperkernel leverages the Extended APIs and
+Bareflank to provide guest support. If your project requires guest support,
+you might also find this repo useful as well.
 
-It is our goal to provide a hypervisor that others can extend to create
-their own hypervisors. The purpose of the
-[Extended APIs](https://github.com/Bareflank/extended_apis) repository,
-is to provide an extended set of APIs to build your hypervisors from
-that simplify common tasks when working with hypervisors.
-For more information about this project, please see:
-
-```
+**Extended APIs:**<br>
 https://github.com/Bareflank/extended_apis
-```
+
+**Hyperkernel:**<br>
+https://github.com/Bareflank/hyperkernel
 
 ## Example Extensions
 
 To provide examples of how you might extend Bareflank to provide your own custom
 functionality, we have provided a couple of examples:
 
-[Enable VPID](https://github.com/Bareflank/hypervisor_example_vpid) <br>
-[CPUID Count](https://github.com/Bareflank/hypervisor_example_cpuidcount) <br>
+**Enable VPID:**<br>
+https://github.com/Bareflank/hypervisor_example_vpid
+
+**CPUID Count:**<br>
+https://github.com/Bareflank/hypervisor_example_cpuidcount
+
+**Extended APIs EPT Hook:**<br>
+https://github.com/Bareflank/extended_apis_example_hook
 
 ## Roadmap
 

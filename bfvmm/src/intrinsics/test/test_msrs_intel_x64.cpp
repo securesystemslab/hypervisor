@@ -1166,15 +1166,15 @@ intrinsics_ut::test_ia32_vmx_ept_vpid_cap_pde_2mb_support()
 }
 
 void
-intrinsics_ut::test_ia32_vmx_ept_vpid_cap_pdpte_1mb_support()
+intrinsics_ut::test_ia32_vmx_ept_vpid_cap_pdpte_1gb_support()
 {
-    auto mask = msrs::ia32_vmx_ept_vpid_cap::pdpte_1mb_support::mask;
+    auto mask = msrs::ia32_vmx_ept_vpid_cap::pdpte_1gb_support::mask;
 
     g_msrs[msrs::ia32_vmx_ept_vpid_cap::addr] = mask;
-    this->expect_true(msrs::ia32_vmx_ept_vpid_cap::pdpte_1mb_support::get());
+    this->expect_true(msrs::ia32_vmx_ept_vpid_cap::pdpte_1gb_support::get());
 
     g_msrs[msrs::ia32_vmx_ept_vpid_cap::addr] = ~mask;
-    this->expect_false(msrs::ia32_vmx_ept_vpid_cap::pdpte_1mb_support::get());
+    this->expect_false(msrs::ia32_vmx_ept_vpid_cap::pdpte_1gb_support::get());
 }
 
 void
@@ -1778,23 +1778,23 @@ intrinsics_ut::test_ia32_vmx_true_procbased_ctls_monitor_trap_flag()
 }
 
 void
-intrinsics_ut::test_ia32_vmx_true_procbased_ctls_use_msr_bitmaps()
+intrinsics_ut::test_ia32_vmx_true_procbased_ctls_use_msr_bitmap()
 {
-    auto mask = msrs::ia32_vmx_true_procbased_ctls::use_msr_bitmaps::mask;
+    auto mask = msrs::ia32_vmx_true_procbased_ctls::use_msr_bitmap::mask;
 
     g_msrs[msrs::ia32_vmx_true_procbased_ctls::addr] = mask;
-    this->expect_true(msrs::ia32_vmx_true_procbased_ctls::use_msr_bitmaps::get());
+    this->expect_true(msrs::ia32_vmx_true_procbased_ctls::use_msr_bitmap::get());
 
     g_msrs[msrs::ia32_vmx_true_procbased_ctls::addr] = ~mask;
-    this->expect_false(msrs::ia32_vmx_true_procbased_ctls::use_msr_bitmaps::get());
+    this->expect_false(msrs::ia32_vmx_true_procbased_ctls::use_msr_bitmap::get());
 
     g_msrs[msrs::ia32_vmx_true_procbased_ctls::addr] = mask | (mask << 32);
-    this->expect_false(msrs::ia32_vmx_true_procbased_ctls::use_msr_bitmaps::is_allowed0());
-    this->expect_true(msrs::ia32_vmx_true_procbased_ctls::use_msr_bitmaps::is_allowed1());
+    this->expect_false(msrs::ia32_vmx_true_procbased_ctls::use_msr_bitmap::is_allowed0());
+    this->expect_true(msrs::ia32_vmx_true_procbased_ctls::use_msr_bitmap::is_allowed1());
 
     g_msrs[msrs::ia32_vmx_true_procbased_ctls::addr] = ~mask & ~(mask << 32);
-    this->expect_true(msrs::ia32_vmx_true_procbased_ctls::use_msr_bitmaps::is_allowed0());
-    this->expect_false(msrs::ia32_vmx_true_procbased_ctls::use_msr_bitmaps::is_allowed1());
+    this->expect_true(msrs::ia32_vmx_true_procbased_ctls::use_msr_bitmap::is_allowed0());
+    this->expect_false(msrs::ia32_vmx_true_procbased_ctls::use_msr_bitmap::is_allowed1());
 }
 
 void

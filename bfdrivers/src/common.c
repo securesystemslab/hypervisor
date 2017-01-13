@@ -461,7 +461,17 @@ common_load_vmm(void)
             goto failure;
     }
 
-    add_raw_md_to_memory_manager((uint64_t)g_tls, MEMORY_TYPE_R | MEMORY_TYPE_W);
+    {
+        uint64_t tlss = (uint64_t)g_tls;
+        uint64_t tlse = tlss + g_tls_size;
+
+        for (; tlss <= tlse; tlss += MAX_PAGE_SIZE)
+        {
+            ret = add_raw_md_to_memory_manager(tlss, MEMORY_TYPE_R | MEMORY_TYPE_W);
+            if (ret != BF_SUCCESS)
+                return ret;
+        }
+    }
 
     g_vmm_status = VMM_LOADED;
     return BF_SUCCESS;
@@ -621,22 +631,35 @@ common_vmcall(struct vmcall_registers_t *regs, uint64_t cpuid)
     int64_t caller_affinity = 0;
     int64_t signed_cpuid = (int64_t)cpuid;
 
+    if (common_vmm_status() == VMM_CORRUPT)
+        return BF_ERROR_VMM_CORRUPTED;
+
+    if (common_vmm_status() == VMM_LOADED)
+        return BF_ERROR_VMM_INVALID_STATE;
+
+    if (common_vmm_status() == VMM_UNLOADED)
+        return BF_ERROR_VMM_INVALID_STATE;
+
     if (regs == 0)
         return BF_ERROR_INVALID_ARG;
 
-    if (signed_cpuid < 0 || signed_cpuid >= g_num_cpus_started)
+    if (signed_cpuid >= g_num_cpus_started)
         return BF_ERROR_INVALID_ARG;
 
-    ret = caller_affinity = platform_set_affinity((int64_t)cpuid);
-    if (caller_affinity < 0)
-        return ret;
+    if (signed_cpuid >= 0)
+    {
+        ret = caller_affinity = platform_set_affinity((int64_t)cpuid);
+        if (caller_affinity < 0)
+            return ret;
+    }
 
     if (regs->r00 == VMCALL_EVENT)
         platform_vmcall_event(regs);
     else
         platform_vmcall(regs);
 
-    platform_restore_affinity(caller_affinity);
+    if (signed_cpuid >= 0)
+        platform_restore_affinity(caller_affinity);
 
     return BF_SUCCESS;
 }

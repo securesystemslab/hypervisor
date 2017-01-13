@@ -30,7 +30,9 @@
 #include <type_traits>
 
 #include <memory.h>
+#include <upper_lower.h>
 #include <guard_exceptions.h>
+
 #include <memory_manager/pat_x64.h>
 #include <memory_manager/mem_attr_x64.h>
 #include <memory_manager/memory_manager_x64.h>
@@ -222,7 +224,7 @@ auto make_unique_map_x64(typename unique_map_ptr_x64<T>::integer_pointer virt,
                          typename unique_map_ptr_x64<T>::size_type size,
                          x64::msrs::value_type pat)
 {
-    auto &&vmap = g_mm->alloc_map(x64::page_size);
+    auto &&vmap = g_mm->alloc_map(size + lower(virt));
 
 #ifdef MAP_PTR_TESTING
 
@@ -247,6 +249,30 @@ auto make_unique_map_x64(typename unique_map_ptr_x64<T>::integer_pointer virt,
 
 #endif
 }
+
+/// Virt to Phys with CR3
+///
+/// Converts a virtual address to a physical address given the
+/// CR3 to locate the physical address from. Note that this function
+/// has to map / unmap the page table tree as it traverses the tree
+/// to locate the physical address. As a result, this is an expensive
+/// operation and should not be used in time sensitive operations.
+///
+/// @note the provided virtual address should be present prior to running
+///     this function.
+///
+/// @expects virt != 0
+/// @expects cr3 != 0
+/// @ensures none
+///
+/// @param virt virtual address to convert
+/// @param cr3 the CR3 to lookup the physical address from. The virtual address
+///     should originate from this CR3, otherwise the resulting physical address
+///     could be incorrect, or an exception could be thrown.
+/// @return returns the physical address mapped to the provided virtual address
+///     located in the provided CR3
+///
+uintptr_t virt_to_phys_with_cr3(uintptr_t virt, uintptr_t cr3);
 
 /// Unique Map
 ///
@@ -289,7 +315,8 @@ public:
     ///
     unique_map_ptr_x64() :
         m_virt(0),
-        m_size(0)
+        m_size(0),
+        m_unaligned_size(0)
     { }
 
     /// Invalid Map
@@ -299,7 +326,8 @@ public:
     ///
     unique_map_ptr_x64(std::nullptr_t donotcare) :
         m_virt(0),
-        m_size(0)
+        m_size(0),
+        m_unaligned_size(0)
     { (void) donotcare; }
 
     /// Release Map
@@ -311,7 +339,8 @@ public:
     ///
     unique_map_ptr_x64(integer_pointer virt, size_type size) :
         m_virt(virt),
-        m_size(size)
+        m_size(size),
+        m_unaligned_size(size)
     { }
 
     /// Map Single Page
@@ -327,6 +356,7 @@ public:
     /// @expects vmap != 0
     /// @expects vmap & (x64::page_size - 1) == 0
     /// @expects phys != 0
+    /// @expects phys & (x64::page_size - 1) == 0
     /// @expects attr != 0
     /// @ensures get() != nullptr
     ///
@@ -335,18 +365,17 @@ public:
     /// @param attr defines how to map the memory. Defaults to map_read_write
     ///
     unique_map_ptr_x64(integer_pointer vmap, integer_pointer phys, x64::memory_attr::attr_type attr) :
-        m_virt(0),
-        m_size(x64::page_size)
+        m_virt(vmap),
+        m_size(x64::page_size),
+        m_unaligned_size(x64::page_size)
     {
         // [[ensures: get() != nullptr]]
         expects(vmap != 0);
         expects(lower(vmap) == 0);
         expects(phys != 0);
+        expects(lower(phys) == 0);
 
-        m_virt |= lower(phys);
-        m_virt |= upper(vmap);
-
-        g_pt->map(vmap, upper(phys), attr);
+        g_pt->map_4k(vmap, upper(phys), attr);
 
         flush();
     }
@@ -402,7 +431,8 @@ public:
     ///
     unique_map_ptr_x64(integer_pointer vmap, const std::vector<std::pair<integer_pointer, size_type>> &list, x64::memory_attr::attr_type attr) :
         m_virt(0),
-        m_size(0)
+        m_size(0),
+        m_unaligned_size(0)
     {
         // [[ensures: get() != nullptr]]
         expects(vmap != 0);
@@ -416,6 +446,7 @@ public:
             expects(lower(p.second) == 0);
 
             m_size += p.second;
+            m_unaligned_size += p.second;
         }
 
         m_virt |= lower(list.front().first);
@@ -430,7 +461,7 @@ public:
             auto &&size = p.second;
 
             for (poff = 0; poff < size; poff += x64::page_size, voff += x64::page_size)
-                g_pt->map(vmap + voff, phys + poff, attr);
+                g_pt->map_4k(vmap + voff, phys + poff, attr);
         }
 
         flush();
@@ -473,7 +504,8 @@ public:
     ///
     unique_map_ptr_x64(integer_pointer vmap, integer_pointer virt, integer_pointer cr3, size_type size, x64::msrs::value_type pat) :
         m_virt(0),
-        m_size(size)
+        m_size(size),
+        m_unaligned_size(size)
     {
         // [[ensures: get() != nullptr]]
         expects(vmap != 0);
@@ -486,22 +518,75 @@ public:
         m_virt |= lower(virt);
         m_virt |= upper(vmap);
 
-        if (lower(virt) != 0)
-            m_size += x64::page_size;
+        m_unaligned_size += lower(virt);
 
-        for (auto offset = 0UL; offset < m_size; offset += x64::page_size)
+        for (auto offset = 0UL; offset < m_unaligned_size; offset += x64::page_size)
         {
-            auto &&pair = virt_to_pte_with_cr3(upper(virt) + offset, cr3);
-            auto &&gpte = std::get<0>(pair);
-            auto &&from = std::get<1>(pair);
+            integer_pointer from;
+            integer_pointer phys;
+            integer_pointer pati;
+            integer_pointer current_virt = virt + offset;
+
+            while (true)
+            {
+                from = x64::page_table::pml4::from;
+                auto &&pml4_idx = x64::page_table::index(current_virt, from);
+                auto &&pml4_map = bfn::make_unique_map_x64<uintptr_t>(cr3);
+                auto &&pml4_pte = page_table_entry_x64{&pml4_map.get()[pml4_idx]};
+
+                expects(pml4_pte.present());
+                expects(pml4_pte.phys_addr() != 0);
+
+                from = x64::page_table::pdpt::from;
+                auto &&pdpt_idx = x64::page_table::index(current_virt, from);
+                auto &&pdpt_map = bfn::make_unique_map_x64<uintptr_t>(pml4_pte.phys_addr());
+                auto &&pdpt_pte = page_table_entry_x64{&pdpt_map.get()[pdpt_idx]};
+
+                expects(pdpt_pte.present());
+                expects(pdpt_pte.phys_addr() != 0);
+
+                if (pdpt_pte.ps())
+                {
+                    phys = pdpt_pte.phys_addr();
+                    pati = pdpt_pte.pat_index_large();
+                    break;
+                }
+
+                from = x64::page_table::pd::from;
+                auto &&pd_idx = x64::page_table::index(current_virt, from);
+                auto &&pd_map = bfn::make_unique_map_x64<uintptr_t>(pdpt_pte.phys_addr());
+                auto &&pd_pte = page_table_entry_x64{&pd_map.get()[pd_idx]};
+
+                expects(pd_pte.present());
+                expects(pd_pte.phys_addr() != 0);
+
+                if (pd_pte.ps())
+                {
+                    phys = pd_pte.phys_addr();
+                    pati = pd_pte.pat_index_large();
+                    break;
+                }
+
+                from = x64::page_table::pt::from;
+                auto &&pt_idx = x64::page_table::index(current_virt, from);
+                auto &&pt_map = bfn::make_unique_map_x64<uintptr_t>(pd_pte.phys_addr());
+                auto &&pt_pte = page_table_entry_x64{&pt_map.get()[pt_idx]};
+
+                expects(pt_pte.present());
+                expects(pt_pte.phys_addr() != 0);
+
+                phys = pt_pte.phys_addr();
+                pati = pt_pte.pat_index_4k();
+                break;
+            }
 
             auto &&vadr = vmap + offset;
-            auto &&padr = upper(gpte.phys_addr(), from) | lower(virt + offset, from);
+            auto &&padr = upper(phys, from) | lower(current_virt, from);
 
             auto &&perm = x64::memory_attr::rw;
-            auto &&type = x64::msrs::ia32_pat::pa(pat, gpte.pat_index());
+            auto &&type = x64::msrs::ia32_pat::pa(pat, pati);
 
-            g_pt->map(vadr, upper(padr), x64::memory_attr::mem_type_to_attr(perm, type));
+            g_pt->map_4k(vadr, upper(padr), x64::memory_attr::mem_type_to_attr(perm, type));
         }
 
         flush();
@@ -529,7 +614,8 @@ public:
     ///
     unique_map_ptr_x64(unique_map_ptr_x64 &&other) noexcept :
         m_virt(0),
-        m_size(0)
+        m_size(0),
+        m_unaligned_size(0)
     { reset(other.release()); }
 
     /// Destructor
@@ -544,10 +630,11 @@ public:
     virtual ~unique_map_ptr_x64() noexcept
     {
         guard_exceptions([&]
-        { cleanup(m_virt, m_size); });
+        { cleanup(m_virt, m_unaligned_size); });
 
         m_virt = 0;
         m_size = 0;
+        m_unaligned_size = 0;
     }
 
     /// Copy Operator
@@ -650,7 +737,7 @@ public:
     /// @return returns true if the map is valid, false otherwise
     ///
     operator bool() const noexcept
-    { return m_virt != 0 && m_size != 0; }
+    { return m_virt != 0 && m_size != 0 && m_unaligned_size != 0; }
 
     /// Size
     ///
@@ -666,9 +753,9 @@ public:
     /// Release
     ///
     /// Like std::unique_ptr, this releases the map from this
-    /// unique_map_ptr_x64 and returns a std::pair containing the virtual
+    /// unique_map_ptr_x64 and returns a std::tuple containing the virtual
     /// address and size of the map. It is left to the user of this
-    /// function to either deliver the std::pair to another unique_map_ptr_x64
+    /// function to either deliver the std::tuple to another unique_map_ptr_x64
     /// via reset(), or manually unmap / free the virtual address
     ///
     /// @note use with caution as this is an unsafe operation
@@ -676,18 +763,20 @@ public:
     /// @expects none
     /// @ensures none
     ///
-    /// @return returns a std::pair containing the virtual address and size
+    /// @return returns a std::tuple containing the virtual address and size
     ///     of the map. The user must manually unmap / free this memory
     ///
     auto release() noexcept
     {
         auto old_virt = m_virt;
         auto old_size = m_size;
+        auto old_unaligned_size = m_unaligned_size;
 
         m_virt = 0;
         m_size = 0;
+        m_unaligned_size = 0;
 
-        return std::make_pair(reinterpret_cast<pointer>(old_virt), old_size);
+        return std::make_tuple(reinterpret_cast<pointer>(old_virt), old_size, old_unaligned_size);
     }
 
     /// Reset
@@ -707,16 +796,21 @@ public:
     /// @param ptr pointer to virtual memory to use. Defaults to nullptr
     /// @param size the size of the virtual memory provided in bytes. Defaults
     ///     to 0
+    /// @param unaligned_size the unaligned size of the virtual memory provided
+    ///     in bytes. Defaults to 0. In most cases this is the same thing as
+    ///     size, but if your using a map from CR3, and the virtual address
+    ///     is not page aligned, you must add lower(virt)
     ///
-    void reset(pointer ptr = pointer(), size_type size = size_type()) noexcept
+    void reset(pointer ptr = pointer(), size_type size = size_type(), size_type unaligned_size = size_type()) noexcept
     {
         auto old_virt = m_virt;
-        auto old_size = m_size;
+        auto old_unaligned_size = m_unaligned_size;
 
         m_virt = reinterpret_cast<integer_pointer>(ptr);
         m_size = size;
+        m_unaligned_size = unaligned_size;
 
-        cleanup(old_virt, old_size);
+        cleanup(old_virt, old_unaligned_size);
     }
 
     /// Reset
@@ -733,11 +827,11 @@ public:
     /// @expects none
     /// @ensures none
     ///
-    /// @param p std::pair containing the virtual memory address and size in
+    /// @param p std::tuple containing the virtual memory address and size in
     ///     bytes of the new mapping to use.
     ///
-    void reset(const std::pair<pointer, size_type> &p) noexcept
-    { reset(p.first, p.second); }
+    void reset(const std::tuple<pointer, size_type, size_type> &p) noexcept
+    { reset(std::get<0>(p), std::get<1>(p), std::get<2>(p)); }
 
     /// Swap
     ///
@@ -752,6 +846,7 @@ public:
     {
         std::swap(m_virt, other.m_virt);
         std::swap(m_size, other.m_size);
+        std::swap(m_unaligned_size, other.m_unaligned_size);
     }
 
     /// Flush
@@ -767,7 +862,7 @@ public:
     void flush() noexcept
     {
         auto &&vmap = upper(m_virt);
-        for (auto vadr = vmap; vadr < vmap + m_size; vadr += x64::page_size)
+        for (auto vadr = vmap; vadr < vmap + m_unaligned_size; vadr += x64::page_size)
             x64::tlb::invlpg(reinterpret_cast<pointer>(vadr));
     }
 
@@ -783,7 +878,7 @@ public:
     void cache_flush() noexcept
     {
         auto &&vmap = upper(m_virt);
-        for (auto vadr = vmap; vadr < vmap + m_size; vadr += x64::cache_line_size)
+        for (auto vadr = vmap; vadr < vmap + m_unaligned_size; vadr += x64::cache_line_size)
             x64::cache::clflush(reinterpret_cast<pointer>(vadr));
     }
 
@@ -801,48 +896,11 @@ private:
         }
     }
 
-    std::pair<page_table_entry_x64, decltype(x64::page_table::pml4::from)>
-    virt_to_pte_with_cr3(integer_pointer virt, integer_pointer cr3)
-    {
-        auto phys = cr3;
-        auto from = x64::page_table::pml4::from;
-
-        auto &&gpte = page_table_entry_x64{};
-
-        for (; from >= x64::page_table::pt::from; from -= x64::page_table::pt::size)
-        {
-            auto &&map = bfn::make_unique_map_x64<memory_manager_x64::integer_pointer>(phys);
-            auto &&map_view = gsl::make_span(map.get(), x64::page_table::num_entries);
-
-            gpte = page_table_entry_x64{&map_view.at(x64::page_table::index(virt, from))};
-            phys = gpte.phys_addr();
-
-            expects(phys != 0);
-            expects(gpte.present());
-
-            if ((from <= x64::page_table::pt::from) || (gpte.ps() == true))
-                break;
-        }
-
-        return {std::move(gpte), from};
-    }
-
-    auto lower(integer_pointer ptr) const noexcept
-    { return ptr & (x64::page_size - 1); }
-
-    auto lower(integer_pointer ptr, integer_pointer from) const noexcept
-    { return ptr & ((0x1UL << from) - 1); }
-
-    auto upper(integer_pointer ptr) const noexcept
-    { return ptr & ~(x64::page_size - 1); }
-
-    auto upper(integer_pointer ptr, integer_pointer from) const noexcept
-    { return ptr & ~((0x1UL << from) - 1); }
-
 private:
 
     integer_pointer m_virt;
     size_type m_size;
+    size_type m_unaligned_size;
 
 public:
 
@@ -893,6 +951,55 @@ bool operator!=(const unique_map_ptr_x64<T> &x, std::nullptr_t dontcare) noexcep
 template <class T>
 bool operator!=(std::nullptr_t dontcare, const unique_map_ptr_x64<T> &y) noexcept
 { (void) dontcare; return y; }
+
+inline uintptr_t virt_to_phys_with_cr3(uintptr_t virt, uintptr_t cr3)
+{
+    uintptr_t from;
+
+    expects(cr3 != 0);
+    expects(lower(cr3) == 0);
+    expects(virt != 0);
+
+    from = x64::page_table::pml4::from;
+    auto &&pml4_idx = x64::page_table::index(virt, from);
+    auto &&pml4_map = bfn::make_unique_map_x64<uintptr_t>(cr3);
+    auto &&pml4_pte = page_table_entry_x64{&pml4_map.get()[pml4_idx]};
+
+    expects(pml4_pte.present());
+    expects(pml4_pte.phys_addr() != 0);
+
+    from = x64::page_table::pdpt::from;
+    auto &&pdpt_idx = x64::page_table::index(virt, from);
+    auto &&pdpt_map = bfn::make_unique_map_x64<uintptr_t>(pml4_pte.phys_addr());
+    auto &&pdpt_pte = page_table_entry_x64{&pdpt_map.get()[pdpt_idx]};
+
+    expects(pdpt_pte.present());
+    expects(pdpt_pte.phys_addr() != 0);
+
+    if (pdpt_pte.ps())
+        return upper(pdpt_pte.phys_addr(), from) | lower(virt, from);
+
+    from = x64::page_table::pd::from;
+    auto &&pd_idx = x64::page_table::index(virt, from);
+    auto &&pd_map = bfn::make_unique_map_x64<uintptr_t>(pdpt_pte.phys_addr());
+    auto &&pd_pte = page_table_entry_x64{&pd_map.get()[pd_idx]};
+
+    expects(pd_pte.present());
+    expects(pd_pte.phys_addr() != 0);
+
+    if (pd_pte.ps())
+        return upper(pd_pte.phys_addr(), from) | lower(virt, from);
+
+    from = x64::page_table::pt::from;
+    auto &&pt_idx = x64::page_table::index(virt, from);
+    auto &&pt_map = bfn::make_unique_map_x64<uintptr_t>(pd_pte.phys_addr());
+    auto &&pt_pte = page_table_entry_x64{&pt_map.get()[pt_idx]};
+
+    expects(pt_pte.present());
+    expects(pt_pte.phys_addr() != 0);
+
+    return upper(pt_pte.phys_addr(), from) | lower(virt, from);
+}
 
 }
 

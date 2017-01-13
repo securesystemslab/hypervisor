@@ -157,6 +157,7 @@ private:
 
     void test_launch_success();
     void test_launch_vmlaunch_failure();
+    void test_launch_vmlaunch_demote_failure();
     void test_launch_create_vmcs_region_failure();
     void test_launch_create_exit_handler_stack_failure();
     void test_launch_clear_failure();
@@ -256,6 +257,7 @@ private:
     void test_vmcs_ept_pointer_memory_type();
     void test_vmcs_ept_pointer_page_walk_length_minus_one();
     void test_vmcs_ept_pointer_accessed_and_dirty_flags();
+    void test_vmcs_ept_pointer_phys_addr();
     void test_vmcs_ept_pointer_reserved();
     void test_vmcs_eoi_exit_bitmap_0();
     void test_vmcs_eoi_exit_bitmap_1();
@@ -562,7 +564,7 @@ private:
     void test_vmcs_primary_processor_based_vm_execution_controls_unconditional_io_exiting();
     void test_vmcs_primary_processor_based_vm_execution_controls_use_io_bitmaps();
     void test_vmcs_primary_processor_based_vm_execution_controls_monitor_trap_flag();
-    void test_vmcs_primary_processor_based_vm_execution_controls_use_msr_bitmaps();
+    void test_vmcs_primary_processor_based_vm_execution_controls_use_msr_bitmap();
     void test_vmcs_primary_processor_based_vm_execution_controls_monitor_exiting();
     void test_vmcs_primary_processor_based_vm_execution_controls_pause_exiting();
     void test_vmcs_primary_processor_based_vm_execution_controls_activate_secondary_controls();
@@ -1263,6 +1265,8 @@ private:
     void test_state_segment_registers_access_rights();
     void test_state_segment_register_base();
     void test_state_msrs();
+    void test_state_rip_rsp();
+    void test_state_is_guest();
     void test_state_dump();
 
     void test_host_vm_state();

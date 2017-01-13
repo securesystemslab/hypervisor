@@ -180,7 +180,7 @@ private:
     void test_ia32_vmx_ept_vpid_cap_memory_type_uncacheable_supported();
     void test_ia32_vmx_ept_vpid_cap_memory_type_write_back_supported();
     void test_ia32_vmx_ept_vpid_cap_pde_2mb_support();
-    void test_ia32_vmx_ept_vpid_cap_pdpte_1mb_support();
+    void test_ia32_vmx_ept_vpid_cap_pdpte_1gb_support();
     void test_ia32_vmx_ept_vpid_cap_invept_support();
     void test_ia32_vmx_ept_vpid_cap_accessed_dirty_support();
     void test_ia32_vmx_ept_vpid_cap_invept_single_context_support();
@@ -214,7 +214,7 @@ private:
     void test_ia32_vmx_true_procbased_ctls_unconditional_io_exiting();
     void test_ia32_vmx_true_procbased_ctls_use_io_bitmaps();
     void test_ia32_vmx_true_procbased_ctls_monitor_trap_flag();
-    void test_ia32_vmx_true_procbased_ctls_use_msr_bitmaps();
+    void test_ia32_vmx_true_procbased_ctls_use_msr_bitmap();
     void test_ia32_vmx_true_procbased_ctls_monitor_exiting();
     void test_ia32_vmx_true_procbased_ctls_pause_exiting();
     void test_ia32_vmx_true_procbased_ctls_activate_secondary_controls();
@@ -283,6 +283,7 @@ private:
     void test_cr0_intel_x64_not_write_through();
     void test_cr0_intel_x64_cache_disable();
     void test_cr0_intel_x64_paging();
+    void test_cr2_intel_x64();
     void test_cr3_intel_x64();
     void test_cr4_intel_x64();
     void test_cr4_intel_x64_v8086_mode_extensions();
@@ -361,6 +362,10 @@ private:
     void test_vmx_intel_x64_vmread_vmwrite_succcess();
     void test_vmx_intel_x64_vmlaunch_failure();
     void test_vmx_intel_x64_vmlaunch_success();
+    void test_vmx_intel_x64_vmlaunch_demote_failure();
+    void test_vmx_intel_x64_vmlaunch_demote_success();
+    void test_vmx_intel_x64_invept();
+    void test_vmx_intel_x64_invvpid();
 
     void test_cpuid_x64_cpuid();
     void test_cpuid_x64_cpuid_eax();

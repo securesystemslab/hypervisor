@@ -36,7 +36,7 @@
 #include <vmcs/vmcs_intel_x64_natural_width_control_fields.h>
 #include <vmcs/vmcs_intel_x64_natural_width_read_only_data_fields.h>
 #include <vmcs/vmcs_intel_x64_natural_width_host_state_fields.h>
-#include <vmcs/vmcs_intel_x64_64bit_read_only_data_field.h>
+#include <vmcs/vmcs_intel_x64_64bit_read_only_data_fields.h>
 #include <vmcs/vmcs_intel_x64_64bit_guest_state_fields.h>
 #include <vmcs/vmcs_intel_x64_64bit_control_fields.h>
 #include <vmcs/vmcs_intel_x64_64bit_host_state_fields.h>
@@ -304,6 +304,10 @@ setup_vmcs_x64_state_intrinsics(MockRepository &mocks, vmcs_intel_x64_state *sta
     mocks.OnCall(state_in, vmcs_intel_x64_state::ia32_fs_base_msr).Return(0);
     mocks.OnCall(state_in, vmcs_intel_x64_state::ia32_gs_base_msr).Return(0);
 
+    mocks.OnCall(state_in, vmcs_intel_x64_state::rip).Return(0);
+    mocks.OnCall(state_in, vmcs_intel_x64_state::rsp).Return(0);
+
+    mocks.OnCall(state_in, vmcs_intel_x64_state::is_guest).Return(false);
     mocks.OnCall(state_in, vmcs_intel_x64_state::dump);
 }
 
@@ -348,6 +352,37 @@ vmcs_ut::test_launch_vmlaunch_failure()
     setup_vmcs_x64_state_intrinsics(mocks, host_state);
     setup_vmcs_x64_state_intrinsics(mocks, guest_state);
 
+    mocks.OnCallFunc(__vmwrite).Return(true);
+    Call &launch_call = mocks.ExpectCallFunc(__vmlaunch_demote).Return(false);
+    mocks.OnCallFunc(__vmwrite).After(launch_call).Do(__vmwrite);
+
+    RUN_UNITTEST_WITH_MOCKS(mocks, [&]
+    {
+        vmcs_intel_x64 vmcs{};
+        std::vector<struct control_flow_path> cfg;
+
+        setup_check_all_paths(cfg);
+
+        for (const auto &sub_path : cfg)
+            sub_path.setup();
+
+        this->expect_exception([&] { vmcs.launch(host_state, guest_state); }, ""_ut_ree);
+    });
+}
+
+void
+vmcs_ut::test_launch_vmlaunch_demote_failure()
+{
+    MockRepository mocks;
+    auto mm = mocks.Mock<memory_manager_x64>();
+    auto host_state = mocks.Mock<vmcs_intel_x64_state>();
+    auto guest_state = mocks.Mock<vmcs_intel_x64_state>();
+
+    setup_vmcs_intrinsics(mocks, mm);
+    setup_vmcs_x64_state_intrinsics(mocks, host_state);
+    setup_vmcs_x64_state_intrinsics(mocks, guest_state);
+
+    mocks.OnCall(guest_state, vmcs_intel_x64_state::is_guest).Return(true);
     mocks.OnCallFunc(__vmwrite).Return(true);
     Call &launch_call = mocks.ExpectCallFunc(__vmlaunch).Return(false);
     mocks.OnCallFunc(__vmwrite).After(launch_call).Do(__vmwrite);
@@ -1708,7 +1743,7 @@ vmcs_ut::test_vmcs_address_of_io_bitmap_b()
 void
 vmcs_ut::test_vmcs_address_of_msr_bitmaps()
 {
-    proc_ctl_allow1(msrs::ia32_vmx_true_procbased_ctls::use_msr_bitmaps::mask);
+    proc_ctl_allow1(msrs::ia32_vmx_true_procbased_ctls::use_msr_bitmap::mask);
     this->expect_true(vmcs::address_of_msr_bitmaps::exists());
 
     vmcs::address_of_msr_bitmaps::set(1UL);
@@ -1990,6 +2025,19 @@ vmcs_ut::test_vmcs_ept_pointer_accessed_and_dirty_flags()
 
     vmcs::ept_pointer::accessed_and_dirty_flags::disable_if_exists();
     this->expect_true(vmcs::ept_pointer::accessed_and_dirty_flags::is_disabled_if_exists());
+}
+
+void
+vmcs_ut::test_vmcs_ept_pointer_phys_addr()
+{
+    proc_ctl_allow1(msrs::ia32_vmx_true_procbased_ctls::activate_secondary_controls::mask);
+    proc_ctl2_allow1(msrs::ia32_vmx_procbased_ctls2::enable_ept::mask);
+
+    vmcs::ept_pointer::phys_addr::set(0x0000ABCDEF123000UL);
+    this->expect_true(vmcs::ept_pointer::phys_addr::get() == 0x0000ABCDEF123000UL);
+
+    vmcs::ept_pointer::phys_addr::set_if_exists(0x0U);
+    this->expect_true(vmcs::ept_pointer::phys_addr::get_if_exists() == 0x0U);
 }
 
 void
@@ -7494,9 +7542,9 @@ vmcs_ut::test_vmcs_primary_processor_based_vm_execution_controls_monitor_trap_fl
 }
 
 void
-vmcs_ut::test_vmcs_primary_processor_based_vm_execution_controls_use_msr_bitmaps()
+vmcs_ut::test_vmcs_primary_processor_based_vm_execution_controls_use_msr_bitmap()
 {
-    using namespace vmcs::primary_processor_based_vm_execution_controls::use_msr_bitmaps;
+    using namespace vmcs::primary_processor_based_vm_execution_controls::use_msr_bitmap;
 
     g_msrs[msrs::ia32_vmx_true_procbased_ctls::addr] = 0xffffffff00000000UL;
 

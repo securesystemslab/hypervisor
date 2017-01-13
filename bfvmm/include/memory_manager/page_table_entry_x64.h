@@ -42,26 +42,30 @@ namespace page_table
 
     namespace pml4
     {
-        constexpr const auto size = 9U;
         constexpr const auto from = 39U;
+        constexpr const auto size = 9U;
+        constexpr const auto size_bytes = 0x8000000000UL;
     }
 
     namespace pdpt
     {
-        constexpr const auto size = 9U;
         constexpr const auto from = 30U;
+        constexpr const auto size = 9U;
+        constexpr const auto size_bytes = 0x40000000UL;
     }
 
     namespace pd
     {
-        constexpr const auto size = 9U;
         constexpr const auto from = 21U;
+        constexpr const auto size = 9U;
+        constexpr const auto size_bytes = 0x200000UL;
     }
 
     namespace pt
     {
-        constexpr const auto size = 9U;
         constexpr const auto from = 12U;
+        constexpr const auto size = 9U;
+        constexpr const auto size_bytes = 0x1000UL;
     }
 }
 }
@@ -80,28 +84,21 @@ public:
     using integer_pointer = uintptr_t;
     using pat_index_type = uint64_t;
 
-    /// Invalid Constructor
-    ///
-    /// @expects none
-    /// @ensures none
-    ///
-    page_table_entry_x64() noexcept;
-
-    /// Default Constructor
+    /// PTE Constructor
     ///
     /// @expects pte != nullptr
     /// @ensures none
     ///
     /// @param pte the pte that this page table entry encapsulates.
     ///
-    page_table_entry_x64(const gsl::not_null<pointer> &pte) noexcept;
+    page_table_entry_x64(gsl::not_null<pointer> pte) noexcept;
 
     /// Destructor
     ///
     /// @expects none
     /// @ensures none
     ///
-    virtual ~page_table_entry_x64() = default;
+    ~page_table_entry_x64() = default;
 
     /// Present
     ///
@@ -251,16 +248,16 @@ public:
     ///
     void set_ps(bool enabled) noexcept;
 
-    /// PAT
+    /// PAT (4k)
     ///
     /// @expects none
     /// @ensures none
     ///
     /// @return true if this entry uses the PAT, false otherwise
     ///
-    bool pat() const noexcept;
+    bool pat_4k() const noexcept;
 
-    /// Set PAT
+    /// Set PAT (4k)
     ///
     /// @expects none
     /// @ensures none
@@ -268,7 +265,26 @@ public:
     /// @param enabled true if the entry uses the PAT, false
     ///     otherwise
     ///
-    void set_pat(bool enabled) noexcept;
+    void set_pat_4k(bool enabled) noexcept;
+
+    /// PAT (Large)
+    ///
+    /// @expects none
+    /// @ensures none
+    ///
+    /// @return true if this entry uses the PAT, false otherwise
+    ///
+    bool pat_large() const noexcept;
+
+    /// Set PAT (Large)
+    ///
+    /// @expects none
+    /// @ensures none
+    ///
+    /// @param enabled true if the entry uses the PAT, false
+    ///     otherwise
+    ///
+    void set_pat_large(bool enabled) noexcept;
 
     /// Global
     ///
@@ -324,23 +340,48 @@ public:
     ///
     void set_nx(bool enabled) noexcept;
 
-    /// PAT Index
+    /// PAT Index (4k)
     ///
     /// @expects none
     /// @ensures none
     ///
     /// @return combines PWT, PCD and PAT to return the PAT index
     ///
-    pat_index_type pat_index() const noexcept;
+    pat_index_type pat_index_4k() const noexcept;
 
-    /// Set PAT Index
+    /// Set PAT Index (4k)
     ///
     /// @expects index >= 0 && index < 8
     /// @ensures none
     ///
     /// @param index the index of the PAT to set
     ///
-    void set_pat_index(pat_index_type index);
+    void set_pat_index_4k(pat_index_type index);
+
+    /// PAT Index (Large)
+    ///
+    /// @expects none
+    /// @ensures none
+    ///
+    /// @return combines PWT, PCD and PAT to return the PAT index
+    ///
+    pat_index_type pat_index_large() const noexcept;
+
+    /// Set PAT Index (Large)
+    ///
+    /// @expects index >= 0 && index < 8
+    /// @ensures none
+    ///
+    /// @param index the index of the PAT to set
+    ///
+    void set_pat_index_large(pat_index_type index);
+
+    /// Clear PTE
+    ///
+    /// @expects none
+    /// @ensures none
+    ///
+    void clear() noexcept;
 
 private:
 

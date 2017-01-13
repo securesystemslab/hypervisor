@@ -181,7 +181,7 @@ intrinsics_ut::list()
     this->test_ia32_vmx_ept_vpid_cap_memory_type_uncacheable_supported();
     this->test_ia32_vmx_ept_vpid_cap_memory_type_write_back_supported();
     this->test_ia32_vmx_ept_vpid_cap_pde_2mb_support();
-    this->test_ia32_vmx_ept_vpid_cap_pdpte_1mb_support();
+    this->test_ia32_vmx_ept_vpid_cap_pdpte_1gb_support();
     this->test_ia32_vmx_ept_vpid_cap_invept_support();
     this->test_ia32_vmx_ept_vpid_cap_accessed_dirty_support();
     this->test_ia32_vmx_ept_vpid_cap_invept_single_context_support();
@@ -215,7 +215,7 @@ intrinsics_ut::list()
     this->test_ia32_vmx_true_procbased_ctls_unconditional_io_exiting();
     this->test_ia32_vmx_true_procbased_ctls_use_io_bitmaps();
     this->test_ia32_vmx_true_procbased_ctls_monitor_trap_flag();
-    this->test_ia32_vmx_true_procbased_ctls_use_msr_bitmaps();
+    this->test_ia32_vmx_true_procbased_ctls_use_msr_bitmap();
     this->test_ia32_vmx_true_procbased_ctls_monitor_exiting();
     this->test_ia32_vmx_true_procbased_ctls_pause_exiting();
     this->test_ia32_vmx_true_procbased_ctls_activate_secondary_controls();
@@ -284,6 +284,7 @@ intrinsics_ut::list()
     this->test_cr0_intel_x64_not_write_through();
     this->test_cr0_intel_x64_cache_disable();
     this->test_cr0_intel_x64_paging();
+    this->test_cr2_intel_x64();
     this->test_cr3_intel_x64();
     this->test_cr4_intel_x64();
     this->test_cr4_intel_x64_v8086_mode_extensions();
@@ -362,6 +363,10 @@ intrinsics_ut::list()
     this->test_vmx_intel_x64_vmread_vmwrite_succcess();
     this->test_vmx_intel_x64_vmlaunch_failure();
     this->test_vmx_intel_x64_vmlaunch_success();
+    this->test_vmx_intel_x64_vmlaunch_demote_failure();
+    this->test_vmx_intel_x64_vmlaunch_demote_success();
+    this->test_vmx_intel_x64_invept();
+    this->test_vmx_intel_x64_invvpid();
 
     this->test_cpuid_x64_cpuid();
     this->test_cpuid_x64_cpuid_eax();

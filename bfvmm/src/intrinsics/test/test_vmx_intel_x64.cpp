@@ -82,6 +82,18 @@ extern "C" bool
 __vmlaunch(void) noexcept
 { return !g_vmlaunch_fails; }
 
+extern "C" bool
+__vmlaunch_demote(void) noexcept
+{ return !g_vmlaunch_fails; }
+
+extern "C" void
+__invept(uint64_t type, void *ptr) noexcept
+{ (void) type; (void) ptr; }
+
+extern "C" void
+__invvipd(uint64_t type, void *ptr) noexcept
+{ (void) type; (void) ptr; }
+
 void
 intrinsics_ut::test_vmx_intel_x64_vmxon_nullptr()
 {
@@ -231,7 +243,39 @@ intrinsics_ut::test_vmx_intel_x64_vmlaunch_failure()
 }
 
 void
+intrinsics_ut::test_vmx_intel_x64_vmlaunch_demote_success()
+{
+    this->expect_no_exception([&] { vm::launch_demote(); });
+}
+
+void
+intrinsics_ut::test_vmx_intel_x64_vmlaunch_demote_failure()
+{
+    auto ___ = gsl::finally([&]
+    { g_vmlaunch_fails = false; });
+
+    g_vmlaunch_fails = true;
+    this->expect_exception([&] { vm::launch_demote(); }, ""_ut_ree);
+}
+
+void
 intrinsics_ut::test_vmx_intel_x64_vmlaunch_success()
 {
     this->expect_no_exception([&] { vm::launch(); });
+}
+
+void
+intrinsics_ut::test_vmx_intel_x64_invept()
+{
+    this->expect_no_exception([&] { vmx::invept_single_context(0); });
+    this->expect_no_exception([&] { vmx::invept_global(); });
+}
+
+void
+intrinsics_ut::test_vmx_intel_x64_invvpid()
+{
+    this->expect_no_exception([&] { vmx::invvipd_individual_address(0, 0); });
+    this->expect_no_exception([&] { vmx::invvipd_single_context(0); });
+    this->expect_no_exception([&] { vmx::invvipd_all_contexts(); });
+    this->expect_no_exception([&] { vmx::invvipd_single_context_global(0); });
 }

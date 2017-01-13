@@ -27,7 +27,7 @@
 #include <vmcs/vmcs_intel_x64_16bit_guest_state_fields.h>
 #include <vmcs/vmcs_intel_x64_16bit_host_state_fields.h>
 #include <vmcs/vmcs_intel_x64_64bit_control_fields.h>
-#include <vmcs/vmcs_intel_x64_64bit_read_only_data_field.h>
+#include <vmcs/vmcs_intel_x64_64bit_read_only_data_fields.h>
 #include <vmcs/vmcs_intel_x64_64bit_guest_state_fields.h>
 #include <vmcs/vmcs_intel_x64_64bit_host_state_fields.h>
 #include <vmcs/vmcs_intel_x64_32bit_control_fields.h>
@@ -865,8 +865,8 @@ namespace debug
         dump_vm_control(primary_processor_based_vm_execution_controls::monitor_trap_flag::name,
                         primary_processor_based_vm_execution_controls::monitor_trap_flag::is_enabled());
 
-        dump_vm_control(primary_processor_based_vm_execution_controls::use_msr_bitmaps::name,
-                        primary_processor_based_vm_execution_controls::use_msr_bitmaps::is_enabled());
+        dump_vm_control(primary_processor_based_vm_execution_controls::use_msr_bitmap::name,
+                        primary_processor_based_vm_execution_controls::use_msr_bitmap::is_enabled());
 
         dump_vm_control(primary_processor_based_vm_execution_controls::monitor_exiting::name,
                         primary_processor_based_vm_execution_controls::monitor_exiting::is_enabled());

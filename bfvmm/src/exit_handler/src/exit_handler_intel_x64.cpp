@@ -162,17 +162,7 @@ exit_handler_intel_x64::handle_invd()
 void
 exit_handler_intel_x64::handle_vmcall()
 {
-    auto &&ret = BF_VMCALL_FAILURE;
     auto &&regs = vmcall_registers_t{};
-
-    auto ___ = gsl::finally([&]
-    {
-        m_state_save->rdx = static_cast < decltype(m_state_save->rdx) > (ret);
-        advance_rip();
-    });
-
-    if (m_state_save->rdx != VMCALL_MAGIC_NUMBER)
-        return;
 
     switch (m_state_save->rax)
     {
@@ -195,7 +185,10 @@ exit_handler_intel_x64::handle_vmcall()
             break;
     };
 
-    ret = guard_exceptions(BF_VMCALL_FAILURE, [&]
+    if (m_state_save->rdx != VMCALL_MAGIC_NUMBER)
+        return complete_vmcall(BF_VMCALL_FAILURE, regs);
+
+    auto &&ret = guard_exceptions(BF_VMCALL_FAILURE, [&]
     {
         switch (m_state_save->rax)
         {
@@ -224,6 +217,13 @@ exit_handler_intel_x64::handle_vmcall()
         };
     });
 
+    complete_vmcall(ret, regs);
+}
+
+void
+exit_handler_intel_x64::complete_vmcall(
+    ret_type ret, vmcall_registers_t &regs) noexcept
+{
     switch (m_state_save->rax)
     {
         case VMCALL_EVENT:
@@ -244,6 +244,9 @@ exit_handler_intel_x64::handle_vmcall()
             m_state_save->rcx = regs.r02;
             break;
     };
+
+    m_state_save->rdx = static_cast < decltype(m_state_save->rdx) > (ret);
+    advance_rip();
 }
 
 void
@@ -395,10 +398,16 @@ exit_handler_intel_x64::unimplemented_handler() noexcept
             << vmcs::exit_reason::basic_exit_reason::description() << bfendl;
     bferror << "- exit qualification: "
             << view_as_pointer(vmcs::exit_qualification::get()) << bfendl;
+    bferror << "- exit interrupt information: "
+            << view_as_pointer(vmcs::vm_exit_interruption_information::get()) << bfendl;
     bferror << "- instruction length: "
             << view_as_pointer(vmcs::vm_exit_instruction_length::get()) << bfendl;
     bferror << "- instruction information: "
             << view_as_pointer(vmcs::vm_exit_instruction_information::get()) << bfendl;
+    bferror << "- guest linear address: "
+            << view_as_pointer(vmcs::guest_linear_address::get()) << bfendl;
+    bferror << "- guest physical address: "
+            << view_as_pointer(vmcs::guest_physical_address::get()) << bfendl;
 
     if (vmcs::exit_reason::vm_entry_failure::is_enabled())
     {

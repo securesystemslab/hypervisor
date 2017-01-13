@@ -163,7 +163,7 @@ __vmptrld(void *ptr) noexcept
 { (void)ptr; return !g_vmload_fails; }
 
 extern "C" bool
-__vmlaunch(void) noexcept
+__vmlaunch_demote(void) noexcept
 { return !g_vmlaunch_fails; }
 
 uintptr_t
@@ -209,6 +209,7 @@ vmcs_ut::list_vmcs_intel_x64_cpp()
 {
     this->test_launch_success();
     this->test_launch_vmlaunch_failure();
+    this->test_launch_vmlaunch_demote_failure();
     this->test_launch_create_vmcs_region_failure();
     this->test_launch_create_exit_handler_stack_failure();
     this->test_launch_clear_failure();
@@ -331,6 +332,7 @@ vmcs_ut::list_64bit_control_fields()
     this->test_vmcs_ept_pointer_memory_type();
     this->test_vmcs_ept_pointer_page_walk_length_minus_one();
     this->test_vmcs_ept_pointer_accessed_and_dirty_flags();
+    this->test_vmcs_ept_pointer_phys_addr();
     this->test_vmcs_ept_pointer_reserved();
     this->test_vmcs_eoi_exit_bitmap_0();
     this->test_vmcs_eoi_exit_bitmap_1();
@@ -496,7 +498,7 @@ vmcs_ut::list_32bit_control_fields()
     this->test_vmcs_primary_processor_based_vm_execution_controls_nmi_window_exiting();
     this->test_vmcs_primary_processor_based_vm_execution_controls_use_io_bitmaps();
     this->test_vmcs_primary_processor_based_vm_execution_controls_monitor_trap_flag();
-    this->test_vmcs_primary_processor_based_vm_execution_controls_use_msr_bitmaps();
+    this->test_vmcs_primary_processor_based_vm_execution_controls_use_msr_bitmap();
     this->test_vmcs_primary_processor_based_vm_execution_controls_monitor_exiting();
     this->test_vmcs_primary_processor_based_vm_execution_controls_pause_exiting();
     this->test_vmcs_primary_processor_based_vm_execution_controls_activate_secondary_controls();
@@ -1435,6 +1437,8 @@ vmcs_ut::list()
     this->test_state_segment_registers_access_rights();
     this->test_state_segment_register_base();
     this->test_state_msrs();
+    this->test_state_rip_rsp();
+    this->test_state_is_guest();
     this->test_state_dump();
 
     this->test_host_vm_state();
