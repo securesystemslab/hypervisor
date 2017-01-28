@@ -89,19 +89,15 @@ NATIVE_ASM:=nasm
 NATIVE_LD:=$(CXX)
 NATIVE_AR:=$(AR)
 
-ifeq ($(findstring clang,$(COMPILER)),clang)
-	CROSS_CC:=$(BUILD_ABS)/build_scripts/x86_64-bareflank-clang
-	CROSS_CXX:=$(BUILD_ABS)/build_scripts/x86_64-bareflank-clang++
-	CROSS_ASM:=$(BUILD_ABS)/build_scripts/x86_64-bareflank-nasm
-	CROSS_LD:=$(BUILD_ABS)/build_scripts/x86_64-bareflank-clang++
-	CROSS_AR:=$(BUILD_ABS)/build_scripts/x86_64-bareflank-ar
-else
-	CROSS_CC:=$(BUILD_ABS)/build_scripts/x86_64-bareflank-gcc
-	CROSS_CXX:=$(BUILD_ABS)/build_scripts/x86_64-bareflank-g++
-	CROSS_ASM:=$(BUILD_ABS)/build_scripts/x86_64-bareflank-nasm
-	CROSS_LD:=$(BUILD_ABS)/build_scripts/x86_64-bareflank-g++
-	CROSS_AR:=$(BUILD_ABS)/build_scripts/x86_64-bareflank-ar
+ifeq ($(SYSROOT_NAME),)
+	SYSROOT_NAME:=vmm
 endif
+
+CROSS_CC:=$(BUILD_ABS)/build_scripts/x86_64-$(SYSROOT_NAME)-clang
+CROSS_CXX:=$(BUILD_ABS)/build_scripts/x86_64-$(SYSROOT_NAME)-clang++
+CROSS_ASM:=$(BUILD_ABS)/build_scripts/x86_64-$(SYSROOT_NAME)-nasm
+CROSS_LD:=$(BUILD_ABS)/build_scripts/x86_64-$(SYSROOT_NAME)-clang++
+CROSS_AR:=$(BUILD_ABS)/build_scripts/x86_64-$(SYSROOT_NAME)-ar
 
 RM:=rm -rf
 MD:=mkdir -p
@@ -244,8 +240,12 @@ endif
 ################################################################################
 
 NATIVE_ASMFLAGS+=-f elf64
-
 CROSS_ASMFLAGS+=-f elf64
+
+ifeq ($(AVX_SUPPORTED), true)
+	NATIVE_ASMFLAGS+=-dAVX_SUPPORTED
+	CROSS_ASMFLAGS+=-dAVX_SUPPORTED
+endif
 
 ################################################################################
 # Default AR Flags

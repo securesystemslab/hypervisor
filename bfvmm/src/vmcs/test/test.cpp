@@ -130,6 +130,9 @@ extern "C" uint32_t
 __cpuid_eax(uint32_t val) noexcept
 { return g_eax_cpuid[val]; }
 
+extern "C" uint32_t
+__cpuid_ecx(uint32_t val) noexcept
+{ (void) val; return 0x04000000U; }
 
 extern "C" void
 __cpuid(void *eax, void *ebx, void *ecx, void *edx) noexcept
@@ -1438,6 +1441,7 @@ vmcs_ut::list()
     this->test_state_segment_register_base();
     this->test_state_msrs();
     this->test_state_rip_rsp();
+    this->test_state_arg1_arg2();
     this->test_state_is_guest();
     this->test_state_dump();
 

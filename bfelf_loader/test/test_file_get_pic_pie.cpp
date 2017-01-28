@@ -19,36 +19,21 @@
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-#ifndef BFN_TO_STRING
-#define BFN_TO_STRING
+#include <test.h>
 
-#include <sstream>
-#include <iomanip>
-
-namespace bfn
+void
+bfelf_loader_ut::test_bfelf_file_get_pic_pie_invalid_ef()
 {
-
-/// Get a std::string representation of an interger
-///
-/// @param val
-///   Integer to get a std::string representation of
-///
-/// @param base
-///   The base to format the std::string representation
-///
-/// @note Only bases 8, 16 and 10 are supported
-///
-template<class T, class = typename std::enable_if<std::is_integral<T>::value>::type>
-std::string to_string(const T val, const int base)
-{
-    std::stringstream stream;
-
-    if (base == 8) stream << "0";
-    if (base == 16) stream << "0x";
-    stream << std::setbase(base) << std::uppercase << val;
-
-    return stream.str();
-}
+    auto ret = bfelf_file_get_pic_pie(nullptr);
+    this->expect_true(ret == BFELF_ERROR_INVALID_ARG);
 }
 
-#endif
+void
+bfelf_loader_ut::test_bfelf_file_get_pic_pie_success()
+{
+    auto ret = 0LL;
+    bfelf_file_t ef = {};
+
+    ret = bfelf_file_get_pic_pie(&ef);
+    this->expect_true(ret == 1);
+}
