@@ -285,6 +285,15 @@ do
         continue
         ;;
 
+
+    "--no-dynamic-linker")
+        continue
+        ;;
+
+
+
+
+
     "-nodefaultlibs")
         COMPILE_ARGS[$COMPILE_ARGS_INDEX]=$ARG
         COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX+1))
