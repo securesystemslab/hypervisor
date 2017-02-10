@@ -361,8 +361,6 @@ intrinsics_ut::list()
     this->test_vmx_intel_x64_vmread_failure();
     this->test_vmx_intel_x64_vmwrite_failure();
     this->test_vmx_intel_x64_vmread_vmwrite_succcess();
-    this->test_vmx_intel_x64_vmlaunch_failure();
-    this->test_vmx_intel_x64_vmlaunch_success();
     this->test_vmx_intel_x64_vmlaunch_demote_failure();
     this->test_vmx_intel_x64_vmlaunch_demote_success();
     this->test_vmx_intel_x64_invept();
@@ -444,6 +442,9 @@ intrinsics_ut::list()
 
     this->test_pdpte_x64_reserved_mask();
     this->test_pdpte_x64_page_directory_addr_mask();
+
+    this->test_rdtsc_x64();
+    this->test_rdtscp_x64();
 
     return true;
 }

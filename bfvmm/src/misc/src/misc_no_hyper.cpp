@@ -73,21 +73,3 @@ stop_vmm(uint64_t arg) noexcept
 
     return 0;
 }
-
-extern "C" int
-fstat(int file, struct stat *sbuf)
-{
-    (void) file;
-    (void) sbuf;
-
-    errno = -ENOSYS;
-    return -1;
-}
-
-extern "C" void
-__stack_chk_fail(void) noexcept
-{
-    auto msg = "__stack_chk_fail: buffer overflow detected!!!\n";
-    write(1, msg, strlen(msg));
-    abort();
-}

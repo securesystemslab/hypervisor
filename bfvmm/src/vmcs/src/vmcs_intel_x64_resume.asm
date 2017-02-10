@@ -32,10 +32,16 @@ section .text
 ; Resume VMCS
 ;
 ; Resumes the execution of an already launched VMCS. Note that this function
-; does not resume, and unlike the entry point, does not use "gs" as we might
-; resuming a VM from a different VMCS, and thus, gs is not valid
+; should not return. If it does, an error has occurred.
 ;
 vmcs_resume:
+
+    push rbx
+    push r12
+    push r13
+    push r14
+    push r15
+    push rbp
 
     mov rsi, VMCS_GUEST_RSP
     vmwrite rsi, [rdi + 0x080]
@@ -87,12 +93,17 @@ vmcs_resume:
 
     mov rdi, [rdi + 0x030]
 
-    sti
     vmresume
 
 ; We should never get this far. If we do, it's because the resume failed. If
 ; happens, we return so that we can throw an exception and tell the user that
 ; something really bad happened.
 
-    cli
+    pop rbp
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop rbx
+
     ret

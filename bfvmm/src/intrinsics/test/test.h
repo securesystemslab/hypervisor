@@ -360,8 +360,6 @@ private:
     void test_vmx_intel_x64_vmread_failure();
     void test_vmx_intel_x64_vmwrite_failure();
     void test_vmx_intel_x64_vmread_vmwrite_succcess();
-    void test_vmx_intel_x64_vmlaunch_failure();
-    void test_vmx_intel_x64_vmlaunch_success();
     void test_vmx_intel_x64_vmlaunch_demote_failure();
     void test_vmx_intel_x64_vmlaunch_demote_success();
     void test_vmx_intel_x64_invept();
@@ -443,6 +441,9 @@ private:
 
     void test_pdpte_x64_reserved_mask();
     void test_pdpte_x64_page_directory_addr_mask();
+
+    void test_rdtsc_x64();
+    void test_rdtscp_x64();
 };
 
 #endif

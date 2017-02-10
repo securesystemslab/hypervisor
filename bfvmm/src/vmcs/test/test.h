@@ -240,7 +240,7 @@ private:
     void test_vmcs_host_tr_selector_index();
     void test_vmcs_address_of_io_bitmap_a();
     void test_vmcs_address_of_io_bitmap_b();
-    void test_vmcs_address_of_msr_bitmaps();
+    void test_vmcs_address_of_msr_bitmap();
     void test_vmcs_vm_exit_msr_store_address();
     void test_vmcs_vm_exit_msr_load_address();
     void test_vmcs_vm_entry_msr_load_address();
@@ -1265,8 +1265,6 @@ private:
     void test_state_segment_registers_access_rights();
     void test_state_segment_register_base();
     void test_state_msrs();
-    void test_state_rip_rsp();
-    void test_state_arg1_arg2();
     void test_state_is_guest();
     void test_state_dump();
 
