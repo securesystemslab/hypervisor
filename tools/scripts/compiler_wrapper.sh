@@ -287,6 +287,12 @@ do
 
 
     "--no-dynamic-linker")
+        COMPILE_ARGS[$COMPILE_ARGS_INDEX]="--no-dynamic-linker"
+        COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX+1))
+
+        LINK_ARGS[$LINK_ARGS_INDEX]="-no-dynamic-linker"
+        LINK_ARGS_INDEX=$((LINK_ARGS_INDEX+1))
+
         continue
         ;;
 
