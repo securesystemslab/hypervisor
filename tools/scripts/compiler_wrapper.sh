@@ -316,8 +316,6 @@ LINK_ARGS[$LINK_ARGS_INDEX]=
 SOURCE_ARGS[$SOURCE_ARGS_INDEX]=
 OBJECT_FILE_ARGS[$OBJECT_FILE_ARGS_INDEX]=
 
-#STRIP_INTERP="false"
-
 argArray=("$@")
 
 for ((i=0; i < ${#argArray[@]}; i++))
@@ -405,29 +403,6 @@ do
         COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX+1))
         continue
         ;;
-
-
-    #"--no-dynamic-linker")
-        ##COMPILE_ARGS[$COMPILE_ARGS_INDEX]="--no-dynamic-linker"
-        ##COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX+1))
-
-        ##LINK_ARGS[$LINK_ARGS_INDEX]="-no-dynamic-linker"
-        ##LINK_ARGS_INDEX=$((LINK_ARGS_INDEX+1))
-        
-        #COMPILE_ARGS[$COMPILE_ARGS_INDEX]="-Wl,-dynamic-linker,not_used"
-        #COMPILE_ARGS_INDEX=$((COMPILE_ARGS_INDEX+1))
-
-        #LINK_ARGS[$LINK_ARGS_INDEX]="-dynamic-linker=not_used"
-        #LINK_ARGS_INDEX=$((LINK_ARGS_INDEX+1))
-
-        ##STRIP_INTERP="true"
-
-        #continue
-        #;;
-
-
-
-
 
     "-nodefaultlibs")
         COMPILE_ARGS[$COMPILE_ARGS_INDEX]=$ARG
@@ -525,7 +500,6 @@ done
 
 LINK_OBJS_INDEX=0
 LINK_OBJS[$LINK_OBJS_INDEX]=
-#LINK_TARGET=
 
 if [[ -n "$SOURCE_ARGS" ]]; then
 
@@ -556,24 +530,3 @@ if [[ $COMPILE_ONLY == "true" ]]; then
 fi
 
 $LINKER $SYSROOT ${SYSROOT_LIB_PATH} ${OBJECT_FILE_ARGS[*]} ${LINK_OBJS[*]} ${LINK_ARGS[*]} $REQUIRED_LINKER_ARGS -z max-page-size=4096 -z common-page-size=4096 -z relro -z now
-
-#if [[ $STRIP_INTERP == "true" ]]; then
-
-    #for ((i=0; i < ${#SOURCE_ARGS[@]}; i++))
-    #do
-        #if [[  ${argArray[i]} == "-o" ]]; then
-            #LINK_TARGET=${argArray[i+1]}
-            #echo
-            #echo $LINK_TARGET
-            #echo
-            #echo -e "\n\n objcopy --remove-section '.interp' $LINK_TARGET \n\n"
-            #objcopy --remove-section '.interp' $LINK_TARGET
-            #exit 0
-        #fi
-    #done
-
-    #echo -e "\n\n   ERROR RUNNING OBJDUMP!!!\n\n"
-    #echo -e "\n\n ${argArray[*]} \n\n"
-
-    #exit 1
-#fi
