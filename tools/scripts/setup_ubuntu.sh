@@ -47,7 +47,6 @@ install_common_packages() {
     sudo apt-get install --yes texinfo
     sudo apt-get install --yes realpath
     sudo apt-get install --yes clang
-    sudo apt-get install --yes clang++
 }
 
 # ------------------------------------------------------------------------------
