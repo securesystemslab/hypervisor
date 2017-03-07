@@ -64,9 +64,11 @@ case $( grep ^VERSION_ID= /etc/os-release | cut -d'=' -f 2 | tr -d '"' ) in
     ;;
 
 16.10)
-    install_common_packages
     ;;
 
+16.04)
+    install_common_packages
+    ;;
 *)
     echo "This version of Ubuntu is not supported"
     exit 1
