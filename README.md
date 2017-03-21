@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/Bareflank/hypervisor/master/doc/images/bareflank_logo.jpg" width="501">
+![Bareflank](https://raw.githubusercontent.com/Bareflank/hypervisor/master/doc/images/bareflank_logo.jpg)
 <br>
 <br>
 <br>
@@ -61,7 +61,7 @@ and the
 including support for the [Guideline Support Library](https://github.com/Microsoft/GSL).
 
 Currently we have support for the following 64bit host operating systems on Intel _SandyBridge_ and above hardware:
-- Ubuntu 16.10, 16.04, 14.04
+- Ubuntu 16.10
 - Debian Stretch
 - Fedora 25, 24, 23
 - OpenSUSE Leap 42.2
@@ -162,6 +162,12 @@ the driver with your own signing key.
 ```
 bcdedit.exe /set testsigning ON
 <reboot>
+```
+
+If you are using Fedora, perform the following step to make SELinux perform in permissive mode. Once you are done testing, it is probably wise to undo this command.
+
+```
+sudo setenforce 0
 ```
 
 If you are not on a supported platform, you are more than welcome to modify
