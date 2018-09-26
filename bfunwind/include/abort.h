@@ -1,9 +1,6 @@
 //
 // Bareflank Unwind Library
-//
 // Copyright (C) 2015 Assured Information Security, Inc.
-// Author: Rian Quinn        <quinnr@ainfosec.com>
-// Author: Brendan Kerrigan  <kerriganb@ainfosec.com>
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -22,32 +19,29 @@
 #ifndef ABORT_H
 #define ABORT_H
 
-#ifdef CROSS_COMPILED
-extern "C" void abort(void);
-extern "C" int printf(const char *format, ...);
-extern "C" unsigned int write(int fd, const void *buf, unsigned int count);
-#else
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#endif
+#include <string.h>
+
+extern "C" uint64_t
+unsafe_write_cstr(const char *cstr, size_t len);
 
 inline void
-private_abort(const char *msg, const char *func, int line)
+private_abort(const char *msg, const char *func)
 {
-    (void) msg;
-    (void) func;
-    (void) line;
+    const char *str_txt1 = "\033[1;31mFATAL ERROR\033[0m [\033[1;33m";
+    const char *str_txt2 = "\033[0m]: ";
+    const char *str_endl = "\n"; \
 
-#ifdef DISABLE_LOGGING
-    auto ignored = write(1, "abort called in the unwinder", 28);
-    (void) ignored;
-#else
-    printf("%s FATAL ERROR [%d]: %s\n", func, line, msg);
-#endif
+    unsafe_write_cstr(str_txt1, strlen(str_txt1)); \
+    unsafe_write_cstr(func, strlen(func)); \
+    unsafe_write_cstr(str_txt2, strlen(str_txt2)); \
+    unsafe_write_cstr(msg, strlen(msg)); \
+    unsafe_write_cstr(str_endl, strlen(str_endl)); \
 
     abort();
 }
-#define ABORT(a) { private_abort(a,__func__,__LINE__); __builtin_unreachable(); }
+
+#define ABORT(a) private_abort(a,__func__);
 
 #endif
