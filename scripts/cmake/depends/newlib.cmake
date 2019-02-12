@@ -16,6 +16,8 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+include(${VMM_TOOLCHAIN_PATH})
+
 if((ENABLE_BUILD_VMM OR ENABLE_BUILD_TEST) AND NOT WIN32)
     message(STATUS "Including dependency: newlib")
 
@@ -25,8 +27,8 @@ if((ENABLE_BUILD_VMM OR ENABLE_BUILD_TEST) AND NOT WIN32)
         URL_MD5     ${NEWLIB_URL_MD5}
     )
 
-    set(CC_FOR_TARGET clang)
-    set(CXX_FOR_TARGET clang)
+    set(CC_FOR_TARGET ${CLANG_BIN})
+    set(CXX_FOR_TARGET ${CLANG_BIN})
 
     set(AR_FOR_TARGET ar)
     set(AS_FOR_TARGET as)
@@ -37,8 +39,8 @@ if((ENABLE_BUILD_VMM OR ENABLE_BUILD_TEST) AND NOT WIN32)
     set(READELF_FOR_TARGET readelf)
     set(STRIP_FOR_TARGET strip)
 
-    if(DEFINED ENV{LD_BIN})
-        set(LD_FOR_TARGET $ENV{LD_BIN})
+    if(LD_BIN)
+        set(LD_FOR_TARGET ${LD_BIN})
     else()
         set(LD_FOR_TARGET ${VMM_PREFIX_PATH}/bin/ld)
     endif()
@@ -46,15 +48,6 @@ if((ENABLE_BUILD_VMM OR ENABLE_BUILD_TEST) AND NOT WIN32)
     generate_flags(
         vmm
         NOWARNINGS
-    )
-
-    string(CONCAT LD_FLAGS
-        "--sysroot=${CMAKE_INSTALL_PREFIX} "
-        "-z max-page-size=4096 "
-        "-z common-page-size=4096 "
-        "-z relro "
-        "-z now "
-        "-nostdlib "
     )
 
     if(CMAKE_BUILD_TYPE STREQUAL "Release")
