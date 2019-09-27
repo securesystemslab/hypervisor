@@ -31,7 +31,7 @@ if((ENABLE_BUILD_VMM OR ENABLE_BUILD_TEST) AND NOT WIN32)
     )
 
     list(APPEND LIBCXXABI_CONFIGURE_FLAGS
-        -DLLVM_PATH=${CACHE_DIR}/llvm
+        -DLLVM_PATH=/srv/bfbuild/hypervisor-super/multicompiler/llvm
         -DLLVM_ENABLE_LIBCXX=ON
         -DLIBCXXABI_LIBCXX_PATH=${CACHE_DIR}/libcxx
         -DLIBCXXABI_SYSROOT=${VMM_PREFIX_PATH}
@@ -44,7 +44,6 @@ if((ENABLE_BUILD_VMM OR ENABLE_BUILD_TEST) AND NOT WIN32)
     add_dependency(
         libcxxabi vmm
         CMAKE_ARGS  ${LIBCXXABI_CONFIGURE_FLAGS}
-        DEPENDS     llvm_${VMM_PREFIX}
         DEPENDS     newlib_${VMM_PREFIX}
         DEPENDS     bfdso_${VMM_PREFIX}
     )
