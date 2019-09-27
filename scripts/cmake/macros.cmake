@@ -1314,6 +1314,7 @@ function(add_vmm_executable NAME)
             ${CMAKE_INSTALL_PREFIX}/lib/libc.a
             ${CMAKE_INSTALL_PREFIX}/lib/libm.a
             ${CMAKE_INSTALL_PREFIX}/lib/libbfsyscall_static.a
+            ${SAFESTACK_RUNTIME_LIB}
             --whole-archive ${CMAKE_INSTALL_PREFIX}/lib/libbfcrt_static.a --no-whole-archive
         )
 
