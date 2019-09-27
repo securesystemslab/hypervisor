@@ -28,7 +28,7 @@ list(APPEND BFFLAGS_VMM
 )
 
 list(APPEND BFFLAGS_VMM
-    --target=${BUILD_TARGET_ARCH}-vmm-elf
+    --target=${BUILD_TARGET_ARCH}-vmm-bareflank-elf
     --sysroot=${VMM_PREFIX_PATH}
     -fpic
     -mno-red-zone
