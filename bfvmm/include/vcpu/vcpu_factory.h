@@ -1,47 +1,29 @@
 //
-// Bareflank Hypervisor
-// Copyright (C) 2015 Assured Information Security, Inc.
+// Copyright (C) 2019 Assured Information Security, Inc.
 //
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-// Lesser General Public License for more details.
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
 //
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 #ifndef VCPU_FACTORY_H
 #define VCPU_FACTORY_H
 
 #include <memory>
 #include "vcpu.h"
-
-// -----------------------------------------------------------------------------
-// Exports
-// -----------------------------------------------------------------------------
-
-#include <bfexports.h>
-
-#ifndef STATIC_VCPU
-#ifdef SHARED_VCPU
-#define EXPORT_VCPU EXPORT_SYM
-#else
-#define EXPORT_VCPU IMPORT_SYM
-#endif
-#else
-#define EXPORT_VCPU
-#endif
-
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4251)
-#endif
 
 // -----------------------------------------------------------------------------
 // Definitions
@@ -55,19 +37,10 @@ namespace bfvmm
 /// This class is used by the vcpu_manager to create vCPUs. Specifically,
 /// this class provides a seem that allows users of Bareflank to replace the
 /// default vCPU with their own, custom vCPUs that extend the functionality
-/// of Bareflank above and beyond what is already provided. This seems also
+/// of Bareflank above and beyond what is already provided. This seem also
 /// provides a means to unit test the vcpu_manager.
 ///
-/// To provide custom logic, define your own make_vcpu function, in your
-/// own vcpu_factory module, and load your module instead of the module that
-/// is provided by Bareflank. For an example of how to do this, please
-/// see:
-///
-/// <a href="https://github.com/Bareflank/hypervisor_example_vpid">Bareflank Hypervisor VPID Example</a>
-/// <br>
-/// <a href="https://github.com/Bareflank/hypervisor_example_cpuidcount">Bareflank Hypervisor CPUID Example</a>
-///
-class EXPORT_VCPU vcpu_factory
+class vcpu_factory
 {
 public:
 
@@ -91,11 +64,11 @@ public:
     /// @ensures none
     ///
     /// @param vcpuid the vcpuid for the vcpu to create
-    /// @param obj object passed to the vcpu
+    /// @param data a pointer to user defined data
     /// @return returns a pointer to a newly created vCPU.
     ///
-    virtual std::unique_ptr<vcpu> make_vcpu(
-        vcpuid::type vcpuid, bfobject *obj = nullptr);
+    virtual std::unique_ptr<vcpu> make(
+        vcpuid::type vcpuid, void *data);
 
 public:
 
@@ -109,11 +82,6 @@ public:
 
     /// @endcond
 };
-
 }
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 #endif

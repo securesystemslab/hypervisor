@@ -1,20 +1,25 @@
 //
-// Bareflank Hypervisor
-// Copyright (C) 2015 Assured Information Security, Inc.
+// Copyright (C) 2019 Assured Information Security, Inc.
 //
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-// Lesser General Public License for more details.
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
 //
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+/// @cond
 
 #include <intrinsics.h>
 
@@ -40,40 +45,6 @@ uint16_t g_tr;
 
 ::x64::gdt_reg::reg_t g_gdtr{};
 ::x64::idt_reg::reg_t g_idtr{};
-
-extern "C" void _handle_nmi(void) noexcept {}
-
-extern "C" void _esr0(void) noexcept {}
-extern "C" void _esr1(void) noexcept {}
-extern "C" void _esr3(void) noexcept {}
-extern "C" void _esr4(void) noexcept {}
-extern "C" void _esr5(void) noexcept {}
-extern "C" void _esr6(void) noexcept {}
-extern "C" void _esr7(void) noexcept {}
-extern "C" void _esr8(void) noexcept {}
-extern "C" void _esr9(void) noexcept {}
-extern "C" void _esr10(void) noexcept {}
-extern "C" void _esr11(void) noexcept {}
-extern "C" void _esr12(void) noexcept {}
-extern "C" void _esr13(void) noexcept {}
-extern "C" void _esr14(void) noexcept {}
-extern "C" void _esr15(void) noexcept {}
-extern "C" void _esr16(void) noexcept {}
-extern "C" void _esr17(void) noexcept {}
-extern "C" void _esr18(void) noexcept {}
-extern "C" void _esr19(void) noexcept {}
-extern "C" void _esr20(void) noexcept {}
-extern "C" void _esr21(void) noexcept {}
-extern "C" void _esr22(void) noexcept {}
-extern "C" void _esr23(void) noexcept {}
-extern "C" void _esr24(void) noexcept {}
-extern "C" void _esr25(void) noexcept {}
-extern "C" void _esr26(void) noexcept {}
-extern "C" void _esr27(void) noexcept {}
-extern "C" void _esr28(void) noexcept {}
-extern "C" void _esr29(void) noexcept {}
-extern "C" void _esr30(void) noexcept {}
-extern "C" void _esr31(void) noexcept {}
 
 extern "C" uint64_t
 _read_msr(uint32_t addr) noexcept
@@ -200,8 +171,20 @@ _wbinvd() noexcept
 { }
 
 extern "C" void
+_pause() noexcept
+{ }
+
+extern "C" void
 _invlpg(const void *addr) noexcept
 { bfignored(addr); }
+
+extern "C" bool
+_invept(uint64_t type, void *ptr) noexcept
+{ bfignored(ptr); return true; }
+
+extern "C" bool
+_invvpid(uint64_t type, void *ptr) noexcept
+{ bfignored(ptr); return true; }
 
 extern "C" void
 _cpuid(void *eax, void *ebx, void *ecx, void *edx) noexcept
@@ -299,6 +282,10 @@ extern "C" void
 _write_cr8(uint64_t val) noexcept
 { g_cr8 = val; }
 
+extern "C" void
+_write_xcr0(uint64_t val) noexcept
+{ bfignored(val); }
+
 extern "C" uint64_t
 _read_dr7() noexcept
 { return g_dr7; }
@@ -320,6 +307,10 @@ _vmwrite(uint64_t field, uint64_t value) noexcept
     g_vmcs_fields[field] = value;
     return true;
 }
+
+extern "C" bool
+_vmclear(void *ptr) noexcept
+{ (void)ptr; return true; }
 
 extern "C" bool
 _vmptrld(void *ptr) noexcept
@@ -375,3 +366,5 @@ setup_cpuid_intel_x64()
 }
 
 #endif
+
+/// @endcond

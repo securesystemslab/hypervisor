@@ -1,25 +1,31 @@
 //
-// Bareflank Hypervisor
-// Copyright (C) 2017 Assured Information Security, Inc.
+// Copyright (C) 2019 Assured Information Security, Inc.
 //
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-// Lesser General Public License for more details.
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
 //
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 #ifndef INTRINSICS_H
 #define INTRINSICS_H
 
 #include <bfarch.h>
+#include <stdint.h>
+
+inline uintptr_t g_rsdp = 0;
 
 #ifdef BF_X64
 #include <arch/x64/cache.h>
@@ -40,6 +46,7 @@
 #ifdef BF_INTEL_X64
 #include <arch/intel_x64/apic/lapic.h>
 #include <arch/intel_x64/apic/x2apic.h>
+#include <arch/intel_x64/barrier.h>
 #include <arch/intel_x64/bit.h>
 #include <arch/intel_x64/cpuid.h>
 #include <arch/intel_x64/crs.h>
@@ -65,17 +72,9 @@
 #include <arch/intel_x64/vmcs/natural_width_guest_state_fields.h>
 #include <arch/intel_x64/vmcs/natural_width_host_state_fields.h>
 #include <arch/intel_x64/vmcs/natural_width_read_only_data_fields.h>
-#include <arch/intel_x64/vtd/context_entry.h>
-#include <arch/intel_x64/vtd/extended_context_entry.h>
-#include <arch/intel_x64/vtd/extended_root_entry.h>
-#include <arch/intel_x64/vtd/fault_record.h>
-#include <arch/intel_x64/vtd/first_level_paging_entries.h>
-#include <arch/intel_x64/vtd/irte.h>
-#include <arch/intel_x64/vtd/pasid_entry.h>
-#include <arch/intel_x64/vtd/pasid_state_entry.h>
-#include <arch/intel_x64/vtd/pid.h>
-#include <arch/intel_x64/vtd/root_entry.h>
-#include <arch/intel_x64/vtd/second_level_paging_entries.h>
+
+namespace vmcs_n = ::intel_x64::vmcs;
+
 #endif
 
 #ifdef BF_AARCH64

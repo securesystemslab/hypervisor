@@ -1,20 +1,23 @@
 /*
- * Bareflank Hypervisor
- * Copyright (C) 2015 Assured Information Security, Inc.
+ * Copyright (C) 2019 Assured Information Security, Inc.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #ifndef BFCONSTANTS_H
@@ -29,21 +32,19 @@
  * Defines the maximum physical address the system can access. This can be
  * used by CR3 and EPT to define the memory map used by the VMM. Note that
  * if this value is too large, its possible additional memory would be needed
- * by the VMM to setup CR3 or EPT depending on the granulairty used.
+ * by the VMM to setup CR3 or EPT depending on the granularity used.
  *
- * Note: defined in bytes
+ * Note: defined in bytes (512GB by default)
  */
 #ifndef MAX_PHYS_ADDR
-#define MAX_PHYS_ADDR 0x1000000000
+#define MAX_PHYS_ADDR 0x8000000000
 #endif
 
 /*
- * Max Page Size
+ * Bareflank Page Size
  *
- * Defines the maximum page size that is supported by the VMM (not the max
- * size supported by hardware, which is likely different). For now, this is
- * set to a value that is likely supported by most hardware. All pages must
- * be translated to this value, as the VMM only supports one page size.
+ * Defines the page size that is supported by the VMM. For now, this is
+ * set to a value that is likely supported by most hardware.
  *
  * Note: defined in bytes
  */
@@ -52,23 +53,66 @@
 #endif
 
 /*
+ * Page Pool K
+ *
+ * Defines the size of the initial page pool used by the VMM. If more memory
+ * is needed by the VMM initially, this value may be increased. Note that
+ * increasing "K" by 1 will double the amount of memory.
+ */
+#ifndef PAGE_POOL_K
+#define PAGE_POOL_K (15ULL)
+#endif
+
+/*
+* Huge Pool K
+*
+* Defines the size of the initial huge pool used by the VMM. If more memory
+* is needed by the VMM initially, this value may be increased. Note that
+* increasing "K" by 1 will double the amount of memory.
+*/
+
+#ifndef HUGE_POOL_K
+#define HUGE_POOL_K (15ULL)
+#endif
+/*
+* Memory Map Pool K
+*
+* Defines the size of the initial mem map pool used by the VMM. If more memory
+* is needed by the VMM for mapping, this value may be increased. Note that
+* increasing "K" by 1 will double the amount of memory.
+*/
+#ifndef MEM_MAP_POOL_K
+#define MEM_MAP_POOL_K (15ULL)
+#endif
+
+/*
  * Memory Map Pool Start
  *
  * This defines the starting location of the virtual memory that is used
- * for memory mapping.
+ * for memory mapping. Note that on some systems, this might need to be
+ * changed to prevent collisions.
  *
- * Note: defined in bytes (defaults to 2MB)
+ * By default, the VMM maps memory in the lower half of the canoncial address
+ * space to prevent collisions with the Host OS during init/fini. To prevent
+ * collisions with EFI and other boot environments the starting address is set
+ * really high in the lower half as it is unlikely the VMM will be loaded in an
+ * address so high (as that would likely suggest that much memory was used by
+ * the bootloader and BIOS which is unlikely)
+ *
+ * Using an address of this nature also makes it a lot easier to locate VMM
+ * specific memory addresses in memory dumps and fault handlers.
+ *
+ * Note: defined in bytes
  */
 #ifndef MEM_MAP_POOL_START
-#define MEM_MAP_POOL_START 0x200000ULL
+#define MEM_MAP_POOL_START 0xBF000000000ULL
 #endif
 
 /*
  * Max Supported Modules
  *
- * The maximum number of modules supported by the VMM. Note that the ELF loader
- * has its own version of this that likely will need to be changed if this
- * value changes.
+ * The maximum number of modules supported by the VMM. If you VMM has a large
+ * number of dynamic libraries to load, this value might need to be increased
  */
 #ifndef MAX_NUM_MODULES
 #define MAX_NUM_MODULES (75LL)
@@ -77,11 +121,13 @@
 /*
  * Debug Ring Size
  *
- * Defines the size of the debug ring. Note that each vCPU gets one of these,
- * and thus the total amount of memory that is used can add up quickly. That
- * being said, make these as large as you can afford. Also note that these
- * will be allocated using the mem pool, so make sure that it is large enough
- * to hold the debug rings for each vCPU and then some.
+ * Defines the size of the debug ring. Note that the memory manager is used to
+ *     allocate memory for the debug ring, so if you need more than one ring,
+ *     which is supported, make sure the memory manager has enough memory in
+ *     the huge pool to support your needs.
+ *
+ * Note: Must be defined using a bit shift as this prevents the debug ring from
+ *     allocating memory that generates fragmentation in the memory manager
  *
  * Note: defined in bytes
  */
@@ -102,6 +148,8 @@
  * Note: This is hard coded in the thread_context.asm as there is no way to
  *       use this include in NASM. If you change this, you must change the
  *       value in that file as well.
+ *
+ * Note: defined in bytes
  */
 #ifndef STACK_SIZE
 #define STACK_SIZE (1ULL << 15ULL)
@@ -133,8 +181,13 @@
  *    - 0x02E8U  // COM4
  *    - 0xE000U
  *    - 0xE010U
+ *    - 0xEFF0U  // Windows COM4
+ *    - 0xEFF8U  // Windows COM5
  *
- * On aarch64, the value is the serial peripheral's physical base address.
+ * On aarch64, the value is the serial peripheral's physical base address. On
+ * Windows, you might need to check Device Manager to see what ports Windows
+ * gave the serial ports are they can change (i.e. the port numbers that you
+ * get from Windows might be different than BIOS or Linux)
  *
  * Note: See bfvmm/serial/serial_ns16550a.h
  */
@@ -142,7 +195,7 @@
 #if defined(BF_AARCH64)
 #   define DEFAULT_COM_PORT 0x09000000
 #else
-#   define DEFAULT_COM_PORT 0x3F8U
+#   define DEFAULT_COM_PORT 0x03F8U
 #   define DEFAULT_COM_DRIVER serial_ns16550a
 #endif
 #endif

@@ -1,42 +1,29 @@
 //
-// Bareflank Hypervisor
-// Copyright (C) 2015 Assured Information Security, Inc.
+// Copyright (C) 2019 Assured Information Security, Inc.
 //
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-// Lesser General Public License for more details.
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
 //
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 #ifndef CRS_INTEL_X64_H
 #define CRS_INTEL_X64_H
 
 #include <bfdebug.h>
 #include <bfbitmanip.h>
-
-// -----------------------------------------------------------------------------
-// Exports
-// -----------------------------------------------------------------------------
-
-#include <bfexports.h>
-
-#ifndef STATIC_INTRINSICS
-#ifdef SHARED_INTRINSICS
-#define EXPORT_INTRINSICS EXPORT_SYM
-#else
-#define EXPORT_INTRINSICS IMPORT_SYM
-#endif
-#else
-#define EXPORT_INTRINSICS
-#endif
 
 // -----------------------------------------------------------------------------
 // Definitions
@@ -56,6 +43,8 @@ extern "C" void _write_cr4(uint64_t val) noexcept;
 
 extern "C" uint64_t _read_cr8(void) noexcept;
 extern "C" void _write_cr8(uint64_t val) noexcept;
+
+extern "C" void _write_xcr0(uint64_t val) noexcept;
 
 // *INDENT-OFF*
 
@@ -95,13 +84,13 @@ namespace cr0
         { _write_cr0(set_bit(_read_cr0(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr0(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr0(clear_bit(_read_cr0(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr0(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -130,13 +119,13 @@ namespace cr0
         { _write_cr0(set_bit(_read_cr0(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr0(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr0(clear_bit(_read_cr0(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr0(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -164,13 +153,13 @@ namespace cr0
         { _write_cr0(set_bit(_read_cr0(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr0(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr0(clear_bit(_read_cr0(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr0(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -198,13 +187,13 @@ namespace cr0
         { _write_cr0(set_bit(_read_cr0(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr0(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr0(clear_bit(_read_cr0(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr0(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -232,13 +221,13 @@ namespace cr0
         { _write_cr0(set_bit(_read_cr0(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr0(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr0(clear_bit(_read_cr0(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr0(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -266,13 +255,13 @@ namespace cr0
         { _write_cr0(set_bit(_read_cr0(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr0(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr0(clear_bit(_read_cr0(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr0(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -300,13 +289,13 @@ namespace cr0
         { _write_cr0(set_bit(_read_cr0(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr0(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr0(clear_bit(_read_cr0(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr0(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -334,13 +323,13 @@ namespace cr0
         { _write_cr0(set_bit(_read_cr0(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr0(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr0(clear_bit(_read_cr0(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr0(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -368,13 +357,13 @@ namespace cr0
         { _write_cr0(set_bit(_read_cr0(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr0(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr0(clear_bit(_read_cr0(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr0(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -402,13 +391,13 @@ namespace cr0
         { _write_cr0(set_bit(_read_cr0(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr0(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr0(clear_bit(_read_cr0(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr0(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -436,13 +425,13 @@ namespace cr0
         { _write_cr0(set_bit(_read_cr0(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr0(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr0(clear_bit(_read_cr0(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr0(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -531,13 +520,13 @@ namespace cr4
         { _write_cr4(set_bit(_read_cr4(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr4(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr4(clear_bit(_read_cr4(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr4(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -565,13 +554,13 @@ namespace cr4
         { _write_cr4(set_bit(_read_cr4(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr4(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr4(clear_bit(_read_cr4(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr4(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -599,13 +588,13 @@ namespace cr4
         { _write_cr4(set_bit(_read_cr4(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr4(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr4(clear_bit(_read_cr4(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr4(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -633,13 +622,13 @@ namespace cr4
         { _write_cr4(set_bit(_read_cr4(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr4(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr4(clear_bit(_read_cr4(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr4(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -667,13 +656,13 @@ namespace cr4
         { _write_cr4(set_bit(_read_cr4(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr4(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr4(clear_bit(_read_cr4(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr4(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -701,13 +690,13 @@ namespace cr4
         { _write_cr4(set_bit(_read_cr4(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr4(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr4(clear_bit(_read_cr4(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr4(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -735,13 +724,13 @@ namespace cr4
         { _write_cr4(set_bit(_read_cr4(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr4(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr4(clear_bit(_read_cr4(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr4(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -769,13 +758,13 @@ namespace cr4
         { _write_cr4(set_bit(_read_cr4(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr4(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr4(clear_bit(_read_cr4(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr4(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -803,13 +792,13 @@ namespace cr4
         { _write_cr4(set_bit(_read_cr4(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr4(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr4(clear_bit(_read_cr4(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr4(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -837,13 +826,13 @@ namespace cr4
         { _write_cr4(set_bit(_read_cr4(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr4(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr4(clear_bit(_read_cr4(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr4(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -871,13 +860,13 @@ namespace cr4
         { _write_cr4(set_bit(_read_cr4(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr4(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr4(clear_bit(_read_cr4(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr4(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -905,13 +894,13 @@ namespace cr4
         { _write_cr4(set_bit(_read_cr4(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr4(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr4(clear_bit(_read_cr4(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr4(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -939,13 +928,13 @@ namespace cr4
         { _write_cr4(set_bit(_read_cr4(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr4(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr4(clear_bit(_read_cr4(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr4(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -973,13 +962,13 @@ namespace cr4
         { _write_cr4(set_bit(_read_cr4(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr4(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr4(clear_bit(_read_cr4(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr4(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -1007,13 +996,13 @@ namespace cr4
         { _write_cr4(set_bit(_read_cr4(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr4(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr4(clear_bit(_read_cr4(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr4(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -1041,13 +1030,13 @@ namespace cr4
         { _write_cr4(set_bit(_read_cr4(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr4(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr4(clear_bit(_read_cr4(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr4(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -1075,13 +1064,13 @@ namespace cr4
         { _write_cr4(set_bit(_read_cr4(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr4(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr4(clear_bit(_read_cr4(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr4(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -1109,13 +1098,13 @@ namespace cr4
         { _write_cr4(set_bit(_read_cr4(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr4(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr4(clear_bit(_read_cr4(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr4(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -1143,13 +1132,13 @@ namespace cr4
         { _write_cr4(set_bit(_read_cr4(), from)); }
 
         inline void enable(value_type &cr)
-        { _write_cr4(set_bit(cr, from)); }
+        { cr = set_bit(cr, from); }
 
         inline void disable()
         { _write_cr4(clear_bit(_read_cr4(), from)); }
 
         inline void disable(value_type &cr)
-        { _write_cr4(clear_bit(cr, from)); }
+        { cr = clear_bit(cr, from); }
 
         inline void dump(int level, std::string *msg = nullptr)
         { bfdebug_subbool(level, name, is_enabled(), msg); }
@@ -1195,6 +1184,17 @@ namespace cr8
     inline void dump(int level, std::string *msg = nullptr)
     { bfdebug_nhex(level, name, get(), msg); }
 }
+
+namespace xcr0
+{
+    constexpr const auto name = "xcr0";
+
+    using value_type = uint64_t;
+
+    inline void set(value_type val) noexcept
+    { _write_xcr0(val); }
+}
+
 
 }
 

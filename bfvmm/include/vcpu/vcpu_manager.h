@@ -1,173 +1,31 @@
 //
-// Bareflank Hypervisor
-// Copyright (C) 2015 Assured Information Security, Inc.
+// Copyright (C) 2019 Assured Information Security, Inc.
 //
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-// Lesser General Public License for more details.
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
 //
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 #ifndef VCPU_MANAGER_H
 #define VCPU_MANAGER_H
 
-#include <map>
-#include <memory>
+#include <bfmanager.h>
 
+#include "vcpu.h"
 #include "vcpu_factory.h"
-
-// -----------------------------------------------------------------------------
-// Exports
-// -----------------------------------------------------------------------------
-
-#include <bfexports.h>
-
-#ifndef STATIC_VCPU
-#ifdef SHARED_VCPU
-#define EXPORT_VCPU EXPORT_SYM
-#else
-#define EXPORT_VCPU IMPORT_SYM
-#endif
-#else
-#define EXPORT_VCPU
-#endif
-
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4251)
-#endif
-
-// -----------------------------------------------------------------------------
-// Definitions
-// -----------------------------------------------------------------------------
-
-namespace bfvmm
-{
-
-/// vCPU Manager
-///
-/// The vCPU manager is responsible for creating / destroying vCPUs, and
-/// calling a vCPU's interface, depending on which vcpuid is provided. If you
-/// need to work with a vCPU, but all you have is a vcpuid, this is the class
-/// to use.
-///
-class EXPORT_VCPU vcpu_manager
-{
-public:
-
-    /// Destructor
-    ///
-    /// @expects none
-    /// @ensures none
-    ///
-    virtual ~vcpu_manager() = default;
-
-    /// Get Singleton Instance
-    ///
-    /// @expects none
-    /// @ensures ret != nullptr
-    ///
-    /// @return a singleton instance of vcpu_manager
-    ///
-    static vcpu_manager *instance() noexcept;
-
-    /// Create vCPU
-    ///
-    /// Creates the vCPU. Note that the vCPU is actually created by the
-    /// vCPU factory's make_vcpu function.
-    ///
-    /// @expects none
-    /// @ensures none
-    ///
-    /// @param vcpuid the vcpu to initialize
-    /// @param obj object that can be passed around as needed
-    ///     by extensions of Bareflank
-    ///
-    virtual void create_vcpu(
-        vcpuid::type vcpuid, bfobject *obj = nullptr);
-
-    /// Delete vCPU
-    ///
-    /// Deletes the vCPU.
-    ///
-    /// @param vcpuid the vcpu to stop
-    /// @param obj object that can be passed around as needed
-    ///     by extensions of Bareflank
-    ///
-    virtual void delete_vcpu(
-        vcpuid::type vcpuid, bfobject *obj = nullptr);
-
-    /// Run vCPU
-    ///
-    /// Executes the vCPU.
-    ///
-    /// @expects vcpu exists
-    /// @ensures none
-    ///
-    /// @param vcpuid the vcpu to execute
-    /// @param obj object that can be passed around as needed
-    ///     by extensions of Bareflank
-    ///
-    virtual void run_vcpu(
-        vcpuid::type vcpuid, bfobject *obj = nullptr);
-
-    /// Halt vCPU
-    ///
-    /// Halts the vCPU.
-    ///
-    /// @expects none
-    /// @ensures none
-    ///
-    /// @param vcpuid the vcpu to halt
-    /// @param obj object that can be passed around as needed
-    ///     by extensions of Bareflank
-    ///
-    virtual void hlt_vcpu(
-        vcpuid::type vcpuid, bfobject *obj = nullptr);
-
-    /// Set Factory
-    ///
-    /// Should only be used by unit tests
-    ///
-    /// @expects none
-    /// @ensures none
-    ///
-    /// @param factory the new factory to use
-    ///
-    void set_factory(std::unique_ptr<vcpu_factory> factory)
-    { m_vcpu_factory = std::move(factory); }
-
-private:
-
-    vcpu_manager() noexcept;
-    std::unique_ptr<vcpu> &add_vcpu(vcpuid::type vcpuid, bfobject *obj);
-    std::unique_ptr<vcpu> &get_vcpu(vcpuid::type vcpuid);
-
-private:
-
-    std::unique_ptr<vcpu_factory> m_vcpu_factory;
-    std::map<vcpuid::type, std::unique_ptr<vcpu>> m_vcpus;
-
-public:
-
-    /// @cond
-
-    vcpu_manager(vcpu_manager &&) noexcept = delete;
-    vcpu_manager &operator=(vcpu_manager &&) noexcept = delete;
-
-    vcpu_manager(const vcpu_manager &) = delete;
-    vcpu_manager &operator=(const vcpu_manager &) = delete;
-
-    /// @endcond
-};
 
 /// vCPU Manager Macro
 ///
@@ -178,12 +36,6 @@ public:
 /// @expects none
 /// @ensures ret != nullptr
 ///
-#define g_vcm bfvmm::vcpu_manager::instance()
-
-}
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
+#define g_vcm bfmanager<bfvmm::vcpu, bfvmm::vcpu_factory, vcpuid::type>::instance()
 
 #endif

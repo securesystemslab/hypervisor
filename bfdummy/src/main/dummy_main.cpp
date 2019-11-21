@@ -1,20 +1,23 @@
 //
-// Bareflank Hypervisor
-// Copyright (C) 2015 Assured Information Security, Inc.
+// Copyright (C) 2019 Assured Information Security, Inc.
 //
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-// Lesser General Public License for more details.
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
 //
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 // TIDY_EXCLUSION=-cppcoreguidelines-pro*
 //
@@ -48,6 +51,12 @@
 #define REQUEST_GET_DRR_RETURN ENTRY_ERROR_UNKNOWN
 #endif
 
+#ifndef REQUEST_SET_RSDP_FAILS
+#define REQUEST_SET_RSDP_RETURN ENTRY_SUCCESS
+#else
+#define REQUEST_SET_RSDP_RETURN ENTRY_ERROR_UNKNOWN
+#endif
+
 #ifndef REQUEST_VMM_INIT_FAILS
 #define REQUEST_VMM_INIT_RETURN ENTRY_SUCCESS
 #else
@@ -71,10 +80,13 @@
 
 #include <dummy_libs.h>
 
+int g_errno;
+int *__errno() { return &g_errno; }
+
 derived1 g_derived1;
 derived2 g_derived2;
 
-EXPORT_SYM int global_var = 0;
+int global_var = 0;
 
 int
 main(int argc, char *argv[])
@@ -122,6 +134,9 @@ bfmain(uintptr_t request, uintptr_t arg1, uintptr_t arg2, uintptr_t arg3)
         case BF_REQUEST_VMM_FINI:
             return REQUEST_VMM_FINI_RETURN;
 
+        case BF_REQUEST_SET_RSDP:
+            return REQUEST_SET_RSDP_RETURN;
+
         default:
             break;
     }
@@ -136,7 +151,7 @@ bfmain(uintptr_t request, uintptr_t arg1, uintptr_t arg2, uintptr_t arg3)
 int g_cursor = 0;
 char g_memory[0x100000] = {};
 
-extern "C" EXPORT_SYM int
+extern "C" int
 write(int file, const void *buffer, size_t count)
 {
     bfignored(file);
@@ -146,7 +161,7 @@ write(int file, const void *buffer, size_t count)
     return 0;
 }
 
-extern "C" EXPORT_SYM uint64_t
+extern "C" uint64_t
 unsafe_write_cstr(const char *cstr, size_t len)
 {
     bfignored(cstr);
@@ -155,7 +170,7 @@ unsafe_write_cstr(const char *cstr, size_t len)
     return 0;
 }
 
-extern "C" EXPORT_SYM void *
+extern "C" void *
 _malloc_r(struct _reent *ent, size_t size)
 {
     bfignored(ent);
@@ -166,14 +181,14 @@ _malloc_r(struct _reent *ent, size_t size)
     return addr;
 }
 
-extern "C" EXPORT_SYM void
+extern "C" void
 _free_r(struct _reent *ent, void *ptr)
 {
     bfignored(ent);
     bfignored(ptr);
 }
 
-extern "C" EXPORT_SYM void *
+extern "C" void *
 _calloc_r(struct _reent *ent, size_t nmemb, size_t size)
 {
     bfignored(ent);
@@ -185,7 +200,7 @@ _calloc_r(struct _reent *ent, size_t nmemb, size_t size)
     return nullptr;
 }
 
-extern "C" EXPORT_SYM void *
+extern "C" void *
 _realloc_r(struct _reent *ent, void *ptr, size_t size)
 {
     bfignored(ent);
@@ -195,14 +210,14 @@ _realloc_r(struct _reent *ent, void *ptr, size_t size)
     return nullptr;
 }
 
-extern "C" EXPORT_SYM uint64_t *
+extern "C" uint64_t *
 thread_context_tlsptr(void)
 {
     static uint64_t s_tls[0x1000] = {};
     return s_tls;
 }
 
-extern "C" EXPORT_SYM uint64_t
+extern "C" uint64_t
 thread_context_cpuid(void)
 {
     return 0;

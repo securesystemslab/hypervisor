@@ -1,26 +1,30 @@
 /*
- * Bareflank Hypervisor
- * Copyright (C) 2015 Assured Information Security, Inc.
+ * Copyright (C) 2019 Assured Information Security, Inc.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include <common.h>
 #include <bfplatform.h>
 #include <bfconstants.h>
 
@@ -33,6 +37,10 @@
 int platform_info_should_fail = 0;
 
 #define PAGE_ROUND_UP(x) ( (((uintptr_t)(x)) + BAREFLANK_PAGE_SIZE-1)  & (~(BAREFLANK_PAGE_SIZE-1)) )
+
+int64_t
+platform_init(void)
+{ return BF_SUCCESS; }
 
 void *
 platform_alloc_rw(uint64_t len)
@@ -63,17 +71,17 @@ platform_alloc_rwe(uint64_t len)
 }
 
 void
-platform_free_rw(const void *addr, uint64_t len)
+platform_free_rw(void *addr, uint64_t len)
 {
     bfignored(len);
-    free((void *)addr);
+    free(addr);
 }
 
 void
-platform_free_rwe(const void *addr, uint64_t len)
+platform_free_rwe(void *addr, uint64_t len)
 {
     bfignored(len);
-    free((void *)addr);
+    free(addr);
 }
 
 void *
@@ -84,53 +92,28 @@ void *
 platform_memset(void *ptr, char value, uint64_t num)
 { return memset(ptr, value, num); }
 
-void *
-platform_memcpy(void *dst, const void *src, uint64_t num)
-{ return memcpy(dst, src, num); }
+int64_t
+platform_memcpy(
+    void *dst, uint64_t dst_size, const void *src, uint64_t src_size, uint64_t num)
+{
+    bfignored(dst_size);
+    bfignored(src_size);
 
-void
-platform_start(void)
-{ }
-
-void
-platform_stop(void)
-{ }
+    memcpy(dst, src, num);
+    return SUCCESS;
+}
 
 int64_t
 platform_num_cpus(void)
 { return 1; }
 
 int64_t
-platform_set_affinity(int64_t affinity)
+platform_call_vmm_on_core(
+    uint64_t cpuid, uint64_t request, uintptr_t arg1, uintptr_t arg2)
 {
-    bfignored(affinity);
-    return 0;
+    return common_call_vmm(cpuid, request, arg1, arg2);
 }
 
-void
-platform_restore_affinity(int64_t affinity)
-{ bfignored(affinity); }
-
-int64_t
-platform_get_current_cpu_num(void)
+void *
+platform_get_rsdp(void)
 { return 0; }
-
-void
-platform_restore_preemption(void)
-{ }
-
-int64_t
-platform_populate_info(struct platform_info_t *info)
-{
-    if (info) {
-        platform_memset(info, 0, sizeof(struct platform_info_t));
-    }
-
-    return platform_info_should_fail ? BF_ERROR_UNKNOWN : BF_SUCCESS;
-}
-
-void
-platform_unload_info(struct platform_info_t *info)
-{
-    (void) info;
-}

@@ -1,20 +1,23 @@
 #
-# Bareflank Hypervisor
-# Copyright (C) 2015 Assured Information Security, Inc.
+# Copyright (C) 2019 Assured Information Security, Inc.
 #
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 2.1 of the License, or (at your option) any later version.
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# Lesser General Public License for more details.
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
 #
-# You should have received a copy of the GNU Lesser General Public
-# License along with this library; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 if(CMAKE_INSTALL_PREFIX)
     set(ENV{CMAKE_INSTALL_PREFIX} "${CMAKE_INSTALL_PREFIX}")
@@ -39,22 +42,6 @@ if(NOT WIN32)
     endif()
 endif()
 
-string(CONCAT LD_FLAGS
-    "--sysroot=${CMAKE_INSTALL_PREFIX} "
-    "-L${CMAKE_INSTALL_PREFIX}/lib "
-    "-z max-page-size=4096 "
-    "-z common-page-size=4096 "
-    "-z relro "
-    "-z now "
-    "-nostdlib "
-)
-
-if(EXISTS "${CMAKE_INSTALL_PREFIX}/lib/libbfdso_static.a")
-    string(CONCAT LD_FLAGS
-        "--whole-archive ${CMAKE_INSTALL_PREFIX}/lib/libbfdso_static.a --no-whole-archive "
-    )
-endif()
-
 if(DEFINED ENV{LD_BIN})
     set(LD_BIN $ENV{LD_BIN})
 else()
@@ -70,17 +57,15 @@ set(CMAKE_CXX_ARCHIVE_CREATE
 )
 
 set(CMAKE_C_LINK_EXECUTABLE
-    "${LD_BIN} ${LD_FLAGS} -pie <OBJECTS> -o <TARGET> <LINK_LIBRARIES> "
+    "${LD_BIN} ${LD_FLAGS} <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>"
 )
 
 set(CMAKE_CXX_LINK_EXECUTABLE
-    "${LD_BIN} ${LD_FLAGS} -pie <OBJECTS> -o <TARGET> <LINK_LIBRARIES>"
+    "${LD_BIN} ${LD_FLAGS} <CMAKE_CXX_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>"
 )
 
-set(CMAKE_C_CREATE_SHARED_LIBRARY
-    "${LD_BIN} ${LD_FLAGS} -shared <OBJECTS> -o <TARGET>"
-)
+set(CMAKE_C_COMPILER_WORKS 1)
+set(CMAKE_C_COMPILER_TARGET "x86_64-vmm-elf")
 
-set(CMAKE_CXX_CREATE_SHARED_LIBRARY
-    "${LD_BIN} ${LD_FLAGS} -shared <OBJECTS> -o <TARGET>"
-)
+set(CMAKE_CXX_COMPILER_WORKS 1)
+set(CMAKE_CXX_COMPILER_TARGET "x86_64-vmm-elf")

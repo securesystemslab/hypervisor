@@ -1,13 +1,12 @@
 /*
- * Bareflank Hypervisor
- * Copyright (C) 2018 Assured Information Security, Inc.
+ * Copyright (C) 2019 Assured Information Security, Inc.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
- * of the Software, and to permit persons to whom the Software is furnished to do
- * so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
@@ -16,26 +15,33 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #include <driver.h>
 
 /* -------------------------------------------------------------------------- */
+/* Status                                                                     */
+/* -------------------------------------------------------------------------- */
+
+int g_status = 0;
+FAST_MUTEX g_status_mutex;
+
+/* -------------------------------------------------------------------------- */
 /* Global                                                                     */
 /* -------------------------------------------------------------------------- */
 
-uint64_t g_vcpuid = 0;
+static uint64_t g_vcpuid = 0;
 
 struct pmodule_t {
-    const char *data;
+    char *data;
     int64_t size;
 };
 
-uint64_t g_num_pmodules = 0;
-struct pmodule_t pmodules[MAX_NUM_MODULES] = { 0 };
+static uint64_t g_num_pmodules = 0;
+static struct pmodule_t pmodules[MAX_NUM_MODULES] = { 0 };
 
 /* -------------------------------------------------------------------------- */
 /* Misc Device                                                                */
@@ -58,12 +64,12 @@ ioctl_add_module(const char *file, int64_t len)
         return BF_IOCTL_FAILURE;
     }
 
-    platform_memcpy(buf, file, len);
+    RtlCopyMemory(buf, file, len);
 
     ret = common_add_module(buf, len);
     if (ret != BF_SUCCESS) {
         BFALERT("IOCTL_ADD_MODULE: common_add_module failed: %p - %s\n", (void *)ret, ec_to_str(ret));
-        goto failed;
+        goto IOCTL_FAILURE;
     }
 
     pmodules[g_num_pmodules].data = buf;
@@ -71,14 +77,11 @@ ioctl_add_module(const char *file, int64_t len)
 
     g_num_pmodules++;
 
-    BFDEBUG("IOCTL_ADD_MODULE: succeeded\n");
     return BF_IOCTL_SUCCESS;
 
-failed:
+IOCTL_FAILURE:
 
     platform_free_rw(buf, len);
-
-    BFALERT("IOCTL_ADD_MODULE: failed\n");
     return BF_IOCTL_FAILURE;
 }
 
@@ -87,12 +90,11 @@ ioctl_unload_vmm(void)
 {
     int i;
     int64_t ret;
-    long status = BF_IOCTL_SUCCESS;
 
     ret = common_unload_vmm();
     if (ret != BF_SUCCESS) {
         BFALERT("IOCTL_UNLOAD_VMM: common_unload_vmm failed: %p - %s\n", (void *)ret, ec_to_str(ret));
-        status = BF_IOCTL_FAILURE;
+        goto IOCTL_FAILURE;
     }
 
     for (i = 0; i < g_num_pmodules; i++) {
@@ -102,11 +104,11 @@ ioctl_unload_vmm(void)
     g_num_pmodules = 0;
     platform_memset(&pmodules, 0, sizeof(pmodules));
 
-    if (status == BF_IOCTL_SUCCESS) {
-        BFDEBUG("IOCTL_UNLOAD_VMM: succeeded\n");
-    }
+    return BF_IOCTL_SUCCESS;
 
-    return status;
+IOCTL_FAILURE:
+
+    return BF_IOCTL_FAILURE;
 }
 
 static long
@@ -117,13 +119,12 @@ ioctl_load_vmm(void)
     ret = common_load_vmm();
     if (ret != BF_SUCCESS) {
         BFALERT("IOCTL_LOAD_VMM: common_load_vmm failed: %p - %s\n", (void *)ret, ec_to_str(ret));
-        goto failure;
+        goto IOCTL_FAILURE;
     }
 
-    BFDEBUG("IOCTL_LOAD_VMM: succeeded\n");
     return BF_IOCTL_SUCCESS;
 
-failure:
+IOCTL_FAILURE:
 
     ioctl_unload_vmm();
     return BF_IOCTL_FAILURE;
@@ -133,39 +134,47 @@ static long
 ioctl_stop_vmm(void)
 {
     int64_t ret;
-    long status = BF_IOCTL_SUCCESS;
+    ExAcquireFastMutex(&g_status_mutex);
 
     ret = common_stop_vmm();
-
     if (ret != BF_SUCCESS) {
         BFALERT("IOCTL_STOP_VMM: common_stop_vmm failed: %p - %s\n", (void *)ret, ec_to_str(ret));
-        status = BF_IOCTL_FAILURE;
+        goto IOCTL_FAILURE;
     }
 
-    if (status == BF_IOCTL_SUCCESS) {
-        BFDEBUG("IOCTL_STOP_VMM: succeeded\n");
-    }
+    g_status = STATUS_STOPPED;
 
-    return status;
+    ExReleaseFastMutex(&g_status_mutex);
+    return BF_IOCTL_SUCCESS;
+
+IOCTL_FAILURE:
+
+    ExReleaseFastMutex(&g_status_mutex);
+    return BF_IOCTL_FAILURE;
 }
 
 static long
 ioctl_start_vmm(void)
 {
     int64_t ret;
+    ExAcquireFastMutex(&g_status_mutex);
 
     ret = common_start_vmm();
     if (ret != BF_SUCCESS) {
         BFALERT("IOCTL_START_VMM: common_start_vmm failed: %p - %s\n", (void *)ret, ec_to_str(ret));
-        goto failure;
+        goto IOCTL_FAILURE;
     }
 
-    BFDEBUG("IOCTL_START_VMM: succeeded\n");
+    g_status = STATUS_RUNNING;
+
+    ExReleaseFastMutex(&g_status_mutex);
     return BF_IOCTL_SUCCESS;
 
-failure:
+IOCTL_FAILURE:
 
-    ioctl_stop_vmm();
+    common_stop_vmm();
+
+    ExReleaseFastMutex(&g_status_mutex);
     return BF_IOCTL_FAILURE;
 }
 
@@ -181,9 +190,7 @@ ioctl_dump_vmm(struct debug_ring_resources_t *user_drr)
         return BF_IOCTL_FAILURE;
     }
 
-    platform_memcpy(user_drr, drr, sizeof(struct debug_ring_resources_t));
-
-    BFDEBUG("IOCTL_DUMP_VMM: succeeded\n");
+    RtlCopyMemory(user_drr, drr, sizeof(struct debug_ring_resources_t));
     return BF_IOCTL_SUCCESS;
 }
 
@@ -232,13 +239,23 @@ bareflankQueueInitialize(
 
     status = WdfIoQueueCreate(Device, &queueConfig, WDF_NO_OBJECT_ATTRIBUTES, &queue);
     if (!NT_SUCCESS(status)) {
-        return status;
+        BFALERT("WdfIoQueueCreate failed\n");
+        goto INIT_FAILURE;
     }
 
-    common_init();
+    if (common_init() != 0) {
+        BFALERT("common_init failed\n");
+        goto INIT_FAILURE;
+    }
 
-    BFDEBUG("bareflankQueueInitialize: success\n");
+    g_status = STATUS_STOPPED;
+    ExInitializeFastMutex(&g_status_mutex);
+
     return STATUS_SUCCESS;
+
+INIT_FAILURE:
+
+    return STATUS_UNSUCCESSFUL;
 }
 
 VOID
@@ -264,7 +281,7 @@ bareflankEvtIoDeviceControl(
         status = WdfRequestRetrieveInputBuffer(Request, InputBufferLength, &in, &in_size);
 
         if (!NT_SUCCESS(status)) {
-            goto FAILURE;
+            goto IOCTL_FAILURE;
         }
     }
 
@@ -272,7 +289,7 @@ bareflankEvtIoDeviceControl(
         status = WdfRequestRetrieveOutputBuffer(Request, OutputBufferLength, &out, &out_size);
 
         if (!NT_SUCCESS(status)) {
-            goto FAILURE;
+            goto IOCTL_FAILURE;
         }
     }
 
@@ -310,7 +327,7 @@ bareflankEvtIoDeviceControl(
             break;
 
         default:
-            goto FAILURE;
+            goto IOCTL_FAILURE;
     }
 
     if (OutputBufferLength != 0) {
@@ -318,13 +335,13 @@ bareflankEvtIoDeviceControl(
     }
 
     if (ret != BF_IOCTL_SUCCESS) {
-        goto FAILURE;
+        goto IOCTL_FAILURE;
     }
 
     WdfRequestComplete(Request, STATUS_SUCCESS);
     return;
 
-FAILURE:
+IOCTL_FAILURE:
 
     WdfRequestComplete(Request, STATUS_ACCESS_DENIED);
     return;

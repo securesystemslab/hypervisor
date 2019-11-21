@@ -1,13 +1,12 @@
 /*
- * Bareflank Hypervisor
- * Copyright (C) 2018 Assured Information Security, Inc.
+ * Copyright (C) 2019 Assured Information Security, Inc.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
- * of the Software, and to permit persons to whom the Software is furnished to do
- * so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
@@ -16,18 +15,23 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #include <ntddk.h>
 
 #include <bfdebug.h>
 #include <bfplatform.h>
+#include <common.h>
 
 #define BF_TAG 'BFLK'
 #define BF_NX_TAG 'BFNX'
+
+int64_t
+platform_init(void)
+{ return BF_SUCCESS; }
 
 void *
 platform_alloc_rw(uint64_t len)
@@ -75,7 +79,7 @@ platform_virt_to_phys(void *virt)
 }
 
 void
-platform_free_rw(const void *addr, uint64_t len)
+platform_free_rw(void *addr, uint64_t len)
 {
     (void) len;
 
@@ -84,11 +88,11 @@ platform_free_rw(const void *addr, uint64_t len)
         return;
     }
 
-    ExFreePoolWithTag((void *)addr, BF_TAG);
+    ExFreePoolWithTag(addr, BF_TAG);
 }
 
 void
-platform_free_rwe(const void *addr, uint64_t len)
+platform_free_rwe(void *addr, uint64_t len)
 {
     (void) len;
 
@@ -97,7 +101,7 @@ platform_free_rwe(const void *addr, uint64_t len)
         return;
     }
 
-    ExFreePoolWithTag((void *)addr, BF_TAG);
+    ExFreePoolWithTag(addr, BF_TAG);
 }
 
 void *
@@ -111,27 +115,22 @@ platform_memset(void *ptr, char value, uint64_t num)
     return ptr;
 }
 
-void *
-platform_memcpy(void *dst, const void *src, uint64_t num)
+int64_t
+platform_memcpy(
+    void *dst, uint64_t dst_size, const void *src, uint64_t src_size, uint64_t num)
 {
-    if (dst == nullptr || src == nullptr) {
-        return nullptr;
+    if (dst == 0 || src == 0) {
+        BFALERT("platform_memcpy: invalid dst or src\n");
+        return FAILURE;
+    }
+
+    if (num > dst_size || num > src_size) {
+        BFALERT("platform_memcpy: num out of range\n");
+        return FAILURE;
     }
 
     RtlCopyMemory(dst, src, num);
-    return dst;
-}
-
-void
-platform_start()
-{
-
-}
-
-void
-platform_stop()
-{
-
+    return SUCCESS;
 }
 
 int64_t
@@ -142,41 +141,18 @@ platform_num_cpus()
 }
 
 int64_t
-platform_set_affinity(int64_t affinity)
+platform_call_vmm_on_core(
+    uint64_t cpuid, uint64_t request, uintptr_t arg1, uintptr_t arg2)
 {
-    KAFFINITY new_affinity = (1ULL << affinity);
-    return (int64_t)KeSetSystemAffinityThreadEx(new_affinity);
+    int64_t ret;
+    KAFFINITY old = KeSetSystemAffinityThreadEx(1ULL << cpuid);
+
+    ret = common_call_vmm(cpuid, request, arg1, arg2);
+
+    KeRevertToUserAffinityThreadEx(old);
+    return ret;
 }
 
-void
-platform_restore_affinity(int64_t affinity)
-{
-    KeRevertToUserAffinityThreadEx((KAFFINITY)(affinity));
-}
-
-int64_t
-platform_get_current_cpu_num(void)
-{
-    return KeGetCurrentProcessorNumberEx(nullptr);
-}
-
-void
-platform_restore_preemption(void)
-{
-}
-
-int64_t
-platform_populate_info(struct platform_info_t *info)
-{
-    if (info) {
-        platform_memset(info, 0, sizeof(struct platform_info_t));
-    }
-
-    return BF_SUCCESS;
-}
-
-void
-platform_unload_info(struct platform_info_t *info)
-{
-    (void) info;
-}
+void *
+platform_get_rsdp(void)
+{ return 0; }

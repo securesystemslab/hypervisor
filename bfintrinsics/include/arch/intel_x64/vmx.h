@@ -1,20 +1,23 @@
 //
-// Bareflank Hypervisor
-// Copyright (C) 2015 Assured Information Security, Inc.
+// Copyright (C) 2019 Assured Information Security, Inc.
 //
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-// Lesser General Public License for more details.
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
 //
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 #ifndef VMX_INTEL_X64_H
 #define VMX_INTEL_X64_H
@@ -22,22 +25,6 @@
 #include <bfgsl.h>
 #include <bfdebug.h>
 #include <bfbitmanip.h>
-
-// -----------------------------------------------------------------------------
-// Exports
-// -----------------------------------------------------------------------------
-
-#include <bfexports.h>
-
-#ifndef STATIC_INTRINSICS
-#ifdef SHARED_INTRINSICS
-#define EXPORT_INTRINSICS EXPORT_SYM
-#else
-#define EXPORT_INTRINSICS IMPORT_SYM
-#endif
-#else
-#define EXPORT_INTRINSICS
-#endif
 
 // -----------------------------------------------------------------------------
 // Definitions
@@ -54,6 +41,10 @@ extern "C" bool _vmlaunch_demote(void) noexcept;
 extern "C" bool _invept(uint64_t type, void *ptr) noexcept;
 extern "C" bool _invvpid(uint64_t type, void *ptr) noexcept;
 extern "C" uintptr_t _vmcall(uintptr_t r1, uintptr_t r2, uintptr_t r3, uintptr_t r4) noexcept;
+extern "C" uintptr_t _vmcall1(void *r1) noexcept;
+extern "C" uintptr_t _vmcall2(void *r1, void *r2) noexcept;
+extern "C" uintptr_t _vmcall3(void *r1, void *r2, void *r3) noexcept;
+extern "C" uintptr_t _vmcall4(void *r1, void *r2, void *r3, void *r4) noexcept;
 
 // *INDENT-OFF*
 
@@ -149,10 +140,10 @@ namespace vm
         }
     }
 
-    inline void reset(gsl::not_null<void *> ptr)
+    inline void store(gsl::not_null<void *> ptr)
     {
         if (!_vmptrst(ptr)) {
-            throw std::runtime_error("vm::reset failed");
+            throw std::runtime_error("vm::store failed");
         }
     }
 
@@ -192,6 +183,18 @@ namespace vm
 
     inline uintptr_t call(uintptr_t r1 = 0, uintptr_t r2 = 0, uintptr_t r3 = 0, uintptr_t r4 = 0)
     { return _vmcall(r1, r2, r3, r4); }
+
+    inline uintptr_t call(uintptr_t *r1)
+    { return _vmcall1(r1); }
+
+    inline uintptr_t call(uintptr_t *r1, uintptr_t *r2)
+    { return _vmcall2(r1, r2); }
+
+    inline uintptr_t call(uintptr_t *r1, uintptr_t *r2, uintptr_t *r3)
+    { return _vmcall3(r1, r2, r3); }
+
+    inline uintptr_t call(uintptr_t *r1, uintptr_t *r2, uintptr_t *r3, uintptr_t *r4)
+    { return _vmcall4(r1, r2, r3, r4); }
 }
 }
 

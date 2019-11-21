@@ -1,20 +1,23 @@
 //
-// Bareflank Hypervisor
-// Copyright (C) 2015 Assured Information Security, Inc.
+// Copyright (C) 2019 Assured Information Security, Inc.
 //
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-// Lesser General Public License for more details.
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
 //
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 #ifndef CPUID_INTEL_X64_H
 #define CPUID_INTEL_X64_H
@@ -33,7 +36,7 @@ using value_type = x64::cpuid::value_type;
 
 namespace feature_information
 {
-    constexpr const auto addr = 0x00000001ULL;
+    constexpr const auto addr = 0x00000001U;
 
     namespace eax
     {
@@ -44,15 +47,15 @@ namespace feature_information
 
         namespace stepping_id
         {
-            constexpr const auto mask = 0x0000000FULL;
-            constexpr const auto from = 0ULL;
+            constexpr const auto mask = 0x0000000FU;
+            constexpr const auto from = 0U;
             constexpr const auto name = "stepping_id";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_eax(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -60,15 +63,15 @@ namespace feature_information
 
         namespace model
         {
-            constexpr const auto mask = 0x000000F0ULL;
-            constexpr const auto from = 4ULL;
+            constexpr const auto mask = 0x000000F0U;
+            constexpr const auto from = 4U;
             constexpr const auto name = "model";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_eax(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -76,15 +79,15 @@ namespace feature_information
 
         namespace family_id
         {
-            constexpr const auto mask = 0x00000F00ULL;
-            constexpr const auto from = 8ULL;
+            constexpr const auto mask = 0x00000F00U;
+            constexpr const auto from = 8U;
             constexpr const auto name = "family_id";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_eax(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -92,15 +95,15 @@ namespace feature_information
 
         namespace processor_type
         {
-            constexpr const auto mask = 0x00003000ULL;
-            constexpr const auto from = 12ULL;
+            constexpr const auto mask = 0x00003000U;
+            constexpr const auto from = 12U;
             constexpr const auto name = "processor_type";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_eax(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -108,15 +111,15 @@ namespace feature_information
 
         namespace extended_model_id
         {
-            constexpr const auto mask = 0x000F0000ULL;
-            constexpr const auto from = 16ULL;
+            constexpr const auto mask = 0x000F0000U;
+            constexpr const auto from = 16U;
             constexpr const auto name = "extended_model_id";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_eax(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -124,15 +127,15 @@ namespace feature_information
 
         namespace extended_family_id
         {
-            constexpr const auto mask = 0x0FF00000ULL;
-            constexpr const auto from = 20ULL;
+            constexpr const auto mask = 0x0FF00000U;
+            constexpr const auto from = 20U;
             constexpr const auto name = "extended_family_id";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_eax(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -159,15 +162,15 @@ namespace feature_information
 
         namespace brand_index
         {
-            constexpr const auto mask = 0x000000FFULL;
-            constexpr const auto from = 0ULL;
+            constexpr const auto mask = 0x000000FFU;
+            constexpr const auto from = 0U;
             constexpr const auto name = "brand_index";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_ebx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -175,15 +178,15 @@ namespace feature_information
 
         namespace clflush_line_size
         {
-            constexpr const auto mask = 0x0000FF00ULL;
-            constexpr const auto from = 8ULL;
+            constexpr const auto mask = 0x0000FF00U;
+            constexpr const auto from = 8U;
             constexpr const auto name = "clflush_line_size";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_ebx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -191,15 +194,15 @@ namespace feature_information
 
         namespace max_addressable_ids
         {
-            constexpr const auto mask = 0x00FF0000ULL;
-            constexpr const auto from = 16ULL;
+            constexpr const auto mask = 0x00FF0000U;
+            constexpr const auto from = 16U;
             constexpr const auto name = "max_addressable_ids";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_ebx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -207,15 +210,15 @@ namespace feature_information
 
         namespace initial_apic_id
         {
-            constexpr const auto mask = 0xFF000000ULL;
-            constexpr const auto from = 24ULL;
+            constexpr const auto mask = 0xFF000000U;
+            constexpr const auto from = 24U;
             constexpr const auto name = "initial_apic_id";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_ebx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -240,8 +243,8 @@ namespace feature_information
 
         namespace sse3
         {
-            constexpr const auto mask = 0x00000001ULL;
-            constexpr const auto from = 0ULL;
+            constexpr const auto mask = 0x00000001U;
+            constexpr const auto from = 0U;
             constexpr const auto name = "sse3";
 
             inline auto is_enabled()
@@ -262,8 +265,8 @@ namespace feature_information
 
         namespace pclmulqdq
         {
-            constexpr const auto mask = 0x00000002ULL;
-            constexpr const auto from = 1ULL;
+            constexpr const auto mask = 0x00000002U;
+            constexpr const auto from = 1U;
             constexpr const auto name = "pclmulqdq";
 
             inline auto is_enabled()
@@ -284,8 +287,8 @@ namespace feature_information
 
         namespace dtes64
         {
-            constexpr const auto mask = 0x00000004ULL;
-            constexpr const auto from = 2ULL;
+            constexpr const auto mask = 0x00000004U;
+            constexpr const auto from = 2U;
             constexpr const auto name = "dtes64";
 
             inline auto is_enabled()
@@ -306,8 +309,8 @@ namespace feature_information
 
         namespace monitor
         {
-            constexpr const auto mask = 0x00000008ULL;
-            constexpr const auto from = 3ULL;
+            constexpr const auto mask = 0x00000008U;
+            constexpr const auto from = 3U;
             constexpr const auto name = "monitor";
 
             inline auto is_enabled()
@@ -328,8 +331,8 @@ namespace feature_information
 
         namespace ds_cpl
         {
-            constexpr const auto mask = 0x00000010ULL;
-            constexpr const auto from = 4ULL;
+            constexpr const auto mask = 0x00000010U;
+            constexpr const auto from = 4U;
             constexpr const auto name = "ds_cpl";
 
             inline auto is_enabled()
@@ -350,8 +353,8 @@ namespace feature_information
 
         namespace vmx
         {
-            constexpr const auto mask = 0x00000020ULL;
-            constexpr const auto from = 5ULL;
+            constexpr const auto mask = 0x00000020U;
+            constexpr const auto from = 5U;
             constexpr const auto name = "vmx";
 
             inline auto is_enabled()
@@ -372,8 +375,8 @@ namespace feature_information
 
         namespace smx
         {
-            constexpr const auto mask = 0x00000040ULL;
-            constexpr const auto from = 6ULL;
+            constexpr const auto mask = 0x00000040U;
+            constexpr const auto from = 6U;
             constexpr const auto name = "smx";
 
             inline auto is_enabled()
@@ -394,8 +397,8 @@ namespace feature_information
 
         namespace eist
         {
-            constexpr const auto mask = 0x00000080ULL;
-            constexpr const auto from = 7ULL;
+            constexpr const auto mask = 0x00000080U;
+            constexpr const auto from = 7U;
             constexpr const auto name = "eist";
 
             inline auto is_enabled()
@@ -416,8 +419,8 @@ namespace feature_information
 
         namespace tm2
         {
-            constexpr const auto mask = 0x00000100ULL;
-            constexpr const auto from = 8ULL;
+            constexpr const auto mask = 0x00000100U;
+            constexpr const auto from = 8U;
             constexpr const auto name = "tm2";
 
             inline auto is_enabled()
@@ -438,8 +441,8 @@ namespace feature_information
 
         namespace ssse3
         {
-            constexpr const auto mask = 0x00000200ULL;
-            constexpr const auto from = 9ULL;
+            constexpr const auto mask = 0x00000200U;
+            constexpr const auto from = 9U;
             constexpr const auto name = "ssse3";
 
             inline auto is_enabled()
@@ -460,8 +463,8 @@ namespace feature_information
 
         namespace cnxt_id
         {
-            constexpr const auto mask = 0x00000400ULL;
-            constexpr const auto from = 10ULL;
+            constexpr const auto mask = 0x00000400U;
+            constexpr const auto from = 10U;
             constexpr const auto name = "cnxt_id";
 
             inline auto is_enabled()
@@ -482,8 +485,8 @@ namespace feature_information
 
         namespace sdbg
         {
-            constexpr const auto mask = 0x00000800ULL;
-            constexpr const auto from = 11ULL;
+            constexpr const auto mask = 0x00000800U;
+            constexpr const auto from = 11U;
             constexpr const auto name = "sdbg";
 
             inline auto is_enabled()
@@ -504,8 +507,8 @@ namespace feature_information
 
         namespace fma
         {
-            constexpr const auto mask = 0x00001000ULL;
-            constexpr const auto from = 12ULL;
+            constexpr const auto mask = 0x00001000U;
+            constexpr const auto from = 12U;
             constexpr const auto name = "fma";
 
             inline auto is_enabled()
@@ -526,8 +529,8 @@ namespace feature_information
 
         namespace cmpxchg16b
         {
-            constexpr const auto mask = 0x00002000ULL;
-            constexpr const auto from = 13ULL;
+            constexpr const auto mask = 0x00002000U;
+            constexpr const auto from = 13U;
             constexpr const auto name = "cmpxchg16b";
 
             inline auto is_enabled()
@@ -548,8 +551,8 @@ namespace feature_information
 
         namespace xtpr_update_control
         {
-            constexpr const auto mask = 0x00004000ULL;
-            constexpr const auto from = 14ULL;
+            constexpr const auto mask = 0x00004000U;
+            constexpr const auto from = 14U;
             constexpr const auto name = "xtpr_update_control";
 
             inline auto is_enabled()
@@ -570,8 +573,8 @@ namespace feature_information
 
         namespace pdcm
         {
-            constexpr const auto mask = 0x00008000ULL;
-            constexpr const auto from = 15ULL;
+            constexpr const auto mask = 0x00008000U;
+            constexpr const auto from = 15U;
             constexpr const auto name = "pdcm";
 
             inline auto is_enabled()
@@ -592,8 +595,8 @@ namespace feature_information
 
         namespace pcid
         {
-            constexpr const auto mask = 0x00020000ULL;
-            constexpr const auto from = 17ULL;
+            constexpr const auto mask = 0x00020000U;
+            constexpr const auto from = 17U;
             constexpr const auto name = "pcid";
 
             inline auto is_enabled()
@@ -614,8 +617,8 @@ namespace feature_information
 
         namespace dca
         {
-            constexpr const auto mask = 0x00040000ULL;
-            constexpr const auto from = 18ULL;
+            constexpr const auto mask = 0x00040000U;
+            constexpr const auto from = 18U;
             constexpr const auto name = "dca";
 
             inline auto is_enabled()
@@ -636,8 +639,8 @@ namespace feature_information
 
         namespace sse41
         {
-            constexpr const auto mask = 0x00080000ULL;
-            constexpr const auto from = 19ULL;
+            constexpr const auto mask = 0x00080000U;
+            constexpr const auto from = 19U;
             constexpr const auto name = "sse41";
 
             inline auto is_enabled()
@@ -658,8 +661,8 @@ namespace feature_information
 
         namespace sse42
         {
-            constexpr const auto mask = 0x00100000ULL;
-            constexpr const auto from = 20ULL;
+            constexpr const auto mask = 0x00100000U;
+            constexpr const auto from = 20U;
             constexpr const auto name = "sse42";
 
             inline auto is_enabled()
@@ -680,8 +683,8 @@ namespace feature_information
 
         namespace x2apic
         {
-            constexpr const auto mask = 0x00200000ULL;
-            constexpr const auto from = 21ULL;
+            constexpr const auto mask = 0x00200000U;
+            constexpr const auto from = 21U;
             constexpr const auto name = "x2apic";
 
             inline auto is_enabled()
@@ -702,8 +705,8 @@ namespace feature_information
 
         namespace movbe
         {
-            constexpr const auto mask = 0x00400000ULL;
-            constexpr const auto from = 22ULL;
+            constexpr const auto mask = 0x00400000U;
+            constexpr const auto from = 22U;
             constexpr const auto name = "movbe";
 
             inline auto is_enabled()
@@ -724,8 +727,8 @@ namespace feature_information
 
         namespace popcnt
         {
-            constexpr const auto mask = 0x00800000ULL;
-            constexpr const auto from = 23ULL;
+            constexpr const auto mask = 0x00800000U;
+            constexpr const auto from = 23U;
             constexpr const auto name = "popcnt";
 
             inline auto is_enabled()
@@ -746,8 +749,8 @@ namespace feature_information
 
         namespace tsc_deadline
         {
-            constexpr const auto mask = 0x01000000ULL;
-            constexpr const auto from = 24ULL;
+            constexpr const auto mask = 0x01000000U;
+            constexpr const auto from = 24U;
             constexpr const auto name = "tsc_deadline";
 
             inline auto is_enabled()
@@ -768,8 +771,8 @@ namespace feature_information
 
         namespace aesni
         {
-            constexpr const auto mask = 0x02000000ULL;
-            constexpr const auto from = 25ULL;
+            constexpr const auto mask = 0x02000000U;
+            constexpr const auto from = 25U;
             constexpr const auto name = "aesni";
 
             inline auto is_enabled()
@@ -790,8 +793,8 @@ namespace feature_information
 
         namespace xsave
         {
-            constexpr const auto mask = 0x04000000ULL;
-            constexpr const auto from = 26ULL;
+            constexpr const auto mask = 0x04000000U;
+            constexpr const auto from = 26U;
             constexpr const auto name = "xsave";
 
             inline auto is_enabled()
@@ -812,8 +815,8 @@ namespace feature_information
 
         namespace osxsave
         {
-            constexpr const auto mask = 0x08000000ULL;
-            constexpr const auto from = 27ULL;
+            constexpr const auto mask = 0x08000000U;
+            constexpr const auto from = 27U;
             constexpr const auto name = "osxsave";
 
             inline auto is_enabled()
@@ -834,8 +837,8 @@ namespace feature_information
 
         namespace avx
         {
-            constexpr const auto mask = 0x10000000ULL;
-            constexpr const auto from = 28ULL;
+            constexpr const auto mask = 0x10000000U;
+            constexpr const auto from = 28U;
             constexpr const auto name = "avx";
 
             inline auto is_enabled()
@@ -856,8 +859,8 @@ namespace feature_information
 
         namespace f16c
         {
-            constexpr const auto mask = 0x20000000ULL;
-            constexpr const auto from = 29ULL;
+            constexpr const auto mask = 0x20000000U;
+            constexpr const auto from = 29U;
             constexpr const auto name = "f16c";
 
             inline auto is_enabled()
@@ -878,8 +881,8 @@ namespace feature_information
 
         namespace rdrand
         {
-            constexpr const auto mask = 0x40000000ULL;
-            constexpr const auto from = 30ULL;
+            constexpr const auto mask = 0x40000000U;
+            constexpr const auto from = 30U;
             constexpr const auto name = "rdrand";
 
             inline auto is_enabled()
@@ -943,8 +946,8 @@ namespace feature_information
 
         namespace fpu
         {
-            constexpr const auto mask = 0x00000001ULL;
-            constexpr const auto from = 0ULL;
+            constexpr const auto mask = 0x00000001U;
+            constexpr const auto from = 0U;
             constexpr const auto name = "fpu";
 
             inline auto is_enabled()
@@ -965,8 +968,8 @@ namespace feature_information
 
         namespace vme
         {
-            constexpr const auto mask = 0x00000002ULL;
-            constexpr const auto from = 1ULL;
+            constexpr const auto mask = 0x00000002U;
+            constexpr const auto from = 1U;
             constexpr const auto name = "vme";
 
             inline auto is_enabled()
@@ -987,8 +990,8 @@ namespace feature_information
 
         namespace de
         {
-            constexpr const auto mask = 0x00000004ULL;
-            constexpr const auto from = 2ULL;
+            constexpr const auto mask = 0x00000004U;
+            constexpr const auto from = 2U;
             constexpr const auto name = "de";
 
             inline auto is_enabled()
@@ -1009,8 +1012,8 @@ namespace feature_information
 
         namespace pse
         {
-            constexpr const auto mask = 0x00000008ULL;
-            constexpr const auto from = 3ULL;
+            constexpr const auto mask = 0x00000008U;
+            constexpr const auto from = 3U;
             constexpr const auto name = "pse";
 
             inline auto is_enabled()
@@ -1031,8 +1034,8 @@ namespace feature_information
 
         namespace tsc
         {
-            constexpr const auto mask = 0x00000010ULL;
-            constexpr const auto from = 4ULL;
+            constexpr const auto mask = 0x00000010U;
+            constexpr const auto from = 4U;
             constexpr const auto name = "tsc";
 
             inline auto is_enabled()
@@ -1053,8 +1056,8 @@ namespace feature_information
 
         namespace msr
         {
-            constexpr const auto mask = 0x00000020ULL;
-            constexpr const auto from = 5ULL;
+            constexpr const auto mask = 0x00000020U;
+            constexpr const auto from = 5U;
             constexpr const auto name = "msr";
 
             inline auto is_enabled()
@@ -1075,8 +1078,8 @@ namespace feature_information
 
         namespace pae
         {
-            constexpr const auto mask = 0x00000040ULL;
-            constexpr const auto from = 6ULL;
+            constexpr const auto mask = 0x00000040U;
+            constexpr const auto from = 6U;
             constexpr const auto name = "pae";
 
             inline auto is_enabled()
@@ -1097,8 +1100,8 @@ namespace feature_information
 
         namespace mce
         {
-            constexpr const auto mask = 0x00000080ULL;
-            constexpr const auto from = 7ULL;
+            constexpr const auto mask = 0x00000080U;
+            constexpr const auto from = 7U;
             constexpr const auto name = "mce";
 
             inline auto is_enabled()
@@ -1119,8 +1122,8 @@ namespace feature_information
 
         namespace cx8
         {
-            constexpr const auto mask = 0x00000100ULL;
-            constexpr const auto from = 8ULL;
+            constexpr const auto mask = 0x00000100U;
+            constexpr const auto from = 8U;
             constexpr const auto name = "cx8";
 
             inline auto is_enabled()
@@ -1141,8 +1144,8 @@ namespace feature_information
 
         namespace apic
         {
-            constexpr const auto mask = 0x00000200ULL;
-            constexpr const auto from = 9ULL;
+            constexpr const auto mask = 0x00000200U;
+            constexpr const auto from = 9U;
             constexpr const auto name = "apic";
 
             inline auto is_enabled()
@@ -1163,8 +1166,8 @@ namespace feature_information
 
         namespace sep
         {
-            constexpr const auto mask = 0x00000800ULL;
-            constexpr const auto from = 11ULL;
+            constexpr const auto mask = 0x00000800U;
+            constexpr const auto from = 11U;
             constexpr const auto name = "sep";
 
             inline auto is_enabled()
@@ -1185,8 +1188,8 @@ namespace feature_information
 
         namespace mtrr
         {
-            constexpr const auto mask = 0x00001000ULL;
-            constexpr const auto from = 12ULL;
+            constexpr const auto mask = 0x00001000U;
+            constexpr const auto from = 12U;
             constexpr const auto name = "mtrr";
 
             inline auto is_enabled()
@@ -1207,8 +1210,8 @@ namespace feature_information
 
         namespace pge
         {
-            constexpr const auto mask = 0x00002000ULL;
-            constexpr const auto from = 13ULL;
+            constexpr const auto mask = 0x00002000U;
+            constexpr const auto from = 13U;
             constexpr const auto name = "pge";
 
             inline auto is_enabled()
@@ -1229,8 +1232,8 @@ namespace feature_information
 
         namespace mca
         {
-            constexpr const auto mask = 0x00004000ULL;
-            constexpr const auto from = 14ULL;
+            constexpr const auto mask = 0x00004000U;
+            constexpr const auto from = 14U;
             constexpr const auto name = "mca";
 
             inline auto is_enabled()
@@ -1251,8 +1254,8 @@ namespace feature_information
 
         namespace cmov
         {
-            constexpr const auto mask = 0x00008000ULL;
-            constexpr const auto from = 15ULL;
+            constexpr const auto mask = 0x00008000U;
+            constexpr const auto from = 15U;
             constexpr const auto name = "cmov";
 
             inline auto is_enabled()
@@ -1273,8 +1276,8 @@ namespace feature_information
 
         namespace pat
         {
-            constexpr const auto mask = 0x00010000ULL;
-            constexpr const auto from = 16ULL;
+            constexpr const auto mask = 0x00010000U;
+            constexpr const auto from = 16U;
             constexpr const auto name = "pat";
 
             inline auto is_enabled()
@@ -1295,8 +1298,8 @@ namespace feature_information
 
         namespace pse_36
         {
-            constexpr const auto mask = 0x00020000ULL;
-            constexpr const auto from = 17ULL;
+            constexpr const auto mask = 0x00020000U;
+            constexpr const auto from = 17U;
             constexpr const auto name = "pse_36";
 
             inline auto is_enabled()
@@ -1317,8 +1320,8 @@ namespace feature_information
 
         namespace psn
         {
-            constexpr const auto mask = 0x00040000ULL;
-            constexpr const auto from = 18ULL;
+            constexpr const auto mask = 0x00040000U;
+            constexpr const auto from = 18U;
             constexpr const auto name = "psn";
 
             inline auto is_enabled()
@@ -1339,8 +1342,8 @@ namespace feature_information
 
         namespace clfsh
         {
-            constexpr const auto mask = 0x00080000ULL;
-            constexpr const auto from = 19ULL;
+            constexpr const auto mask = 0x00080000U;
+            constexpr const auto from = 19U;
             constexpr const auto name = "clfsh";
 
             inline auto is_enabled()
@@ -1361,8 +1364,8 @@ namespace feature_information
 
         namespace ds
         {
-            constexpr const auto mask = 0x00200000ULL;
-            constexpr const auto from = 21ULL;
+            constexpr const auto mask = 0x00200000U;
+            constexpr const auto from = 21U;
             constexpr const auto name = "ds";
 
             inline auto is_enabled()
@@ -1383,8 +1386,8 @@ namespace feature_information
 
         namespace acpi
         {
-            constexpr const auto mask = 0x00400000ULL;
-            constexpr const auto from = 22ULL;
+            constexpr const auto mask = 0x00400000U;
+            constexpr const auto from = 22U;
             constexpr const auto name = "acpi";
 
             inline auto is_enabled()
@@ -1405,8 +1408,8 @@ namespace feature_information
 
         namespace mmx
         {
-            constexpr const auto mask = 0x00800000ULL;
-            constexpr const auto from = 23ULL;
+            constexpr const auto mask = 0x00800000U;
+            constexpr const auto from = 23U;
             constexpr const auto name = "mmx";
 
             inline auto is_enabled()
@@ -1427,8 +1430,8 @@ namespace feature_information
 
         namespace fxsr
         {
-            constexpr const auto mask = 0x01000000ULL;
-            constexpr const auto from = 24ULL;
+            constexpr const auto mask = 0x01000000U;
+            constexpr const auto from = 24U;
             constexpr const auto name = "fxsr";
 
             inline auto is_enabled()
@@ -1449,8 +1452,8 @@ namespace feature_information
 
         namespace sse
         {
-            constexpr const auto mask = 0x02000000ULL;
-            constexpr const auto from = 25ULL;
+            constexpr const auto mask = 0x02000000U;
+            constexpr const auto from = 25U;
             constexpr const auto name = "sse";
 
             inline auto is_enabled()
@@ -1471,8 +1474,8 @@ namespace feature_information
 
         namespace sse2
         {
-            constexpr const auto mask = 0x04000000ULL;
-            constexpr const auto from = 26ULL;
+            constexpr const auto mask = 0x04000000U;
+            constexpr const auto from = 26U;
             constexpr const auto name = "sse2";
 
             inline auto is_enabled()
@@ -1493,8 +1496,8 @@ namespace feature_information
 
         namespace ss
         {
-            constexpr const auto mask = 0x08000000ULL;
-            constexpr const auto from = 27ULL;
+            constexpr const auto mask = 0x08000000U;
+            constexpr const auto from = 27U;
             constexpr const auto name = "ss";
 
             inline auto is_enabled()
@@ -1515,8 +1518,8 @@ namespace feature_information
 
         namespace htt
         {
-            constexpr const auto mask = 0x10000000ULL;
-            constexpr const auto from = 28ULL;
+            constexpr const auto mask = 0x10000000U;
+            constexpr const auto from = 28U;
             constexpr const auto name = "htt";
 
             inline auto is_enabled()
@@ -1537,8 +1540,8 @@ namespace feature_information
 
         namespace tm
         {
-            constexpr const auto mask = 0x20000000ULL;
-            constexpr const auto from = 29ULL;
+            constexpr const auto mask = 0x20000000U;
+            constexpr const auto from = 29U;
             constexpr const auto name = "tm";
 
             inline auto is_enabled()
@@ -1559,8 +1562,8 @@ namespace feature_information
 
         namespace pbe
         {
-            constexpr const auto mask = 0x80000000ULL;
-            constexpr const auto from = 31ULL;
+            constexpr const auto mask = 0x80000000U;
+            constexpr const auto from = 31U;
             constexpr const auto name = "pbe";
 
             inline auto is_enabled()
@@ -1625,7 +1628,7 @@ namespace feature_information
 
 namespace extended_feature_flags
 {
-    constexpr const auto addr = 0x00000007ULL;
+    constexpr const auto addr = 0x00000007U;
 
     namespace subleaf0
     {
@@ -1640,15 +1643,15 @@ namespace extended_feature_flags
 
             namespace max_input
             {
-                constexpr const auto mask = 0xFFFFFFFFULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0xFFFFFFFFU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "max_input";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subeax(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -1670,8 +1673,8 @@ namespace extended_feature_flags
 
             namespace fsgsbase
             {
-                constexpr const auto mask = 0x00000001ULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0x00000001U;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "fsgsbase";
 
                 inline auto is_enabled()
@@ -1692,8 +1695,8 @@ namespace extended_feature_flags
 
             namespace ia32_tsc_adjust
             {
-                constexpr const auto mask = 0x00000002ULL;
-                constexpr const auto from = 1ULL;
+                constexpr const auto mask = 0x00000002U;
+                constexpr const auto from = 1U;
                 constexpr const auto name = "ia32_tsc_adjust";
 
                 inline auto is_enabled()
@@ -1714,8 +1717,8 @@ namespace extended_feature_flags
 
             namespace sgx
             {
-                constexpr const auto mask = 0x00000004ULL;
-                constexpr const auto from = 2ULL;
+                constexpr const auto mask = 0x00000004U;
+                constexpr const auto from = 2U;
                 constexpr const auto name = "sgx";
 
                 inline auto is_enabled()
@@ -1736,8 +1739,8 @@ namespace extended_feature_flags
 
             namespace bmi1
             {
-                constexpr const auto mask = 0x00000008ULL;
-                constexpr const auto from = 3ULL;
+                constexpr const auto mask = 0x00000008U;
+                constexpr const auto from = 3U;
                 constexpr const auto name = "bmi1";
 
                 inline auto is_enabled()
@@ -1758,8 +1761,8 @@ namespace extended_feature_flags
 
             namespace hle
             {
-                constexpr const auto mask = 0x00000010ULL;
-                constexpr const auto from = 4ULL;
+                constexpr const auto mask = 0x00000010U;
+                constexpr const auto from = 4U;
                 constexpr const auto name = "hle";
 
                 inline auto is_enabled()
@@ -1780,8 +1783,8 @@ namespace extended_feature_flags
 
             namespace avx2
             {
-                constexpr const auto mask = 0x00000020ULL;
-                constexpr const auto from = 5ULL;
+                constexpr const auto mask = 0x00000020U;
+                constexpr const auto from = 5U;
                 constexpr const auto name = "avx2";
 
                 inline auto is_enabled()
@@ -1802,8 +1805,8 @@ namespace extended_feature_flags
 
             namespace fdp_excptn_only
             {
-                constexpr const auto mask = 0x00000040ULL;
-                constexpr const auto from = 6ULL;
+                constexpr const auto mask = 0x00000040U;
+                constexpr const auto from = 6U;
                 constexpr const auto name = "fdb_excptn_only";
 
                 inline auto is_enabled()
@@ -1824,8 +1827,8 @@ namespace extended_feature_flags
 
             namespace smep
             {
-                constexpr const auto mask = 0x00000080ULL;
-                constexpr const auto from = 7ULL;
+                constexpr const auto mask = 0x00000080U;
+                constexpr const auto from = 7U;
                 constexpr const auto name = "smep";
 
                 inline auto is_enabled()
@@ -1846,8 +1849,8 @@ namespace extended_feature_flags
 
             namespace bmi2
             {
-                constexpr const auto mask = 0x00000100ULL;
-                constexpr const auto from = 8ULL;
+                constexpr const auto mask = 0x00000100U;
+                constexpr const auto from = 8U;
                 constexpr const auto name = "bmi2";
 
                 inline auto is_enabled()
@@ -1868,8 +1871,8 @@ namespace extended_feature_flags
 
             namespace movsb
             {
-                constexpr const auto mask = 0x00000200ULL;
-                constexpr const auto from = 9ULL;
+                constexpr const auto mask = 0x00000200U;
+                constexpr const auto from = 9U;
                 constexpr const auto name = "movsb";
 
                 inline auto is_enabled()
@@ -1890,8 +1893,8 @@ namespace extended_feature_flags
 
             namespace invpcid
             {
-                constexpr const auto mask = 0x00000400ULL;
-                constexpr const auto from = 10ULL;
+                constexpr const auto mask = 0x00000400U;
+                constexpr const auto from = 10U;
                 constexpr const auto name = "invpcid";
 
                 inline auto is_enabled()
@@ -1912,8 +1915,8 @@ namespace extended_feature_flags
 
             namespace rtm
             {
-                constexpr const auto mask = 0x00000800ULL;
-                constexpr const auto from = 11ULL;
+                constexpr const auto mask = 0x00000800U;
+                constexpr const auto from = 11U;
                 constexpr const auto name = "rtm";
 
                 inline auto is_enabled()
@@ -1934,8 +1937,8 @@ namespace extended_feature_flags
 
             namespace rtm_m
             {
-                constexpr const auto mask = 0x00001000ULL;
-                constexpr const auto from = 12ULL;
+                constexpr const auto mask = 0x00001000U;
+                constexpr const auto from = 12U;
                 constexpr const auto name = "rtm_m";
 
                 inline auto is_enabled()
@@ -1956,8 +1959,8 @@ namespace extended_feature_flags
 
             namespace fpucs_fpuds
             {
-                constexpr const auto mask = 0x00002000ULL;
-                constexpr const auto from = 13ULL;
+                constexpr const auto mask = 0x00002000U;
+                constexpr const auto from = 13U;
                 constexpr const auto name = "fpucs_fpuds";
 
                 inline auto is_enabled()
@@ -1978,8 +1981,8 @@ namespace extended_feature_flags
 
             namespace mpx
             {
-                constexpr const auto mask = 0x00004000ULL;
-                constexpr const auto from = 14ULL;
+                constexpr const auto mask = 0x00004000U;
+                constexpr const auto from = 14U;
                 constexpr const auto name = "mpx";
 
                 inline auto is_enabled()
@@ -2000,8 +2003,8 @@ namespace extended_feature_flags
 
             namespace rdt_a
             {
-                constexpr const auto mask = 0x00008000ULL;
-                constexpr const auto from = 15ULL;
+                constexpr const auto mask = 0x00008000U;
+                constexpr const auto from = 15U;
                 constexpr const auto name = "rdt_a";
 
                 inline auto is_enabled()
@@ -2022,8 +2025,8 @@ namespace extended_feature_flags
 
             namespace rdseed
             {
-                constexpr const auto mask = 0x00040000ULL;
-                constexpr const auto from = 18ULL;
+                constexpr const auto mask = 0x00040000U;
+                constexpr const auto from = 18U;
                 constexpr const auto name = "rdseed";
 
                 inline auto is_enabled()
@@ -2044,8 +2047,8 @@ namespace extended_feature_flags
 
             namespace adx
             {
-                constexpr const auto mask = 0x00080000ULL;
-                constexpr const auto from = 19ULL;
+                constexpr const auto mask = 0x00080000U;
+                constexpr const auto from = 19U;
                 constexpr const auto name = "adx";
 
                 inline auto is_enabled()
@@ -2066,8 +2069,8 @@ namespace extended_feature_flags
 
             namespace smap
             {
-                constexpr const auto mask = 0x00100000ULL;
-                constexpr const auto from = 20ULL;
+                constexpr const auto mask = 0x00100000U;
+                constexpr const auto from = 20U;
                 constexpr const auto name = "smap";
 
                 inline auto is_enabled()
@@ -2088,8 +2091,8 @@ namespace extended_feature_flags
 
             namespace clflushopt
             {
-                constexpr const auto mask = 0x00800000ULL;
-                constexpr const auto from = 23ULL;
+                constexpr const auto mask = 0x00800000U;
+                constexpr const auto from = 23U;
                 constexpr const auto name = "clflushopt";
 
                 inline auto is_enabled()
@@ -2110,8 +2113,8 @@ namespace extended_feature_flags
 
             namespace clwb
             {
-                constexpr const auto mask = 0x01000000ULL;
-                constexpr const auto from = 24ULL;
+                constexpr const auto mask = 0x01000000U;
+                constexpr const auto from = 24U;
                 constexpr const auto name = "clwb";
 
                 inline auto is_enabled()
@@ -2132,8 +2135,8 @@ namespace extended_feature_flags
 
             namespace trace
             {
-                constexpr const auto mask = 0x02000000ULL;
-                constexpr const auto from = 25ULL;
+                constexpr const auto mask = 0x02000000U;
+                constexpr const auto from = 25U;
                 constexpr const auto name = "trace";
 
                 inline auto is_enabled()
@@ -2154,8 +2157,8 @@ namespace extended_feature_flags
 
             namespace sha
             {
-                constexpr const auto mask = 0x20000000ULL;
-                constexpr const auto from = 29ULL;
+                constexpr const auto mask = 0x20000000U;
+                constexpr const auto from = 29U;
                 constexpr const auto name = "sha";
 
                 inline auto is_enabled()
@@ -2212,8 +2215,8 @@ namespace extended_feature_flags
 
             namespace prefetchwt1
             {
-                constexpr const auto mask = 0x00000001ULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0x00000001U;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "prefetchwt1";
 
                 inline auto is_enabled()
@@ -2234,8 +2237,8 @@ namespace extended_feature_flags
 
             namespace umip
             {
-                constexpr const auto mask = 0x00000004ULL;
-                constexpr const auto from = 2ULL;
+                constexpr const auto mask = 0x00000004U;
+                constexpr const auto from = 2U;
                 constexpr const auto name = "umip";
 
                 inline auto is_enabled()
@@ -2256,8 +2259,8 @@ namespace extended_feature_flags
 
             namespace pku
             {
-                constexpr const auto mask = 0x00000008ULL;
-                constexpr const auto from = 3ULL;
+                constexpr const auto mask = 0x00000008U;
+                constexpr const auto from = 3U;
                 constexpr const auto name = "pku";
 
                 inline auto is_enabled()
@@ -2278,8 +2281,8 @@ namespace extended_feature_flags
 
             namespace ospke
             {
-                constexpr const auto mask = 0x00000010ULL;
-                constexpr const auto from = 4ULL;
+                constexpr const auto mask = 0x00000010U;
+                constexpr const auto from = 4U;
                 constexpr const auto name = "ospke";
 
                 inline auto is_enabled()
@@ -2300,15 +2303,15 @@ namespace extended_feature_flags
 
             namespace mawau
             {
-                constexpr const auto mask = 0x003E0000ULL;
-                constexpr const auto from = 17ULL;
+                constexpr const auto mask = 0x003E0000U;
+                constexpr const auto from = 17U;
                 constexpr const auto name = "mawau";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subecx(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -2316,8 +2319,8 @@ namespace extended_feature_flags
 
             namespace rdpid
             {
-                constexpr const auto mask = 0x00400000ULL;
-                constexpr const auto from = 22ULL;
+                constexpr const auto mask = 0x00400000U;
+                constexpr const auto from = 22U;
                 constexpr const auto name = "rdpid";
 
                 inline auto is_enabled()
@@ -2338,8 +2341,8 @@ namespace extended_feature_flags
 
             namespace sgx_lc
             {
-                constexpr const auto mask = 0x40000000ULL;
-                constexpr const auto from = 30ULL;
+                constexpr const auto mask = 0x40000000U;
+                constexpr const auto from = 30U;
                 constexpr const auto name = "sgx_lc";
 
                 inline auto is_enabled()
@@ -2387,7 +2390,7 @@ namespace extended_feature_flags
 
 namespace arch_perf_monitoring
 {
-    constexpr const auto addr = 0x0000000AULL;
+    constexpr const auto addr = 0x0000000AU;
 
     namespace eax
     {
@@ -2398,15 +2401,15 @@ namespace arch_perf_monitoring
 
         namespace version_id
         {
-            constexpr const auto mask = 0x000000FFULL;
-            constexpr const auto from = 0ULL;
+            constexpr const auto mask = 0x000000FFU;
+            constexpr const auto from = 0U;
             constexpr const auto name = "version_id";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_eax(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -2414,15 +2417,15 @@ namespace arch_perf_monitoring
 
         namespace gppmc_count
         {
-            constexpr const auto mask = 0x0000FF00ULL;
-            constexpr const auto from = 8ULL;
+            constexpr const auto mask = 0x0000FF00U;
+            constexpr const auto from = 8U;
             constexpr const auto name = "gppmc_count";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_eax(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -2430,15 +2433,15 @@ namespace arch_perf_monitoring
 
         namespace gppmc_bit_width
         {
-            constexpr const auto mask = 0x00FF0000ULL;
-            constexpr const auto from = 16ULL;
+            constexpr const auto mask = 0x00FF0000U;
+            constexpr const auto from = 16U;
             constexpr const auto name = "gppmc_bit_width";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_eax(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -2446,15 +2449,15 @@ namespace arch_perf_monitoring
 
         namespace ebx_enumeration_length
         {
-            constexpr const auto mask = 0xFF000000ULL;
-            constexpr const auto from = 24ULL;
+            constexpr const auto mask = 0xFF000000U;
+            constexpr const auto from = 24U;
             constexpr const auto name = "ebx_enumeration_length";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_eax(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -2479,8 +2482,8 @@ namespace arch_perf_monitoring
 
         namespace core_cycle_event
         {
-            constexpr const auto mask = 0x00000001ULL;
-            constexpr const auto from = 0ULL;
+            constexpr const auto mask = 0x00000001U;
+            constexpr const auto from = 0U;
             constexpr const auto name = "core_cycle_event";
 
             inline auto is_enabled()
@@ -2501,8 +2504,8 @@ namespace arch_perf_monitoring
 
         namespace instr_retired_event
         {
-            constexpr const auto mask = 0x00000002ULL;
-            constexpr const auto from = 1ULL;
+            constexpr const auto mask = 0x00000002U;
+            constexpr const auto from = 1U;
             constexpr const auto name = "instr_retired_event";
 
             inline auto is_enabled()
@@ -2523,8 +2526,8 @@ namespace arch_perf_monitoring
 
         namespace reference_cycles_event
         {
-            constexpr const auto mask = 0x00000004ULL;
-            constexpr const auto from = 2ULL;
+            constexpr const auto mask = 0x00000004U;
+            constexpr const auto from = 2U;
             constexpr const auto name = "reference_cycles_event";
 
             inline auto is_enabled()
@@ -2545,8 +2548,8 @@ namespace arch_perf_monitoring
 
         namespace llc_reference_event
         {
-            constexpr const auto mask = 0x00000008ULL;
-            constexpr const auto from = 3ULL;
+            constexpr const auto mask = 0x00000008U;
+            constexpr const auto from = 3U;
             constexpr const auto name = "llc_reference_event";
 
             inline auto is_enabled()
@@ -2567,8 +2570,8 @@ namespace arch_perf_monitoring
 
         namespace llc_misses_event
         {
-            constexpr const auto mask = 0x00000010ULL;
-            constexpr const auto from = 4ULL;
+            constexpr const auto mask = 0x00000010U;
+            constexpr const auto from = 4U;
             constexpr const auto name = "llc_misses_event";
 
             inline auto is_enabled()
@@ -2589,8 +2592,8 @@ namespace arch_perf_monitoring
 
         namespace branch_instr_retired_event
         {
-            constexpr const auto mask = 0x00000020ULL;
-            constexpr const auto from = 5ULL;
+            constexpr const auto mask = 0x00000020U;
+            constexpr const auto from = 5U;
             constexpr const auto name = "branch_instr_retired_event";
 
             inline auto is_enabled()
@@ -2611,8 +2614,8 @@ namespace arch_perf_monitoring
 
         namespace branch_mispredict_retired_event
         {
-            constexpr const auto mask = 0x00000040ULL;
-            constexpr const auto from = 6ULL;
+            constexpr const auto mask = 0x00000040U;
+            constexpr const auto from = 6U;
             constexpr const auto name = "branch_mispredict_retired_event";
 
             inline auto is_enabled()
@@ -2653,15 +2656,15 @@ namespace arch_perf_monitoring
 
         namespace ffpmc_count
         {
-            constexpr const auto mask = 0x0000001FULL;
-            constexpr const auto from = 0ULL;
+            constexpr const auto mask = 0x0000001FU;
+            constexpr const auto from = 0U;
             constexpr const auto name = "ffpmc_count";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_edx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -2669,15 +2672,15 @@ namespace arch_perf_monitoring
 
         namespace ffpmc_bit_width
         {
-            constexpr const auto mask = 0x00001FE0ULL;
-            constexpr const auto from = 5ULL;
+            constexpr const auto mask = 0x00001FE0U;
+            constexpr const auto from = 5U;
             constexpr const auto name = "ffpmc_bit_width";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_edx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -2701,7 +2704,7 @@ namespace arch_perf_monitoring
 
 namespace cache_tlb_info
 {
-    constexpr const auto addr = 0x00000002ULL;
+    constexpr const auto addr = 0x00000002U;
 
     namespace eax
     {
@@ -2758,7 +2761,7 @@ namespace cache_tlb_info
 
 namespace serial_num
 {
-    constexpr const auto addr = 0x00000003ULL;
+    constexpr const auto addr = 0x00000003U;
 
     namespace ecx
     {
@@ -2791,7 +2794,7 @@ namespace serial_num
 
 namespace cache_parameters
 {
-    constexpr const auto addr = 0x00000004ULL;
+    constexpr const auto addr = 0x00000004U;
 
     namespace eax
     {
@@ -2802,15 +2805,15 @@ namespace cache_parameters
 
         namespace cache_type
         {
-            constexpr const auto mask = 0x0000001FULL;
-            constexpr const auto from = 0ULL;
+            constexpr const auto mask = 0x0000001FU;
+            constexpr const auto from = 0U;
             constexpr const auto name = "cache_type";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_eax(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -2818,15 +2821,15 @@ namespace cache_parameters
 
         namespace cache_level
         {
-            constexpr const auto mask = 0x000000E0ULL;
-            constexpr const auto from = 5ULL;
+            constexpr const auto mask = 0x000000E0U;
+            constexpr const auto from = 5U;
             constexpr const auto name = "cache_level";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_eax(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -2834,8 +2837,8 @@ namespace cache_parameters
 
         namespace self_init_level
         {
-            constexpr const auto mask = 0x00000100ULL;
-            constexpr const auto from = 8ULL;
+            constexpr const auto mask = 0x00000100U;
+            constexpr const auto from = 8U;
             constexpr const auto name = "self_init_level";
 
             inline auto is_enabled()
@@ -2856,8 +2859,8 @@ namespace cache_parameters
 
         namespace fully_associative
         {
-            constexpr const auto mask = 0x00000200ULL;
-            constexpr const auto from = 9ULL;
+            constexpr const auto mask = 0x00000200U;
+            constexpr const auto from = 9U;
             constexpr const auto name = "fully_associative";
 
             inline auto is_enabled()
@@ -2878,15 +2881,15 @@ namespace cache_parameters
 
         namespace max_ids_logical
         {
-            constexpr const auto mask = 0x03FFC000ULL;
-            constexpr const auto from = 14ULL;
+            constexpr const auto mask = 0x03FFC000U;
+            constexpr const auto from = 14U;
             constexpr const auto name = "max_ids_logical";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_eax(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -2894,15 +2897,15 @@ namespace cache_parameters
 
         namespace max_ids_physical
         {
-            constexpr const auto mask = 0xFC000000ULL;
-            constexpr const auto from = 26ULL;
+            constexpr const auto mask = 0xFC000000U;
+            constexpr const auto from = 26U;
             constexpr const auto name = "max_ids_physical";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_eax(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -2929,15 +2932,15 @@ namespace cache_parameters
 
         namespace l
         {
-            constexpr const auto mask = 0x00000FFFULL;
-            constexpr const auto from = 0ULL;
+            constexpr const auto mask = 0x00000FFFU;
+            constexpr const auto from = 0U;
             constexpr const auto name = "l";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_ebx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -2945,15 +2948,15 @@ namespace cache_parameters
 
         namespace p
         {
-            constexpr const auto mask = 0x003FF000ULL;
-            constexpr const auto from = 12ULL;
+            constexpr const auto mask = 0x003FF000U;
+            constexpr const auto from = 12U;
             constexpr const auto name = "p";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_ebx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -2961,15 +2964,15 @@ namespace cache_parameters
 
         namespace w
         {
-            constexpr const auto mask = 0xFFC00000ULL;
-            constexpr const auto from = 22ULL;
+            constexpr const auto mask = 0xFFC00000U;
+            constexpr const auto from = 22U;
             constexpr const auto name = "w";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_ebx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -2993,15 +2996,15 @@ namespace cache_parameters
 
         namespace num_sets
         {
-            constexpr const auto mask = 0xFFFFFFFFULL;
-            constexpr const auto from = 0ULL;
+            constexpr const auto mask = 0xFFFFFFFFU;
+            constexpr const auto from = 0U;
             constexpr const auto name = "num_sets";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_ecx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -3023,8 +3026,8 @@ namespace cache_parameters
 
         namespace wbinvd_invd
         {
-            constexpr const auto mask = 0x00000001ULL;
-            constexpr const auto from = 0ULL;
+            constexpr const auto mask = 0x00000001U;
+            constexpr const auto from = 0U;
             constexpr const auto name = "wbinvd_invd";
 
             inline auto is_enabled()
@@ -3045,8 +3048,8 @@ namespace cache_parameters
 
         namespace cache_inclusiveness
         {
-            constexpr const auto mask = 0x00000002ULL;
-            constexpr const auto from = 1ULL;
+            constexpr const auto mask = 0x00000002U;
+            constexpr const auto from = 1U;
             constexpr const auto name = "cache_inclusiveness";
 
             inline auto is_enabled()
@@ -3067,8 +3070,8 @@ namespace cache_parameters
 
         namespace complex_cache_indexing
         {
-            constexpr const auto mask = 0x00000004ULL;
-            constexpr const auto from = 2ULL;
+            constexpr const auto mask = 0x00000004U;
+            constexpr const auto from = 2U;
             constexpr const auto name = "complex_cache_indexing";
 
             inline auto is_enabled()
@@ -3107,7 +3110,7 @@ namespace cache_parameters
 
 namespace monitor_mwait
 {
-    constexpr const auto addr = 0x00000005ULL;
+    constexpr const auto addr = 0x00000005U;
 
     namespace eax
     {
@@ -3118,15 +3121,15 @@ namespace monitor_mwait
 
         namespace min_line_size
         {
-            constexpr const auto mask = 0x0000FFFFULL;
-            constexpr const auto from = 0ULL;
+            constexpr const auto mask = 0x0000FFFFU;
+            constexpr const auto from = 0U;
             constexpr const auto name = "min_line_size";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_eax(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -3148,15 +3151,15 @@ namespace monitor_mwait
 
         namespace max_line_size
         {
-            constexpr const auto mask = 0x0000FFFFULL;
-            constexpr const auto from = 0ULL;
+            constexpr const auto mask = 0x0000FFFFU;
+            constexpr const auto from = 0U;
             constexpr const auto name = "max_line_size";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_ebx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -3178,8 +3181,8 @@ namespace monitor_mwait
 
         namespace enum_mwait_extensions
         {
-            constexpr const auto mask = 0x00000001ULL;
-            constexpr const auto from = 0ULL;
+            constexpr const auto mask = 0x00000001U;
+            constexpr const auto from = 0U;
             constexpr const auto name = "enum_mwait_extensions";
 
             inline auto is_enabled()
@@ -3200,8 +3203,8 @@ namespace monitor_mwait
 
         namespace interrupt_break_event
         {
-            constexpr const auto mask = 0x00000002ULL;
-            constexpr const auto from = 1ULL;
+            constexpr const auto mask = 0x00000002U;
+            constexpr const auto from = 1U;
             constexpr const auto name = "interrupt_break_event";
 
             inline auto is_enabled()
@@ -3237,15 +3240,15 @@ namespace monitor_mwait
 
         namespace num_c0
         {
-            constexpr const auto mask = 0x0000000FULL;
-            constexpr const auto from = 0ULL;
+            constexpr const auto mask = 0x0000000FU;
+            constexpr const auto from = 0U;
             constexpr const auto name = "num_c0";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_edx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -3253,15 +3256,15 @@ namespace monitor_mwait
 
         namespace num_c1
         {
-            constexpr const auto mask = 0x000000F0ULL;
-            constexpr const auto from = 4ULL;
+            constexpr const auto mask = 0x000000F0U;
+            constexpr const auto from = 4U;
             constexpr const auto name = "num_c1";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_edx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -3269,15 +3272,15 @@ namespace monitor_mwait
 
         namespace num_c2
         {
-            constexpr const auto mask = 0x00000F00ULL;
-            constexpr const auto from = 8ULL;
+            constexpr const auto mask = 0x00000F00U;
+            constexpr const auto from = 8U;
             constexpr const auto name = "num_c2";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_edx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -3285,15 +3288,15 @@ namespace monitor_mwait
 
         namespace num_c3
         {
-            constexpr const auto mask = 0x0000F000ULL;
-            constexpr const auto from = 12ULL;
+            constexpr const auto mask = 0x0000F000U;
+            constexpr const auto from = 12U;
             constexpr const auto name = "num_c3";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_edx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -3301,15 +3304,15 @@ namespace monitor_mwait
 
         namespace num_c4
         {
-            constexpr const auto mask = 0x000F0000ULL;
-            constexpr const auto from = 16ULL;
+            constexpr const auto mask = 0x000F0000U;
+            constexpr const auto from = 16U;
             constexpr const auto name = "num_c4";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_edx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -3317,15 +3320,15 @@ namespace monitor_mwait
 
         namespace num_c5
         {
-            constexpr const auto mask = 0x00F00000ULL;
-            constexpr const auto from = 20ULL;
+            constexpr const auto mask = 0x00F00000U;
+            constexpr const auto from = 20U;
             constexpr const auto name = "num_c5";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_edx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -3333,15 +3336,15 @@ namespace monitor_mwait
 
         namespace num_c6
         {
-            constexpr const auto mask = 0x0F000000ULL;
-            constexpr const auto from = 24ULL;
+            constexpr const auto mask = 0x0F000000U;
+            constexpr const auto from = 24U;
             constexpr const auto name = "num_c6";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_edx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -3349,15 +3352,15 @@ namespace monitor_mwait
 
         namespace num_c7
         {
-            constexpr const auto mask = 0xF0000000ULL;
-            constexpr const auto from = 28ULL;
+            constexpr const auto mask = 0xF0000000U;
+            constexpr const auto from = 28U;
             constexpr const auto name = "num_c7";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_edx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -3388,7 +3391,7 @@ namespace monitor_mwait
 
 namespace therm_power_management
 {
-    constexpr const auto addr = 0x00000006ULL;
+    constexpr const auto addr = 0x00000006U;
 
     namespace eax
     {
@@ -3399,8 +3402,8 @@ namespace therm_power_management
 
         namespace temp_sensor
         {
-            constexpr const auto mask = 0x00000001ULL;
-            constexpr const auto from = 0ULL;
+            constexpr const auto mask = 0x00000001U;
+            constexpr const auto from = 0U;
             constexpr const auto name = "temp_sensor";
 
             inline auto is_enabled()
@@ -3421,8 +3424,8 @@ namespace therm_power_management
 
         namespace intel_turbo
         {
-            constexpr const auto mask = 0x00000002ULL;
-            constexpr const auto from = 1ULL;
+            constexpr const auto mask = 0x00000002U;
+            constexpr const auto from = 1U;
             constexpr const auto name = "intel_turbo";
 
             inline auto is_enabled()
@@ -3443,8 +3446,8 @@ namespace therm_power_management
 
         namespace arat
         {
-            constexpr const auto mask = 0x00000004ULL;
-            constexpr const auto from = 2ULL;
+            constexpr const auto mask = 0x00000004U;
+            constexpr const auto from = 2U;
             constexpr const auto name = "arat";
 
             inline auto is_enabled()
@@ -3465,8 +3468,8 @@ namespace therm_power_management
 
         namespace pln
         {
-            constexpr const auto mask = 0x00000010ULL;
-            constexpr const auto from = 4ULL;
+            constexpr const auto mask = 0x00000010U;
+            constexpr const auto from = 4U;
             constexpr const auto name = "pln";
 
             inline auto is_enabled()
@@ -3487,8 +3490,8 @@ namespace therm_power_management
 
         namespace ecmd
         {
-            constexpr const auto mask = 0x00000020ULL;
-            constexpr const auto from = 5ULL;
+            constexpr const auto mask = 0x00000020U;
+            constexpr const auto from = 5U;
             constexpr const auto name = "ecmd";
 
             inline auto is_enabled()
@@ -3509,8 +3512,8 @@ namespace therm_power_management
 
         namespace ptm
         {
-            constexpr const auto mask = 0x00000040ULL;
-            constexpr const auto from = 6ULL;
+            constexpr const auto mask = 0x00000040U;
+            constexpr const auto from = 6U;
             constexpr const auto name = "ptm";
 
             inline auto is_enabled()
@@ -3531,8 +3534,8 @@ namespace therm_power_management
 
         namespace hwp
         {
-            constexpr const auto mask = 0x00000080ULL;
-            constexpr const auto from = 7ULL;
+            constexpr const auto mask = 0x00000080U;
+            constexpr const auto from = 7U;
             constexpr const auto name = "hwp";
 
             inline auto is_enabled()
@@ -3553,8 +3556,8 @@ namespace therm_power_management
 
         namespace hwp_notification
         {
-            constexpr const auto mask = 0x00000100ULL;
-            constexpr const auto from = 8ULL;
+            constexpr const auto mask = 0x00000100U;
+            constexpr const auto from = 8U;
             constexpr const auto name = "hwp_notification";
 
             inline auto is_enabled()
@@ -3575,8 +3578,8 @@ namespace therm_power_management
 
         namespace hwp_activity_window
         {
-            constexpr const auto mask = 0x00000200ULL;
-            constexpr const auto from = 9ULL;
+            constexpr const auto mask = 0x00000200U;
+            constexpr const auto from = 9U;
             constexpr const auto name = "hwp_activity_window";
 
             inline auto is_enabled()
@@ -3597,8 +3600,8 @@ namespace therm_power_management
 
         namespace hwp_energy_perf
         {
-            constexpr const auto mask = 0x00000400ULL;
-            constexpr const auto from = 10ULL;
+            constexpr const auto mask = 0x00000400U;
+            constexpr const auto from = 10U;
             constexpr const auto name = "hwp_energy_perf";
 
             inline auto is_enabled()
@@ -3619,8 +3622,8 @@ namespace therm_power_management
 
         namespace hwp_package_request
         {
-            constexpr const auto mask = 0x00000800ULL;
-            constexpr const auto from = 11ULL;
+            constexpr const auto mask = 0x00000800U;
+            constexpr const auto from = 11U;
             constexpr const auto name = "hwp_package_request";
 
             inline auto is_enabled()
@@ -3641,8 +3644,8 @@ namespace therm_power_management
 
         namespace hdc
         {
-            constexpr const auto mask = 0x00002000ULL;
-            constexpr const auto from = 13ULL;
+            constexpr const auto mask = 0x00002000U;
+            constexpr const auto from = 13U;
             constexpr const auto name = "hdc";
 
             inline auto is_enabled()
@@ -3688,15 +3691,15 @@ namespace therm_power_management
 
         namespace num_interrupts
         {
-            constexpr const auto mask = 0x0000000FULL;
-            constexpr const auto from = 0ULL;
+            constexpr const auto mask = 0x0000000FU;
+            constexpr const auto from = 0U;
             constexpr const auto name = "num_interrupts";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_ebx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -3718,8 +3721,8 @@ namespace therm_power_management
 
         namespace hardware_feedback
         {
-            constexpr const auto mask = 0x00000001ULL;
-            constexpr const auto from = 0ULL;
+            constexpr const auto mask = 0x00000001U;
+            constexpr const auto from = 0U;
             constexpr const auto name = "hardware_feedback";
 
             inline auto is_enabled()
@@ -3740,8 +3743,8 @@ namespace therm_power_management
 
         namespace energy_perf_bias
         {
-            constexpr const auto mask = 0x00000008ULL;
-            constexpr const auto from = 3ULL;
+            constexpr const auto mask = 0x00000008U;
+            constexpr const auto from = 3U;
             constexpr const auto name = "energy_perf_bias";
 
             inline auto is_enabled()
@@ -3778,7 +3781,7 @@ namespace therm_power_management
 
 namespace access_cache
 {
-    constexpr const auto addr = 0x00000009ULL;
+    constexpr const auto addr = 0x00000009U;
 
     namespace eax
     {
@@ -3799,7 +3802,7 @@ namespace access_cache
 
 namespace topology_enumeration
 {
-    constexpr const auto addr = 0x0000000BULL;
+    constexpr const auto addr = 0x0000000BU;
 
     namespace eax
     {
@@ -3810,15 +3813,15 @@ namespace topology_enumeration
 
         namespace x2apic_shift
         {
-            constexpr const auto mask = 0x0000001FULL;
-            constexpr const auto from = 0ULL;
+            constexpr const auto mask = 0x0000001FU;
+            constexpr const auto from = 0U;
             constexpr const auto name = "x2apic_shift";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_eax(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -3840,15 +3843,15 @@ namespace topology_enumeration
 
         namespace num_processors
         {
-            constexpr const auto mask = 0x0000FFFFULL;
-            constexpr const auto from = 0ULL;
+            constexpr const auto mask = 0x0000FFFFU;
+            constexpr const auto from = 0U;
             constexpr const auto name = "num_processors";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_ebx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -3870,15 +3873,15 @@ namespace topology_enumeration
 
         namespace level_number
         {
-            constexpr const auto mask = 0x000000FFULL;
-            constexpr const auto from = 0ULL;
+            constexpr const auto mask = 0x000000FFU;
+            constexpr const auto from = 0U;
             constexpr const auto name = "level_number";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_ecx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -3886,15 +3889,15 @@ namespace topology_enumeration
 
         namespace level_type
         {
-            constexpr const auto mask = 0x0000FF00ULL;
-            constexpr const auto from = 8ULL;
+            constexpr const auto mask = 0x0000FF00U;
+            constexpr const auto from = 8U;
             constexpr const auto name = "level_type";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_ecx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -3917,15 +3920,15 @@ namespace topology_enumeration
 
         namespace x2apic_id
         {
-            constexpr const auto mask = 0xFFFFFFFFULL;
-            constexpr const auto from = 0ULL;
+            constexpr const auto mask = 0xFFFFFFFFU;
+            constexpr const auto from = 0U;
             constexpr const auto name = "x2apic_id";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_edx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -3949,7 +3952,7 @@ namespace topology_enumeration
 
 namespace extended_state_enum
 {
-    constexpr const auto addr = 0x0000000DULL;
+    constexpr const auto addr = 0x0000000DU;
 
     namespace mainleaf
     {
@@ -4021,8 +4024,8 @@ namespace extended_state_enum
 
             namespace xsaveopt
             {
-                constexpr const auto mask = 0x00000001ULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0x00000001U;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "xsaveopt";
 
                 inline auto is_enabled()
@@ -4043,8 +4046,8 @@ namespace extended_state_enum
 
             namespace xsavec
             {
-                constexpr const auto mask = 0x00000002ULL;
-                constexpr const auto from = 1ULL;
+                constexpr const auto mask = 0x00000002U;
+                constexpr const auto from = 1U;
                 constexpr const auto name = "xsavec";
 
                 inline auto is_enabled()
@@ -4065,8 +4068,8 @@ namespace extended_state_enum
 
             namespace xgetbv
             {
-                constexpr const auto mask = 0x00000004ULL;
-                constexpr const auto from = 2ULL;
+                constexpr const auto mask = 0x00000004U;
+                constexpr const auto from = 2U;
                 constexpr const auto name = "xgetbv";
 
                 inline auto is_enabled()
@@ -4087,8 +4090,8 @@ namespace extended_state_enum
 
             namespace xsaves_xrstors
             {
-                constexpr const auto mask = 0x00000008ULL;
-                constexpr const auto from = 3ULL;
+                constexpr const auto mask = 0x00000008U;
+                constexpr const auto from = 3U;
                 constexpr const auto name = "xsaves_xrstors";
 
                 inline auto is_enabled()
@@ -4126,15 +4129,15 @@ namespace extended_state_enum
 
             namespace xsave_size
             {
-                constexpr const auto mask = 0xFFFFFFFFULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0xFFFFFFFFU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "xsave_size";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subebx(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -4156,15 +4159,15 @@ namespace extended_state_enum
 
             namespace supported_bits
             {
-                constexpr const auto mask = 0xFFFFFFFFULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0xFFFFFFFFU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "supported_bits";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subecx(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -4186,15 +4189,15 @@ namespace extended_state_enum
 
             namespace supported_bits
             {
-                constexpr const auto mask = 0xFFFFFFFFULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0xFFFFFFFFU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "supported_bits";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subedx(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -4225,7 +4228,7 @@ namespace extended_state_enum
 
 namespace intel_rdt
 {
-    constexpr const auto addr = 0x0000000FULL;
+    constexpr const auto addr = 0x0000000FU;
 
     namespace subleaf0
     {
@@ -4240,15 +4243,15 @@ namespace intel_rdt
 
             namespace rmid_max_range
             {
-                constexpr const auto mask = 0xFFFFFFFFULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0xFFFFFFFFU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "rmid_max_range";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subebx(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -4270,8 +4273,8 @@ namespace intel_rdt
 
             namespace l3_rdt
             {
-                constexpr const auto mask = 0x00000002ULL;
-                constexpr const auto from = 1ULL;
+                constexpr const auto mask = 0x00000002U;
+                constexpr const auto from = 1U;
                 constexpr const auto name = "l3_rdt";
 
                 inline auto is_enabled()
@@ -4317,15 +4320,15 @@ namespace intel_rdt
 
             namespace conversion_factor
             {
-                constexpr const auto mask = 0xFFFFFFFFULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0xFFFFFFFFU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "conversion_factor";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subebx(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -4347,15 +4350,15 @@ namespace intel_rdt
 
             namespace rmid_max_range
             {
-                constexpr const auto mask = 0xFFFFFFFFULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0xFFFFFFFFU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "rmid_max_range";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subecx(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -4377,8 +4380,8 @@ namespace intel_rdt
 
             namespace l3_occupancy
             {
-                constexpr const auto mask = 0x00000001ULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0x00000001U;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "l3_occupancy";
 
                 inline auto is_enabled()
@@ -4399,8 +4402,8 @@ namespace intel_rdt
 
             namespace l3_total_bandwith
             {
-                constexpr const auto mask = 0x00000002ULL;
-                constexpr const auto from = 1ULL;
+                constexpr const auto mask = 0x00000002U;
+                constexpr const auto from = 1U;
                 constexpr const auto name = "l3_total_bandwith";
 
                 inline auto is_enabled()
@@ -4421,8 +4424,8 @@ namespace intel_rdt
 
             namespace l3_local_bandwith
             {
-                constexpr const auto mask = 0x00000004ULL;
-                constexpr const auto from = 2ULL;
+                constexpr const auto mask = 0x00000004U;
+                constexpr const auto from = 2U;
                 constexpr const auto name = "l3_local_bandwith";
 
                 inline auto is_enabled()
@@ -4467,7 +4470,7 @@ namespace intel_rdt
 
 namespace allocation_enumeration
 {
-    constexpr const auto addr = 0x00000010ULL;
+    constexpr const auto addr = 0x00000010U;
 
     namespace subleaf0
     {
@@ -4482,8 +4485,8 @@ namespace allocation_enumeration
 
             namespace l3_cache
             {
-                constexpr const auto mask = 0x00000002ULL;
-                constexpr const auto from = 1ULL;
+                constexpr const auto mask = 0x00000002U;
+                constexpr const auto from = 1U;
                 constexpr const auto name = "l3_cache";
 
                 inline auto is_enabled()
@@ -4504,8 +4507,8 @@ namespace allocation_enumeration
 
             namespace l2_cache
             {
-                constexpr const auto mask = 0x00000004ULL;
-                constexpr const auto from = 2ULL;
+                constexpr const auto mask = 0x00000004U;
+                constexpr const auto from = 2U;
                 constexpr const auto name = "l2_cache";
 
                 inline auto is_enabled()
@@ -4526,8 +4529,8 @@ namespace allocation_enumeration
 
             namespace mem_bandwidth
             {
-                constexpr const auto mask = 0x00000008ULL;
-                constexpr const auto from = 3ULL;
+                constexpr const auto mask = 0x00000008U;
+                constexpr const auto from = 3U;
                 constexpr const auto name = "mem_bandwidth";
 
                 inline auto is_enabled()
@@ -4574,15 +4577,15 @@ namespace allocation_enumeration
 
             namespace mask_length
             {
-                constexpr const auto mask = 0x0000001FULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0x0000001FU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "mask_length";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subeax(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -4604,15 +4607,15 @@ namespace allocation_enumeration
 
             namespace map
             {
-                constexpr const auto mask = 0xFFFFFFFFULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0xFFFFFFFFU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "map";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subebx(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -4634,8 +4637,8 @@ namespace allocation_enumeration
 
             namespace data_prio
             {
-                constexpr const auto mask = 0x00000004ULL;
-                constexpr const auto from = 2ULL;
+                constexpr const auto mask = 0x00000004U;
+                constexpr const auto from = 2U;
                 constexpr const auto name = "data_prio";
 
                 inline auto is_enabled()
@@ -4670,15 +4673,15 @@ namespace allocation_enumeration
 
             namespace max_cos
             {
-                constexpr const auto mask = 0x0000FFFFULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0x0000FFFFU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "max_cos";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subedx(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -4713,15 +4716,15 @@ namespace allocation_enumeration
 
             namespace mask_length
             {
-                constexpr const auto mask = 0x0000001FULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0x0000001FU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "mask_length";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subeax(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -4743,15 +4746,15 @@ namespace allocation_enumeration
 
             namespace map
             {
-                constexpr const auto mask = 0xFFFFFFFFULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0xFFFFFFFFU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "map";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subebx(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -4773,15 +4776,15 @@ namespace allocation_enumeration
 
             namespace max_cos
             {
-                constexpr const auto mask = 0x0000FFFFULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0x0000FFFFU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "max_cos";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subedx(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -4815,15 +4818,15 @@ namespace allocation_enumeration
 
             namespace max_throttle
             {
-                constexpr const auto mask = 0x00000FFFULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0x00000FFFU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "max_throttle";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subeax(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -4845,8 +4848,8 @@ namespace allocation_enumeration
 
             namespace linear
             {
-                constexpr const auto mask = 0x00000004ULL;
-                constexpr const auto from = 2ULL;
+                constexpr const auto mask = 0x00000004U;
+                constexpr const auto from = 2U;
                 constexpr const auto name = "linear";
 
                 inline auto is_enabled()
@@ -4881,15 +4884,15 @@ namespace allocation_enumeration
 
             namespace max_cos
             {
-                constexpr const auto mask = 0x0000FFFFULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0x0000FFFFU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "max_cos";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subedx(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -4921,7 +4924,7 @@ namespace allocation_enumeration
 
 namespace intel_sgx
 {
-    constexpr const auto addr = 0x00000012ULL;
+    constexpr const auto addr = 0x00000012U;
 
     namespace subleaf0
     {
@@ -4936,8 +4939,8 @@ namespace intel_sgx
 
             namespace sgx1
             {
-                constexpr const auto mask = 0x00000001ULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0x00000001U;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "sgx1";
 
                 inline auto is_enabled()
@@ -4958,8 +4961,8 @@ namespace intel_sgx
 
             namespace sgx2
             {
-                constexpr const auto mask = 0x00000002ULL;
-                constexpr const auto from = 1ULL;
+                constexpr const auto mask = 0x00000002U;
+                constexpr const auto from = 1U;
                 constexpr const auto name = "sgx2";
 
                 inline auto is_enabled()
@@ -4995,15 +4998,15 @@ namespace intel_sgx
 
             namespace miscselect
             {
-                constexpr const auto mask = 0xFFFFFFFFULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0xFFFFFFFFU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "miscselect";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subebx(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -5025,15 +5028,15 @@ namespace intel_sgx
 
             namespace mes_not64
             {
-                constexpr const auto mask = 0x000000FFULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0x000000FFU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "mes_not64";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subedx(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -5041,15 +5044,15 @@ namespace intel_sgx
 
             namespace mes_64
             {
-                constexpr const auto mask = 0x0000FF00ULL;
-                constexpr const auto from = 8ULL;
+                constexpr const auto mask = 0x0000FF00U;
+                constexpr const auto from = 8U;
                 constexpr const auto name = "mes_64";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subedx(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -5141,15 +5144,15 @@ namespace intel_sgx
 
             namespace subleaf_type
             {
-                constexpr const auto mask = 0x0000000FULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0x0000000FU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "subleaf_type";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subeax(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -5157,15 +5160,15 @@ namespace intel_sgx
 
             namespace address
             {
-                constexpr const auto mask = 0xFFFFF000ULL;
-                constexpr const auto from = 12ULL;
+                constexpr const auto mask = 0xFFFFF000U;
+                constexpr const auto from = 12U;
                 constexpr const auto name = "address";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subeax(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -5188,15 +5191,15 @@ namespace intel_sgx
 
             namespace address
             {
-                constexpr const auto mask = 0x000FFFFFULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0x000FFFFFU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "address";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subebx(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -5218,15 +5221,15 @@ namespace intel_sgx
 
             namespace epc_property
             {
-                constexpr const auto mask = 0x0000000FULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0x0000000FU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "epc_property";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subecx(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -5234,15 +5237,15 @@ namespace intel_sgx
 
             namespace epc_size
             {
-                constexpr const auto mask = 0xFFFFF000ULL;
-                constexpr const auto from = 12ULL;
+                constexpr const auto mask = 0xFFFFF000U;
+                constexpr const auto from = 12U;
                 constexpr const auto name = "epc_size";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subecx(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -5265,15 +5268,15 @@ namespace intel_sgx
 
             namespace epc_size
             {
-                constexpr const auto mask = 0x000FFFFFULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0x000FFFFFU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "epc_size";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subedx(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -5305,7 +5308,7 @@ namespace intel_sgx
 
 namespace trace_enumeration
 {
-    constexpr const auto addr = 0x00000014ULL;
+    constexpr const auto addr = 0x00000014U;
 
     namespace mainleaf
     {
@@ -5320,15 +5323,15 @@ namespace trace_enumeration
 
             namespace max_subleaf
             {
-                constexpr const auto mask = 0xFFFFFFFFULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0xFFFFFFFFU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "max_subleaf";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subeax(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -5350,8 +5353,8 @@ namespace trace_enumeration
 
             namespace ia32_rtit_ctlcr3filter
             {
-                constexpr const auto mask = 0x00000001ULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0x00000001U;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "ia32_rtit_ctlcr3filter";
 
                 inline auto is_enabled()
@@ -5372,8 +5375,8 @@ namespace trace_enumeration
 
             namespace configurable_psb
             {
-                constexpr const auto mask = 0x00000002ULL;
-                constexpr const auto from = 1ULL;
+                constexpr const auto mask = 0x00000002U;
+                constexpr const auto from = 1U;
                 constexpr const auto name = "configurable_psb";
 
                 inline auto is_enabled()
@@ -5394,8 +5397,8 @@ namespace trace_enumeration
 
             namespace ip_filtering
             {
-                constexpr const auto mask = 0x00000004ULL;
-                constexpr const auto from = 2ULL;
+                constexpr const auto mask = 0x00000004U;
+                constexpr const auto from = 2U;
                 constexpr const auto name = "ip_filtering";
 
                 inline auto is_enabled()
@@ -5416,8 +5419,8 @@ namespace trace_enumeration
 
             namespace mtc_timing_packet
             {
-                constexpr const auto mask = 0x00000008ULL;
-                constexpr const auto from = 3ULL;
+                constexpr const auto mask = 0x00000008U;
+                constexpr const auto from = 3U;
                 constexpr const auto name = "mtc_timing_packet";
 
                 inline auto is_enabled()
@@ -5438,8 +5441,8 @@ namespace trace_enumeration
 
             namespace ptwrite
             {
-                constexpr const auto mask = 0x00000010ULL;
-                constexpr const auto from = 4ULL;
+                constexpr const auto mask = 0x00000010U;
+                constexpr const auto from = 4U;
                 constexpr const auto name = "ptwrite";
 
                 inline auto is_enabled()
@@ -5460,8 +5463,8 @@ namespace trace_enumeration
 
             namespace power_event_trace
             {
-                constexpr const auto mask = 0x00000020ULL;
-                constexpr const auto from = 5ULL;
+                constexpr const auto mask = 0x00000020U;
+                constexpr const auto from = 5U;
                 constexpr const auto name = "power_event_trace";
 
                 inline auto is_enabled()
@@ -5501,8 +5504,8 @@ namespace trace_enumeration
 
             namespace trading_enabled
             {
-                constexpr const auto mask = 0x00000001ULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0x00000001U;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "trading_enabled";
 
                 inline auto is_enabled()
@@ -5523,8 +5526,8 @@ namespace trace_enumeration
 
             namespace topa_entry
             {
-                constexpr const auto mask = 0x00000002ULL;
-                constexpr const auto from = 1ULL;
+                constexpr const auto mask = 0x00000002U;
+                constexpr const auto from = 1U;
                 constexpr const auto name = "topa_entry";
 
                 inline auto is_enabled()
@@ -5545,8 +5548,8 @@ namespace trace_enumeration
 
             namespace single_range_output
             {
-                constexpr const auto mask = 0x00000004ULL;
-                constexpr const auto from = 2ULL;
+                constexpr const auto mask = 0x00000004U;
+                constexpr const auto from = 2U;
                 constexpr const auto name = "single_range_output";
 
                 inline auto is_enabled()
@@ -5567,8 +5570,8 @@ namespace trace_enumeration
 
             namespace trace_transport
             {
-                constexpr const auto mask = 0x00000008ULL;
-                constexpr const auto from = 3ULL;
+                constexpr const auto mask = 0x00000008U;
+                constexpr const auto from = 3U;
                 constexpr const auto name = "trace_transport";
 
                 inline auto is_enabled()
@@ -5589,8 +5592,8 @@ namespace trace_enumeration
 
             namespace lip_values
             {
-                constexpr const auto mask = 0x80000000ULL;
-                constexpr const auto from = 31ULL;
+                constexpr const auto mask = 0x80000000U;
+                constexpr const auto from = 31U;
                 constexpr const auto name = "lip_values";
 
                 inline auto is_enabled()
@@ -5641,15 +5644,15 @@ namespace trace_enumeration
 
             namespace num_address_ranges
             {
-                constexpr const auto mask = 0x00000007ULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0x00000007U;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "num_address_ranges";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subeax(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -5657,15 +5660,15 @@ namespace trace_enumeration
 
             namespace bitmap_mtc
             {
-                constexpr const auto mask = 0xFFFF0000ULL;
-                constexpr const auto from = 16ULL;
+                constexpr const auto mask = 0xFFFF0000U;
+                constexpr const auto from = 16U;
                 constexpr const auto name = "bitmap_mtc";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subeax(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -5688,15 +5691,15 @@ namespace trace_enumeration
 
             namespace bitmap_cycle_threshold
             {
-                constexpr const auto mask = 0x0000FFFFULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0x0000FFFFU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "bitmap_cycle_threshold";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subebx(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -5704,15 +5707,15 @@ namespace trace_enumeration
 
             namespace bitmap_psb
             {
-                constexpr const auto mask = 0xFFFF0000ULL;
-                constexpr const auto from = 16ULL;
+                constexpr const auto mask = 0xFFFF0000U;
+                constexpr const auto from = 16U;
                 constexpr const auto name = "bitmap_psb";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subebx(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -5742,7 +5745,7 @@ namespace trace_enumeration
 
 namespace time_stamp_count
 {
-    constexpr const auto addr = 0x00000015ULL;
+    constexpr const auto addr = 0x00000015U;
 
     namespace eax
     {
@@ -5787,7 +5790,7 @@ namespace time_stamp_count
 
 namespace processor_freq
 {
-    constexpr const auto addr = 0x00000016ULL;
+    constexpr const auto addr = 0x00000016U;
 
     namespace eax
     {
@@ -5832,7 +5835,7 @@ namespace processor_freq
 
 namespace vendor_attribute
 {
-    constexpr const auto addr = 0x00000017ULL;
+    constexpr const auto addr = 0x00000017U;
 
     namespace mainleaf
     {
@@ -5847,15 +5850,15 @@ namespace vendor_attribute
 
             namespace max_socid
             {
-                constexpr const auto mask = 0xFFFFFFFFULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0xFFFFFFFFU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "max_socid";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_eax(addr), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -5877,15 +5880,15 @@ namespace vendor_attribute
 
             namespace soc_vendor
             {
-                constexpr const auto mask = 0x0000FFFFULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0x0000FFFFU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "soc_vendor";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subebx(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -5893,8 +5896,8 @@ namespace vendor_attribute
 
             namespace is_vendor_scheme
             {
-                constexpr const auto mask = 0x00010000ULL;
-                constexpr const auto from = 16ULL;
+                constexpr const auto mask = 0x00010000U;
+                constexpr const auto from = 16U;
                 constexpr const auto name = "is_vendor_scheme";
 
                 inline auto is_enabled()
@@ -5930,15 +5933,15 @@ namespace vendor_attribute
 
             namespace project_id
             {
-                constexpr const auto mask = 0xFFFFFFFFULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0xFFFFFFFFU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "project_id";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subecx(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -5960,15 +5963,15 @@ namespace vendor_attribute
 
             namespace stepping_id
             {
-                constexpr const auto mask = 0xFFFFFFFFULL;
-                constexpr const auto from = 0ULL;
+                constexpr const auto mask = 0xFFFFFFFFU;
+                constexpr const auto from = 0U;
                 constexpr const auto name = "stepping_id";
 
                 inline auto get() noexcept
                 { return get_bits(_cpuid_subedx(addr, leaf), mask) >> from; }
 
-                inline auto get(value_type msr) noexcept
-                { return get_bits(msr, mask) >> from; }
+                inline auto get(value_type addr) noexcept
+                { return get_bits(addr, mask) >> from; }
 
                 inline void dump(int level, std::string *msg = nullptr)
                 { bfdebug_subnhex(level, name, get(), msg); }
@@ -6056,7 +6059,7 @@ namespace vendor_attribute
 
 namespace ext_feature_info
 {
-    constexpr const auto addr = 0x80000001ULL;
+    constexpr const auto addr = 0x80000001U;
 
     namespace ecx
     {
@@ -6067,8 +6070,8 @@ namespace ext_feature_info
 
         namespace lahf_sahf
         {
-            constexpr const auto mask = 0x00000001ULL;
-            constexpr const auto from = 0ULL;
+            constexpr const auto mask = 0x00000001U;
+            constexpr const auto from = 0U;
             constexpr const auto name = "lahf_sahf";
 
             inline auto is_enabled()
@@ -6089,8 +6092,8 @@ namespace ext_feature_info
 
         namespace lzcnt
         {
-            constexpr const auto mask = 0x00000020ULL;
-            constexpr const auto from = 5ULL;
+            constexpr const auto mask = 0x00000020U;
+            constexpr const auto from = 5U;
             constexpr const auto name = "lzcnt";
 
             inline auto is_enabled()
@@ -6111,8 +6114,8 @@ namespace ext_feature_info
 
         namespace prefetchw
         {
-            constexpr const auto mask = 0x00000100ULL;
-            constexpr const auto from = 8ULL;
+            constexpr const auto mask = 0x00000100U;
+            constexpr const auto from = 8U;
             constexpr const auto name = "prefetchw";
 
             inline auto is_enabled()
@@ -6149,8 +6152,8 @@ namespace ext_feature_info
 
         namespace syscall_sysret
         {
-            constexpr const auto mask = 0x00000800ULL;
-            constexpr const auto from = 11ULL;
+            constexpr const auto mask = 0x00000800U;
+            constexpr const auto from = 11U;
             constexpr const auto name = "syscall_sysret";
 
             inline auto is_enabled()
@@ -6171,8 +6174,8 @@ namespace ext_feature_info
 
         namespace execute_disable_bit
         {
-            constexpr const auto mask = 0x00100000ULL;
-            constexpr const auto from = 20ULL;
+            constexpr const auto mask = 0x00100000U;
+            constexpr const auto from = 20U;
             constexpr const auto name = "execute_disable_bit";
 
             inline auto is_enabled()
@@ -6193,8 +6196,8 @@ namespace ext_feature_info
 
         namespace pages_avail
         {
-            constexpr const auto mask = 0x04000000ULL;
-            constexpr const auto from = 26ULL;
+            constexpr const auto mask = 0x04000000U;
+            constexpr const auto from = 26U;
             constexpr const auto name = "pages_avail";
 
             inline auto is_enabled()
@@ -6215,8 +6218,8 @@ namespace ext_feature_info
 
         namespace rdtscp
         {
-            constexpr const auto mask = 0x08000000ULL;
-            constexpr const auto from = 27ULL;
+            constexpr const auto mask = 0x08000000U;
+            constexpr const auto from = 27U;
             constexpr const auto name = "rdtscp";
 
             inline auto is_enabled()
@@ -6237,8 +6240,8 @@ namespace ext_feature_info
 
         namespace intel_64
         {
-            constexpr const auto mask = 0x20000000ULL;
-            constexpr const auto from = 29ULL;
+            constexpr const auto mask = 0x20000000U;
+            constexpr const auto from = 29U;
             constexpr const auto name = "intel_64";
 
             inline auto is_enabled()
@@ -6277,7 +6280,7 @@ namespace ext_feature_info
 
 namespace l2_info
 {
-    constexpr const auto addr = 0x80000006ULL;
+    constexpr const auto addr = 0x80000006U;
 
     namespace ecx
     {
@@ -6288,15 +6291,15 @@ namespace l2_info
 
         namespace line_size
         {
-            constexpr const auto mask = 0x000000FFULL;
-            constexpr const auto from = 0ULL;
+            constexpr const auto mask = 0x000000FFU;
+            constexpr const auto from = 0U;
             constexpr const auto name = "line_size";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_ecx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -6304,15 +6307,15 @@ namespace l2_info
 
         namespace l2_associativity
         {
-            constexpr const auto mask = 0x0000F000ULL;
-            constexpr const auto from = 12ULL;
+            constexpr const auto mask = 0x0000F000U;
+            constexpr const auto from = 12U;
             constexpr const auto name = "l2_associativity";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_ecx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -6320,15 +6323,15 @@ namespace l2_info
 
         namespace cache_size
         {
-            constexpr const auto mask = 0xFFFF0000ULL;
-            constexpr const auto from = 16ULL;
+            constexpr const auto mask = 0xFFFF0000U;
+            constexpr const auto from = 16U;
             constexpr const auto name = "cache_size";
 
             inline auto get() noexcept
             { return get_bits(_cpuid_ecx(addr), mask) >> from; }
 
-            inline auto get(value_type msr) noexcept
-            { return get_bits(msr, mask) >> from; }
+            inline auto get(value_type addr) noexcept
+            { return get_bits(addr, mask) >> from; }
 
             inline void dump(int level, std::string *msg = nullptr)
             { bfdebug_subnhex(level, name, get(), msg); }
@@ -6351,7 +6354,7 @@ namespace l2_info
 
 namespace invariant_tsc
 {
-    constexpr const auto addr = 0x80000007ULL;
+    constexpr const auto addr = 0x80000007U;
 
     namespace edx
     {
@@ -6362,8 +6365,8 @@ namespace invariant_tsc
 
         namespace available
         {
-            constexpr const auto mask = 0x00000100ULL;
-            constexpr const auto from = 8ULL;
+            constexpr const auto mask = 0x00000100U;
+            constexpr const auto from = 8U;
             constexpr const auto name = "available";
 
             inline auto is_enabled()

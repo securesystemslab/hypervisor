@@ -1,20 +1,23 @@
 //
-// Bareflank Hypervisor
-// Copyright (C) 2015 Assured Information Security, Inc.
+// Copyright (C) 2019 Assured Information Security, Inc.
 //
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-// Lesser General Public License for more details.
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
 //
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 #include <catch/catch.hpp>
 #include <hippomocks.h>
@@ -25,6 +28,9 @@
 #include <test_support.h>
 
 #ifdef _HIPPOMOCKS__ENABLE_CFUNC_MOCKING_SUPPORT
+
+extern "C" int64_t private_setup_rsdp(void);
+extern "C" int64_t private_add_modules_mdl(void);
 
 TEST_CASE("common_load_vmm: success")
 {
@@ -112,6 +118,21 @@ TEST_CASE("common_load_vmm: alloc tss fails")
     CHECK(common_fini() == BF_SUCCESS);
 }
 
+TEST_CASE("common_load_vmm: rsdp fails")
+{
+    binaries_info info{&g_file, g_filenames_success, false};
+
+    for (const auto &binary : info.binaries()) {
+        REQUIRE(common_add_module(binary.file, binary.file_size) == BF_SUCCESS);
+    }
+
+    MockRepository mocks;
+    mocks.ExpectCallFunc(private_setup_rsdp).Return(-1);
+
+    CHECK(common_load_vmm() == -1);
+    CHECK(common_fini() == BF_SUCCESS);
+}
+
 TEST_CASE("common_load_vmm: missing symbols")
 {
     auto filenames = g_filenames_success;
@@ -145,6 +166,18 @@ TEST_CASE("common_load_vmm: init fails")
     CHECK(common_fini() == BF_SUCCESS);
 }
 
+TEST_CASE("common_load_vmm: set rsdp fails")
+{
+    binaries_info info{&g_file, g_filenames_set_rsdp_fails, false};
+
+    for (const auto &binary : info.binaries()) {
+        REQUIRE(common_add_module(binary.file, binary.file_size) == BF_SUCCESS);
+    }
+
+    CHECK(common_load_vmm() == ENTRY_ERROR_UNKNOWN);
+    CHECK(common_fini() == BF_SUCCESS);
+}
+
 TEST_CASE("common_load_vmm: add modules mdl fails")
 {
     binaries_info info{&g_file, g_filenames_add_mdl_fails, false};
@@ -156,8 +189,6 @@ TEST_CASE("common_load_vmm: add modules mdl fails")
     CHECK(common_load_vmm() == ENTRY_ERROR_UNKNOWN);
     CHECK(common_fini() == BF_SUCCESS);
 }
-
-extern "C" int64_t private_add_modules_mdl(void);
 
 TEST_CASE("common_load_vmm: add tss mdl fails")
 {
@@ -171,26 +202,6 @@ TEST_CASE("common_load_vmm: add tss mdl fails")
     mocks.OnCallFunc(private_add_modules_mdl).Return(BF_SUCCESS);
 
     CHECK(common_load_vmm() == ENTRY_ERROR_UNKNOWN);
-    CHECK(common_fini() == BF_SUCCESS);
-}
-
-extern int platform_info_should_fail;
-
-TEST_CASE("common_load_vmm: populate_platform_info fails")
-{
-    auto ___ = gsl::finally([&] {
-        platform_info_should_fail = 0;
-    });
-
-    platform_info_should_fail = 1;
-
-    binaries_info info{&g_file, g_filenames_success, false};
-
-    for (const auto &binary : info.binaries()) {
-        REQUIRE(common_add_module(binary.file, binary.file_size) == BF_SUCCESS);
-    }
-
-    CHECK(common_load_vmm() != BF_SUCCESS);
     CHECK(common_fini() == BF_SUCCESS);
 }
 

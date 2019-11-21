@@ -1,20 +1,23 @@
 /*
- * Bareflank Hypervisor
- * Copyright (C) 2015 Assured Information Security, Inc.
+ * Copyright (C) 2019 Assured Information Security, Inc.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 /**
@@ -107,52 +110,6 @@ struct section_info_t {
 };
 
 /**
- * @struct efi_data_t
- *
- * Binary interface for relaying EFI-related information and desired behavior (16 bytes)
- *
- * @var efi_data_t::enabled
- *      Enable EFI exit handlers
- * @var efi_data_t::padding
- *      Reserved for alignment and future use
- */
-#pragma pack(push,8)
-struct efi_data_t {
-    uint8_t enabled;
-    uint8_t padding[15];
-};
-
-/**
- * @struct platform_info_t
- *
- * Provides platform-specific information to be passed into the VMM from
- * bfdriver. Definition of this struct varies based on build target.
- *
- * @var platform_info_t::signature
- *      Struct signature
- * @var platform_info_t::version
- *      Struct version
- * @var platform_info_t::efi
- *      Data specifying EFI booting behavior
- * @var platform_info_t::extension_data
- *      Pointer to possible extension-defined struct
- * @var platform_info_t::_dummy
- *      Dummy member to avoid an empty struct on platforms not needing platform info
- */
-struct platform_info_t {
-    uint8_t signature[4];
-    uint8_t version[4];
-    struct efi_data_t efi;
-    void *extension_data;
-    int _dummy;
-#if defined(BF_AARCH64)
-    /// Address of serial peripheral within kernel space
-    uintptr_t serial_address;
-#endif
-};
-#pragma pack(pop)
-
-/**
  * @struct crt_info_t
  *
  * Provides information for executing an application including section
@@ -182,8 +139,6 @@ struct platform_info_t {
  *     (optional) vcpuid the executable is running on
  * @var crt_info_t::program_break
  *     (optional) the executable's program break
- * @var crt_info_t::platform_info
- *     platform-specific information from bfdriver
  */
 struct crt_info_t {
 
@@ -203,8 +158,6 @@ struct crt_info_t {
     uintptr_t func;
     uintptr_t vcpuid;
     uintptr_t program_break;
-
-    struct platform_info_t platform_info;
 };
 
 /**
@@ -223,6 +176,7 @@ struct crt_info_t {
 #define BF_REQUEST_VMM_FINI 3
 #define BF_REQUEST_ADD_MDL 4
 #define BF_REQUEST_GET_DRR 5
+#define BF_REQUEST_SET_RSDP 6
 #define BF_REQUEST_END 0xFFFF
 
 /* @endcond */
@@ -237,17 +191,6 @@ using _start_t = int64_t (*)(char *stack, const struct crt_info_t *);
 #else
 typedef int64_t (*_start_t)(char *stack, const struct crt_info_t *);
 #endif
-
-/**
- * get_platform_info
- *
- * Get a pointer to a populated platform_info_t. The returned struct is not
- * to be freed by the caller. Returned pointer will never be null.
- *
- * @return pointer to populated platform_info_t
- */
-EXPORT_SYM struct platform_info_t *
-get_platform_info(void);
 
 #ifdef __cplusplus
 }
