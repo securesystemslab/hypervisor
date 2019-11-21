@@ -19,6 +19,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+# TODO: Not sure if this is idiomatic CMake, investigate proper way to get
+# clang binary from VMM toolchain in here.
 include(${VMM_TOOLCHAIN_PATH})
 
 if((ENABLE_BUILD_VMM OR ENABLE_BUILD_TEST) AND NOT WIN32)
@@ -30,18 +32,8 @@ if((ENABLE_BUILD_VMM OR ENABLE_BUILD_TEST) AND NOT WIN32)
         URL_MD5     ${NEWLIB_URL_MD5}
     )
 
-<<<<<<< HEAD
     set(CC_FOR_TARGET ${CLANG_BIN})
     set(CXX_FOR_TARGET ${CLANG_BIN})
-=======
-    if(DEFINED ENV{CLANG_BIN})
-        set(CC_FOR_TARGET $ENV{CLANG_BIN})
-        set(CXX_FOR_TARGET $ENV{CLANG_BIN})
-    else()
-        set(CC_FOR_TARGET clang)
-        set(CXX_FOR_TARGET clang)
-    endif()
->>>>>>> master
 
     set(AR_FOR_TARGET ${AR_BIN})
     set(AS_FOR_TARGET ${AS_BIN})
