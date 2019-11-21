@@ -1,28 +1,23 @@
 #
-# Bareflank Hypervisor
-# Copyright (C) 2015 Assured Information Security, Inc.
+# Copyright (C) 2019 Assured Information Security, Inc.
 #
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 2.1 of the License, or (at your option) any later version.
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# Lesser General Public License for more details.
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
 #
-# You should have received a copy of the GNU Lesser General Public
-# License along with this library; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-
-include(ProcessorCount)
-include(ExternalProject)
-
-if(ENABLE_BUILD_TEST)
-    include(CTest)
-    enable_testing(true)
-endif()
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 # ------------------------------------------------------------------------------
 # colors
@@ -49,122 +44,17 @@ if(NOT WIN32)
 endif()
 
 # ------------------------------------------------------------------------------
-# add_config
-# ------------------------------------------------------------------------------
-
-# Add Config
-#
-# Add a configurable varibale to the CMake build. This function ensures each
-# variable is properly set, and ensures it's properly visible in ccmake.
-#
-# @param ADVANCED Only show this variable in the advanced mode for ccmake
-# @param SKIP_VALIDATION do not validate that the varibale is properly set
-# @param CONFIG_NAME The name of the variable
-# @param CONFIG_TYPE The variable's type: STRING, PATH, FILEPATH, BOOL
-# @param DEFAULT_VAL The default value for the variable
-# @param DESCRIPTION A description of the variable
-# @param OPTIONS Possible values for the the variable. Only applies to STRING
-#    type variables.
-#
-macro(add_config)
-    set(options ADVANCED SKIP_VALIDATION)
-    set(oneVal CONFIG_NAME CONFIG_TYPE DEFAULT_VAL DESCRIPTION)
-    set(multiVal OPTIONS)
-    cmake_parse_arguments(ARG "${options}" "${oneVal}" "${multiVal}" ${ARGN})
-
-    if(ARG_CONFIG_TYPE STREQUAL "BOOL" AND NOT ARG_DEFAULT_VAL)
-        set(ARG_DEFAULT_VAL OFF)
-    endif()
-
-    if(NOT DEFINED ${ARG_CONFIG_NAME})
-        set(${ARG_CONFIG_NAME} ${ARG_DEFAULT_VAL} CACHE ${ARG_CONFIG_TYPE} ${ARG_DESCRIPTION})
-    else()
-        set(${ARG_CONFIG_NAME} ${${ARG_CONFIG_NAME}} CACHE ${ARG_CONFIG_TYPE} ${ARG_DESCRIPTION})
-    endif()
-
-    if(ARG_OPTIONS AND ARG_CONFIG_TYPE STREQUAL "STRING")
-        set_property(CACHE ${ARG_CONFIG_NAME} PROPERTY STRINGS ${ARG_OPTIONS})
-    endif()
-
-    if(NOT ARG_SKIP_VALIDATION)
-        if(ARG_OPTIONS AND ARG_CONFIG_TYPE STREQUAL "STRING")
-            if(NOT ARG_DEFAULT_VAL IN_LIST ARG_OPTIONS)
-                message(FATAL_ERROR "${ARG_CONFIG_NAME} invalid option \'${ARG_DEFAULT_VAL}\'")
-            endif()
-        endif()
-
-        if(ARG_CONFIG_TYPE STREQUAL "PATH")
-            if(NOT EXISTS "${ARG_DEFAULT_VAL}")
-                message(FATAL_ERROR "${ARG_CONFIG_NAME} path not found: ${ARG_DEFAULT_VAL}")
-            endif()
-        endif()
-
-        if(ARG_CONFIG_TYPE STREQUAL "FILEPATH")
-            if(NOT EXISTS "${ARG_DEFAULT_VAL}")
-                message(FATAL_ERROR "${ARG_CONFIG_NAME} file not found: ${ARG_DEFAULT_VAL}")
-            endif()
-        endif()
-
-        if(ARG_CONFIG_TYPE STREQUAL "BOOL")
-            if(NOT ARG_DEFAULT_VAL STREQUAL ON AND NOT ARG_DEFAULT_VAL STREQUAL OFF)
-                message(FATAL_ERROR "${ARG_CONFIG_NAME} must be set to ON or OFF")
-            endif()
-        endif()
-    endif()
-
-    if(ARG_ADVANCED)
-        mark_as_advanced(${ARG_CONFIG_NAME})
-    endif()
-endmacro(add_config)
-
-# ------------------------------------------------------------------------------
 # Macro File List
 # ------------------------------------------------------------------------------
 
-# Private
-#
 macro(add_project_include FILE)
     set(PROJECT_INCLUDE_LIST "${PROJECT_INCLUDE_LIST}|${FILE}")
 endmacro(add_project_include)
 
 # ------------------------------------------------------------------------------
-# include_external_config
-# ------------------------------------------------------------------------------
-
-# Private
-#
-macro(include_external_config)
-    if(CONFIG)
-        foreach(c ${CONFIG})
-            if(EXISTS "${SOURCE_CONFIG_DIR}/${c}.cmake")
-                message(STATUS "Config: ${SOURCE_CONFIG_DIR}/${c}.cmake")
-                include(${SOURCE_CONFIG_DIR}/${c}.cmake)
-                continue()
-            endif()
-            if(NOT IS_ABSOLUTE "${c}")
-                get_filename_component(c "${BUILD_ROOT_DIR}/${c}" ABSOLUTE)
-            endif()
-            if(EXISTS "${c}")
-                message(STATUS "Config: ${c}")
-                include(${c})
-                continue()
-            endif()
-
-            message(FATAL_ERROR "File not found: ${c}")
-        endforeach(c)
-    elseif(EXISTS "${CMAKE_SOURCE_DIR}/../config.cmake")
-        get_filename_component(CONFIG "${CMAKE_SOURCE_DIR}/../config.cmake" ABSOLUTE)
-        message(STATUS "Config: ${CONFIG}")
-        include(${CONFIG})
-    endif()
-endmacro(include_external_config)
-
-# ------------------------------------------------------------------------------
 # include_external_extensions
 # ------------------------------------------------------------------------------
 
-# Private
-#
 macro(include_external_extensions)
     foreach(e ${EXTENSION})
         if(NOT IS_ABSOLUTE "${e}")
@@ -294,9 +184,9 @@ endfunction(generate_flags)
 
 # Private
 #
-function(include_dependency DIR NAME)
+macro(include_dependency DIR NAME)
     include(${${DIR}}/${NAME}.cmake)
-endfunction(include_dependency)
+endmacro(include_dependency)
 
 # ------------------------------------------------------------------------------
 # download_dependency
@@ -486,6 +376,7 @@ function(add_dependency NAME PREFIX)
             list(APPEND ARGN
                 CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             )
+            list(APPEND ARGN LOG_DIR ${DEPENDS_DIR}/${NAME}/${PREFIX}/stamp)
         endif()
     else()
         list(APPEND ARGN
@@ -722,13 +613,13 @@ function(add_targets NAME PREFIX SOURCE_DIR)
         add_custom_command(
             TARGET unittest
             COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_BINARY_DIR}/${NAME}/${FULLPREFIX}/build
-                ctest --output-on-failure
+            ctest -C Debug --output-on-failure
         )
 
         add_custom_target(
             unittest-${NAME}_${FULLPREFIX}
             COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_BINARY_DIR}/${NAME}/${FULLPREFIX}/build
-                ctest --output-on-failure
+            ctest -C Debug --output-on-failure
         )
     endif()
 endfunction(add_targets)
@@ -806,18 +697,14 @@ endfunction(add_custom_target_info)
 # internally by the main build system, but can also be used by extensions
 # for adding additional logic to the hypervisor.
 #
-# @param NOBUILD Include the sub project, but don't build the code. This is
-#     mainly used to register targets for a given sub project, and the prefix
-#     is usually "none".
-# @param NOINSTALL Skip the install step for the sub project
-# @param
-#
+# @param SOURCE_DIR the path to the project's CMakeLists.txt.
+# @param TOOLCHAIN the path to the toolchain file to use.
+# @param DEPENDS superbuild-level dependencies of the project.
 #
 function(add_subproject NAME PREFIX)
-    set(options NOBUILD NOINSTALL)
     set(oneVal SOURCE_DIR TOOLCHAIN)
-    set(multiVal C_FLAGS CXX_FLAGS DEPENDS)
-    cmake_parse_arguments(ARG "${options}" "${oneVal}" "${multiVal}" ${ARGN})
+    set(multiVal DEPENDS)
+    cmake_parse_arguments(ARG "" "${oneVal}" "${multiVal}" ${ARGN})
 
     if(PREFIX STREQUAL "vmm" AND NOT ENABLE_BUILD_VMM AND NOT ENABLE_BUILD_TEST)
         return()
@@ -838,19 +725,12 @@ function(add_subproject NAME PREFIX)
     if(ARG_SOURCE_DIR)
         set(SOURCE_DIR ${ARG_SOURCE_DIR})
     else()
-        if(PREFIX STREQUAL "test")
-            set(SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/${NAME}/tests)
-        else()
-            set(SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/${NAME}/src)
-        endif()
+        set(SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/${NAME})
     endif()
 
-    if(NOT PREFIX STREQUAL "efi")
+    set(SHORT_PREFIX ${PREFIX})
+    if(NOT PREFIX STREQUAL "efi" AND NOT ${NAME} STREQUAL "bfroot")
         add_targets(${NAME} ${PREFIX} ${SOURCE_DIR})
-    endif()
-
-    if(ARG_NOBUILD)
-        return()
     endif()
 
     if(NOT ARG_TOOLCHAIN)
@@ -869,12 +749,6 @@ function(add_subproject NAME PREFIX)
         set(TOOLCHAIN ${ARG_TOOLCHAIN})
     endif()
 
-    generate_flags(
-        ${PREFIX}
-        C_FLAGS ${ARG_C_FLAGS}
-        CXX_FLAGS ${ARG_CXX_FLAGS}
-    )
-
     if(PREFIX STREQUAL "vmm")
         set(PREFIX ${VMM_PREFIX})
     elseif(PREFIX STREQUAL "userspace")
@@ -887,7 +761,6 @@ function(add_subproject NAME PREFIX)
         message(FATAL_ERROR "Invalid prefix: ${PREFIX}")
     endif()
 
-    set(DEPENDS "")
     foreach(d ${ARG_DEPENDS})
         if(d MATCHES ${VMM_PREFIX})
             list(APPEND DEPENDS "${d}")
@@ -910,18 +783,16 @@ function(add_subproject NAME PREFIX)
         endif()
     endforeach()
 
-    if(ENABLE_BUILD_TEST)
-        list(APPEND CMAKE_ARGS -DCMAKE_EXPORT_COMPILE_COMMANDS=ON)
-    endif()
-
     list(APPEND CMAKE_ARGS
-        -DCMAKE_INSTALL_PREFIX=${PREFIXES_DIR}/${PREFIX}
+        -DCMAKE_EXPORT_COMPILE_COMMANDS=${CMAKE_EXPORT_COMPILE_COMMANDS}
         -DCMAKE_INSTALL_MESSAGE=${CMAKE_INSTALL_MESSAGE}
-        -DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE}
+        -DCMAKE_INSTALL_PREFIX=${PREFIXES_DIR}/${PREFIX}
+        -DCMAKE_PREFIX_PATH=${EXPORT_DIR}
+        -DCMAKE_PROJECT_${NAME}_INCLUDE=${SOURCE_CMAKE_DIR}/project.cmake
         -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN}
-        -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-        -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
+        -DCMAKE_VERBOSE_MAKEFILE=${CMAKE_VERBOSE_MAKEFILE}
         -DPROJECT_INCLUDE_LIST=${PROJECT_INCLUDE_LIST}
+        -DPKG_FILE=${PKG_FILE}
         -DBFM_VMM=${BFM_VMM}
         -DEFI_EXTENSION_SOURCES=${EFI_EXTENSION_SOURCES}
     )
@@ -934,12 +805,6 @@ function(add_subproject NAME PREFIX)
     if(NOT WIN32)
         list(APPEND CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        )
-    endif()
-
-    if(ARG_NOINSTALL)
-        list(APPEND EPA_ARGS
-            INSTALL_COMMAND ${CMAKE_COMMAND} -E echo "-- Install step ignored"
         )
     endif()
 
@@ -962,47 +827,16 @@ function(add_subproject NAME PREFIX)
         COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/${NAME}/${PREFIX}/src
         DEPENDEES configure
     )
+
+    ExternalProject_Add_Step(
+        ${NAME}_${PREFIX}
+        ${NAME}_${PREFIX}_package
+        COMMAND ${CMAKE_COMMAND}
+            -DPKG_FILE=${PKG_FILE} -DPKG=${NAME}-${SHORT_PREFIX}
+            -P ${SOURCE_CMAKE_DIR}/append.cmake
+        DEPENDEES install
+    )
 endfunction(add_subproject)
-
-# ------------------------------------------------------------------------------
-# EFI Build
-# ------------------------------------------------------------------------------
-
-macro(add_efi_source)
-    list(APPEND EFI_EXTENSION_SOURCES
-        ${ARGN}
-    )
-endmacro(add_efi_source)
-
-# ------------------------------------------------------------------------------
-# Extensions
-# ------------------------------------------------------------------------------
-
-function(vmm_extension NAME)
-    list(APPEND ARGN
-        DEPENDS bfvmm
-        DEPENDS bfintrinsics
-    )
-
-    add_subproject(
-        ${NAME} vmm
-        ${ARGN}
-    )
-endfunction(vmm_extension)
-
-function(userspace_extension NAME)
-    add_subproject(
-        ${NAME} userspace
-        ${ARGN}
-    )
-endfunction(userspace_extension)
-
-function(test_extension NAME)
-    add_subproject(
-        ${NAME} test
-        ${ARGN}
-    )
-endfunction(test_extension)
 
 # ------------------------------------------------------------------------------
 # init_project
@@ -1010,7 +844,7 @@ endfunction(test_extension)
 
 # Private
 #
-macro(enable_asm)
+macro(enable_asm PREFIX)
     if(${BUILD_TARGET_ARCH} STREQUAL "x86_64")
         find_program(NASM_BIN nasm)
 
@@ -1026,8 +860,7 @@ macro(enable_asm)
 
         if(PREFIX STREQUAL "vmm")
             set(CMAKE_ASM_NASM_OBJECT_FORMAT "elf64")
-        endif()
-        if(PREFIX STREQUAL "userspace")
+        else()
             if(HOST_FORMAT_TYPE STREQUAL "pe")
                 set(CMAKE_ASM_NASM_OBJECT_FORMAT "win64")
             endif()
@@ -1038,8 +871,12 @@ macro(enable_asm)
 
         enable_language(ASM_NASM)
 
-        set(CMAKE_ASM_NASM_FLAGS "-d ${ABITYPE}")
-        set(CMAKE_ASM_NASM_CREATE_SHARED_LIBRARY TRUE)
+        if(PREFIX STREQUAL "vmm")
+            set(CMAKE_ASM_NASM_FLAGS "-d ${PREFIX} -d ${OSTYPE} -d SYSV")
+        else()
+            set(CMAKE_ASM_NASM_FLAGS "-d ${PREFIX} -d ${OSTYPE} -d ${ABITYPE}")
+        endif()
+
         set(CMAKE_ASM_NASM_CREATE_STATIC_LIBRARY TRUE)
     endif()
     if(${BUILD_TARGET_ARCH} STREQUAL "aarch64")
@@ -1049,30 +886,35 @@ endmacro(enable_asm)
 
 # Init Project
 #
-# Initializes a sub project or extension. This function should be used right
-# after running project(), and enables ASM, sets up include and library
-# folders and addition flags.
+# Initializes a subproject or extension.
 #
-# @param C_FLAGS Additonal flags to add to CMAKE_C_FLAGS
-# @param CXX_FLAGS Additonal flags to add to CMAKE_CXX_FLAGS
-# @param INCLUDES Additional includes
+# @param TARGET the name of the project target to create
+# @param INTERFACE make TARGET an interface library
+# @param BINARY make TARGET an executable
 #
-macro(init_project)
-    set(multiVal C_FLAGS CXX_FLAGS INCLUDES)
-    cmake_parse_arguments(ARG "" "" "${multiVal}" ${ARGN})
+macro(init_project TARGET)
+    set(options INTERFACE BINARY)
+    cmake_parse_arguments(ARG "${options}" "" "" ${ARGN})
 
-    if(CMAKE_INSTALL_PREFIX STREQUAL "${VMM_PREFIX_PATH}")
-        set(PREFIX "vmm")
-    elseif(CMAKE_INSTALL_PREFIX STREQUAL "${USERSPACE_PREFIX_PATH}")
-        set(PREFIX "userspace")
-    elseif(CMAKE_INSTALL_PREFIX STREQUAL "${TEST_PREFIX_PATH}")
-        set(PREFIX "test")
-    elseif(CMAKE_INSTALL_PREFIX STREQUAL "${EFI_PREFIX_PATH}")
-        set(PREFIX "efi")
+    set(CMAKE_C_EXTENSIONS OFF)
+    set(CMAKE_CXX_EXTENSIONS OFF)
+
+    enable_asm(${PREFIX})
+
+    if(${ARG_INTERFACE})
+        add_library(${TARGET} INTERFACE)
+        add_library(${PREFIX}::${TARGET} ALIAS ${TARGET})
+        set(INTERFACE TRUE)
+    elseif(NOT ${ARG_BINARY})
+        add_library(${TARGET} STATIC)
+        add_library(${PREFIX}::${TARGET} ALIAS ${TARGET})
+        set_target_properties(${TARGET} PROPERTIES LINKER_LANGUAGE C)
     else()
-        message(FATAL_ERROR "Invalid prefix: ${CMAKE_INSTALL_PREFIX}")
+        add_executable(${TARGET})
+        add_executable(${PREFIX}::${TARGET} ALIAS ${TARGET})
+        set_target_properties(${TARGET} PROPERTIES LINKER_LANGUAGE C)
+        set(BINARY TRUE)
     endif()
-    message(STATUS "Prefix: ${CMAKE_INSTALL_PREFIX}")
 
     if(PREFIX STREQUAL "vmm")
         set(CMAKE_SKIP_RPATH TRUE)
@@ -1081,42 +923,33 @@ macro(init_project)
     if(PREFIX STREQUAL "test")
         set(ENABLE_MOCKING ON)
         set(CMAKE_BUILD_TYPE "Debug")
-        set(BUILD_STATIC_LIBS ON)
-        set(BUILD_SHARED_LIBS OFF)
     endif()
-
-    enable_asm()
-
-    list(APPEND CMAKE_C_FLAGS ${ARG_C_FLAGS})
-    list(APPEND CMAKE_CXX_FLAGS ${ARG_CXX_FLAGS})
-
-    string(REPLACE ";" " " CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-    string(REPLACE ";" " " CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-
-    include_directories(SYSTEM
-        ${ARG_INCLUDES}
-        ${SOURCE_BFSDK_DIR}/include
-        ${SOURCE_BFELF_LOADER_DIR}/include
-        ${SOURCE_BFINTRINSICS_DIR}/include
-        ${CMAKE_CURRENT_LIST_DIR}
-        ${CMAKE_CURRENT_LIST_DIR}/include
-    )
-
-    if(NOT PREFIX STREQUAL "vmm")
-        include_directories(
-            SYSTEM ${CMAKE_INSTALL_PREFIX}/include
-        )
-    endif()
-
-    link_directories(
-        ${CMAKE_INSTALL_PREFIX}/lib
-    )
 
     get_cmake_property(_vars CACHE_VARIABLES)
     foreach (_var ${_vars})
         set(${_var} ${${_var}})
     endforeach()
 endmacro(init_project)
+
+# Fini Project
+#
+macro(fini_project)
+    set(PROJECT ${CMAKE_PROJECT_NAME})
+    set(EXPORT ${PROJECT}-${PREFIX}-targets)
+
+    if(NOT BINARY)
+        install(TARGETS ${PROJECT} DESTINATION lib EXPORT ${EXPORT})
+    else()
+        install(TARGETS ${PROJECT} DESTINATION bin EXPORT ${EXPORT})
+    endif()
+
+    install(EXPORT ${EXPORT} DESTINATION ${EXPORT_DIR} NAMESPACE ${PREFIX}::)
+    configure_file(
+        ${SOURCE_CMAKE_DIR}/package.cmake.in
+        ${EXPORT_DIR}/${PROJECT}-${PREFIX}-config.cmake
+        @ONLY
+    )
+endmacro(fini_project)
 
 # ------------------------------------------------------------------------------
 # validate_build / invalid_config
@@ -1144,248 +977,6 @@ macro(invalid_config MSG)
 endmacro(invalid_config)
 
 # ------------------------------------------------------------------------------
-# add_xxx_library
-# ------------------------------------------------------------------------------
-
-# Add Shared Library
-#
-# Creates a shared library, sets the appropriate defintions and dependencies
-# and installs the library into the prefix
-#
-# @param NAME The name of the library. "_shared" is added for you
-# @param ALWAYS Always compile this library regardless of BUILD_SHARED_LIBS
-# @param SOURCES The source files for the library
-# @param DEFINES The definitions to add to the library
-# @param DEPENDS The dependency for the library. "_shared" is added for you
-#
-function(add_shared_library NAME)
-    set(options ALWAYS)
-    set(multiVal SOURCES DEFINES DEPENDS)
-    cmake_parse_arguments(ARG "${options}" "" "${multiVal}" ${ARGN})
-
-    if(NOT ARG_SOURCES)
-        return()
-    endif()
-
-    if(BUILD_SHARED_LIBS OR ARG_ALWAYS)
-        if(NOT ARG_SOURCES)
-            message(FATAL_ERROR "SOURCES must be defined when creating a library")
-        endif()
-
-        set(DEPENDS "")
-        foreach(d ${ARG_DEPENDS})
-            list(APPEND DEPENDS "${d}_shared")
-        endforeach(d)
-
-        add_library(${NAME}_shared SHARED ${ARG_SOURCES})
-        set_target_properties(${NAME}_shared PROPERTIES LINKER_LANGUAGE C)
-        target_compile_definitions(${NAME}_shared PRIVATE ${ARG_DEFINES})
-        target_link_libraries(${NAME}_shared ${DEPENDS})
-        install(TARGETS ${NAME}_shared DESTINATION lib)
-    endif()
-endfunction(add_shared_library)
-
-# Add Static Library
-#
-# Creates a static library, sets the appropriate defintions and dependencies
-# and installs the library into the prefix
-#
-# @param NAME The name of the library. "_static" is added for you
-# @param ALWAYS Always compile this library regardless of BUILD_STATIC_LIBS
-# @param SOURCES The source files for the library
-# @param DEFINES The definitions to add to the library
-#
-function(add_static_library NAME)
-    set(options ALWAYS)
-    set(multiVal SOURCES DEFINES)
-    cmake_parse_arguments(ARG "${options}" "" "${multiVal}" ${ARGN})
-
-    if(NOT ARG_SOURCES)
-        return()
-    endif()
-
-    if(BUILD_STATIC_LIBS OR ARG_ALWAYS)
-        if(NOT ARG_SOURCES)
-            message(FATAL_ERROR "SOURCES must be defined when creating a library")
-        endif()
-
-        add_library(${NAME}_static STATIC ${ARG_SOURCES})
-        set_target_properties(${NAME}_static PROPERTIES LINKER_LANGUAGE C)
-        target_compile_definitions(${NAME}_static PRIVATE ${ARG_DEFINES})
-        install(TARGETS ${NAME}_static DESTINATION lib)
-    endif()
-endfunction(add_static_library)
-
-# ------------------------------------------------------------------------------
-# target_link_xxx_libraries
-# ------------------------------------------------------------------------------
-
-# Target Link Shared Libraries
-#
-# This function is similar to target_link_libraries, but adds _shared
-# to the library name before adding the library to the target
-#
-# @param NAME The name of the target.
-#
-function(target_link_shared_libraries NAME)
-    foreach(l ${ARGN})
-        target_link_libraries(${NAME} ${l}_shared)
-    endforeach(l)
-endfunction(target_link_shared_libraries)
-
-# Target Link Static Libraries
-#
-# This function is similar to target_link_libraries, but adds _static
-# to the library name before adding the library to the target
-#
-# @param NAME The name of the target.
-#
-function(target_link_static_libraries NAME)
-    foreach(l ${ARGN})
-        target_link_libraries(${NAME} ${l}_static)
-    endforeach(l)
-endfunction(target_link_static_libraries)
-
-# ------------------------------------------------------------------------------
-# add_vmm
-# ------------------------------------------------------------------------------
-
-# Add VMM Executable
-#
-# Creates a VMM executable. Specifically, this takes a set of sources,
-# compiles them, and then links the result to the provided libraries and
-# installs the result into the VMM prefix.
-#
-# @param NOVMMLIBS Do not include the bfvmm libraries.
-# @param LIBRARIES Additional libraries to link the new executable against.
-# @param SOURCES Sources to compile for the executable. If this is left blank,
-#     a null.cpp file will be compiled for you.
-# @param DEFINES Additional definitions to add to the executable
-#
-function(add_vmm_executable NAME)
-    set(options NOVMMLIBS)
-    set(multiVal LIBRARIES SOURCES DEFINES)
-    cmake_parse_arguments(ARG "${options}" "" "${multiVal}" ${ARGN})
-
-    if(NOT ARG_SOURCES)
-        if(NOT EXISTS ${CMAKE_BINARY_DIR}/null.cpp)
-            file(WRITE
-                ${CMAKE_BINARY_DIR}/null.cpp ""
-            )
-        endif()
-        set(ARG_SOURCES ${CMAKE_BINARY_DIR}/null.cpp)
-    endif()
-
-    if(BUILD_SHARED_LIBS)
-        add_executable(${NAME}_shared ${ARG_SOURCES})
-        target_compile_definitions(${NAME}_shared PRIVATE ${ARG_DEFINES})
-
-        set(LIBRARIES "")
-        foreach(d ${ARG_LIBRARIES})
-            list(APPEND LIBRARIES "${CMAKE_INSTALL_PREFIX}/lib/lib${d}_shared.so")
-        endforeach(d)
-
-        if(NOT ARG_NOVMMLIBS)
-            list(APPEND LIBRARIES
-                --whole-archive ${CMAKE_INSTALL_PREFIX}/lib/libbfvmm_entry_static.a --no-whole-archive
-                ${CMAKE_INSTALL_PREFIX}/lib/libbfvmm_vcpu_shared.so
-                ${CMAKE_INSTALL_PREFIX}/lib/libbfvmm_hve_shared.so
-                ${CMAKE_INSTALL_PREFIX}/lib/libbfvmm_memory_manager_shared.so
-                ${CMAKE_INSTALL_PREFIX}/lib/libbfvmm_debug_shared.so
-                ${CMAKE_INSTALL_PREFIX}/lib/libbfintrinsics_shared.so
-            )
-        endif()
-
-        list(APPEND LIBRARIES
-            ${CMAKE_INSTALL_PREFIX}/lib/libc++.so
-            ${CMAKE_INSTALL_PREFIX}/lib/libc++abi.so
-            ${CMAKE_INSTALL_PREFIX}/lib/libbfpthread_shared.so
-            ${CMAKE_INSTALL_PREFIX}/lib/libbfunwind_shared.so
-            ${CMAKE_INSTALL_PREFIX}/lib/libc.so
-            ${CMAKE_INSTALL_PREFIX}/lib/libm.so
-            ${CMAKE_INSTALL_PREFIX}/lib/libbfsyscall_shared.so
-            --whole-archive ${CMAKE_INSTALL_PREFIX}/lib/libbfcrt_static.a --no-whole-archive
-        )
-
-        target_link_libraries(${NAME}_shared ${LIBRARIES})
-        install(TARGETS ${NAME}_shared DESTINATION bin)
-    endif()
-
-    if(BUILD_STATIC_LIBS)
-        add_executable(${NAME}_static ${ARG_SOURCES})
-        target_compile_definitions(${NAME}_static PRIVATE ${ARG_DEFINES})
-
-        set(LIBRARIES "")
-        foreach(d ${ARG_LIBRARIES})
-            list(APPEND LIBRARIES "${CMAKE_INSTALL_PREFIX}/lib/lib${d}_static.a")
-        endforeach(d)
-
-        if(NOT ARG_NOVMMLIBS)
-            list(APPEND LIBRARIES
-                --whole-archive ${CMAKE_INSTALL_PREFIX}/lib/libbfvmm_entry_static.a --no-whole-archive
-                ${CMAKE_INSTALL_PREFIX}/lib/libbfvmm_vcpu_static.a
-                ${CMAKE_INSTALL_PREFIX}/lib/libbfvmm_hve_static.a
-                ${CMAKE_INSTALL_PREFIX}/lib/libbfvmm_memory_manager_static.a
-                ${CMAKE_INSTALL_PREFIX}/lib/libbfvmm_debug_static.a
-                ${CMAKE_INSTALL_PREFIX}/lib/libbfintrinsics_static.a
-            )
-        endif()
-
-        list(APPEND LIBRARIES
-            ${CMAKE_INSTALL_PREFIX}/lib/libc++.a
-            ${CMAKE_INSTALL_PREFIX}/lib/libc++abi.a
-            ${CMAKE_INSTALL_PREFIX}/lib/libbfpthread_static.a
-            ${CMAKE_INSTALL_PREFIX}/lib/libbfunwind_static.a
-            ${CMAKE_INSTALL_PREFIX}/lib/libc.a
-            ${CMAKE_INSTALL_PREFIX}/lib/libm.a
-            ${CMAKE_INSTALL_PREFIX}/lib/libbfsyscall_static.a
-            --whole-archive ${CMAKE_INSTALL_PREFIX}/lib/libbfcrt_static.a --no-whole-archive
-        )
-
-        target_link_libraries(${NAME}_static ${LIBRARIES})
-        install(TARGETS ${NAME}_static DESTINATION bin)
-    endif()
-
-endfunction(add_vmm_executable)
-
-# ------------------------------------------------------------------------------
-# set_bfm_vmm
-# ------------------------------------------------------------------------------
-
-# Set BFM VMM
-#
-# Sets the VMM that BFM will use when running "make load" or "make quick". This
-# does not hard code the VMM into BFM. BFM must either be given the VMM to
-# load, or an enviroment variable must be set.
-#
-# @param NAME The name of the VMM to load
-# @param DEFAULT If the VMM has not yet been set, this default value will be
-#     used instead. This should not be used by extensions
-#
-macro(set_bfm_vmm NAME)
-    set(options DEFAULT)
-    set(oneVal TARGET)
-    cmake_parse_arguments(ARG "${options}" "${oneVal}" "" ${ARGN})
-
-    if(NOT ARG_DEFAULT OR (ARG_DEFAULT AND NOT BFM_VMM))
-        if(BUILD_SHARED_LIBS)
-            set(BFM_VMM "${NAME}_shared")
-        endif()
-        if(BUILD_STATIC_LIBS)
-            set(BFM_VMM "${NAME}_static")
-        endif()
-    endif()
-
-    if(NOT ARG_DEFAULT OR (ARG_DEFAULT AND NOT BFM_VMM_TARGET))
-        if(ARG_TARGET)
-            set(BFM_VMM_TARGET "${ARG_TARGET}_${VMM_PREFIX}")
-        else()
-            set(BFM_VMM_TARGET "${NAME}_main_${VMM_PREFIX}")
-        endif()
-    endif()
-endmacro(set_bfm_vmm)
-
-# ------------------------------------------------------------------------------
 # do_test
 # ------------------------------------------------------------------------------
 
@@ -1393,38 +984,31 @@ endmacro(set_bfm_vmm)
 #
 # Adds a unit test.
 #
-# @param FILENAME the file name of the test. Must start with "test_"
+# @param FILEPATH the file name of the test.
 # @param DEFINES Additional definitions for the test
-# @param DEPENDS Additional dependencies for the test. "_static" is added
-#     for you
+# @param DEPENDS Additional dependencies for the test.
 # @param SOURCES The source files to use for the test. If this is not defined,
-#     the file used is ${FILENAME}.cpp. This is only needed if the test file
+#     the file used is ${FILEPATH}.cpp. This is only needed if the test file
 #     is not in the same directory, allowing you to pass a source file with
-#     a directory. Nomrally FILENAME should still match the filename being
+#     a directory. Nomrally FILEPATH should still match the filename being
 #     used.
 #
-function(do_test FILENAME)
+function(do_test FILEPATH)
     set(multiVal DEFINES DEPENDS SOURCES CMD_LINE_ARGS)
     cmake_parse_arguments(ARG "" "" "${multiVal}" ${ARGN})
 
-    set(DEPENDS "")
-    foreach(d ${ARG_DEPENDS})
-        list(APPEND DEPENDS "${d}_static")
-    endforeach(d)
-
     if(NOT ARG_SOURCES)
-        set(ARG_SOURCES "${FILENAME}.cpp")
+        set(ARG_SOURCES "${FILEPATH}")
     endif()
 
-    string(REPLACE "test_" "" NAME "${FILENAME}")
+    get_filename_component(TEST_NAME "${FILEPATH}" NAME_WE)
+    string(REPLACE "test_" "" NAME "${TEST_NAME}")
 
-    add_executable(test_${NAME} ${ARG_SOURCES})
-    target_link_libraries(test_${NAME} ${DEPENDS} test_catch)
+    add_executable(test_${NAME})
+    target_sources(test_${NAME} PRIVATE ${ARG_SOURCES})
+    target_link_libraries(test_${NAME} PRIVATE ${ARG_DEPENDS} ${CMAKE_PROJECT_NAME})
     target_compile_definitions(test_${NAME} PRIVATE ${ARG_DEFINES})
-    add_test(test_${NAME} test_${NAME} ${ARG_CMD_LINE_ARGS})
-    if(CYGWIN OR WIN32)
-        target_link_libraries(test_${NAME} setupapi)
-    endif()
+    add_test(NAME test_${NAME} COMMAND test_${NAME} ${ARG_CMD_LINE_ARGS})
 endfunction(do_test)
 
 # ------------------------------------------------------------------------------

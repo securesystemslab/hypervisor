@@ -1,20 +1,23 @@
 //
-// Bareflank Hypervisor
-// Copyright (C) 2015 Assured Information Security, Inc.
+// Copyright (C) 2019 Assured Information Security, Inc.
 //
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-// Lesser General Public License for more details.
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
 //
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 #include <catch/catch.hpp>
 #include <hippomocks.h>
@@ -24,24 +27,35 @@
 #ifdef _HIPPOMOCKS__ENABLE_CFUNC_MOCKING_SUPPORT
 
 auto
-setup_vmcs()
+setup_vmcs(MockRepository &mocks, bool guest_vcpu = false)
 {
     setup_test_support();
-    return bfvmm::intel_x64::vmcs{0x0};
+    auto vcpu = setup_vcpu(mocks);
+
+    if (guest_vcpu) {
+        mocks.OnCall(vcpu, bfvmm::intel_x64::vcpu::id).Return(0xF0000000);
+        mocks.OnCall(vcpu, bfvmm::intel_x64::vcpu::is_bootstrap_vcpu).Return(false);
+        mocks.OnCall(vcpu, bfvmm::intel_x64::vcpu::is_host_vcpu).Return(false);
+        mocks.OnCall(vcpu, bfvmm::intel_x64::vcpu::is_guest_vcpu).Return(true);
+    }
+
+    return bfvmm::intel_x64::vmcs{vcpu};
 }
 
 TEST_CASE("vmcs: construct / destruct")
 {
-    MockRepository mocks;
-    auto vmcs = setup_vmcs();
+    setup_test_support();
 
-    CHECK_NOTHROW(bfvmm::intel_x64::vmcs{0});
+    MockRepository mocks;
+    auto vcpu = setup_vcpu(mocks);
+
+    CHECK_NOTHROW(bfvmm::intel_x64::vmcs{vcpu});
 }
 
 TEST_CASE("vmcs: launch demote success")
 {
     MockRepository mocks;
-    auto vmcs = setup_vmcs();
+    auto vmcs = setup_vmcs(mocks);
 
     CHECK_NOTHROW(vmcs.launch());
 }
@@ -49,7 +63,7 @@ TEST_CASE("vmcs: launch demote success")
 TEST_CASE("vmcs: launch demote failure")
 {
     MockRepository mocks;
-    auto vmcs = setup_vmcs();
+    auto vmcs = setup_vmcs(mocks);
 
     mocks.OnCallFunc(bfvmm::intel_x64::check::all);
     mocks.OnCallFunc(::intel_x64::vmcs::debug::dump);
@@ -65,19 +79,18 @@ TEST_CASE("vmcs: launch demote failure")
 TEST_CASE("vmcs: launch failure")
 {
     MockRepository mocks;
-    setup_vmcs();
+    auto vmcs = setup_vmcs(mocks, true);
 
     mocks.OnCallFunc(bfvmm::intel_x64::check::all);
     mocks.OnCallFunc(::intel_x64::vmcs::debug::dump);
 
-    bfvmm::intel_x64::vmcs vmcs{0xF0000000};
     CHECK_THROWS(vmcs.launch());
 }
 
 TEST_CASE("vmcs: load failure")
 {
     MockRepository mocks;
-    auto vmcs = setup_vmcs();
+    auto vmcs = setup_vmcs(mocks);
 
     g_vmload_fails = true;
     auto ___ = gsl::finally([&] {
@@ -90,7 +103,7 @@ TEST_CASE("vmcs: load failure")
 TEST_CASE("vmcs: promote failure")
 {
     MockRepository mocks;
-    auto vmcs = setup_vmcs();
+    auto vmcs = setup_vmcs(mocks);
 
     ::intel_x64::vmcs::guest_cr3::set(0x1000);
     CHECK_THROWS(vmcs.promote());
@@ -99,17 +112,9 @@ TEST_CASE("vmcs: promote failure")
 TEST_CASE("vmcs: resume failure")
 {
     MockRepository mocks;
-    auto vmcs = setup_vmcs();
+    auto vmcs = setup_vmcs(mocks);
 
     CHECK_THROWS(vmcs.resume());
-}
-
-TEST_CASE("vmcs: save state")
-{
-    MockRepository mocks;
-    auto vmcs = setup_vmcs();
-
-    CHECK(vmcs.save_state() != nullptr);
 }
 
 #endif

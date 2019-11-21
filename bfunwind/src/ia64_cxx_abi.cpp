@@ -1,20 +1,23 @@
 //
-// Bareflank Unwind Library
-// Copyright (C) 2015 Assured Information Security, Inc.
+// Copyright (C) 2019 Assured Information Security, Inc.
 //
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-// Lesser General Public License for more details.
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
 //
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 // TIDY_EXCLUSION=-cppcoreguidelines-pro*
 //
@@ -153,7 +156,7 @@ private_phase2(_Unwind_Context *context)
     }
 }
 
-extern "C" EXPORT_SYM _Unwind_Reason_Code
+extern "C" _Unwind_Reason_Code
 _Unwind_RaiseException(_Unwind_Exception *exception_object)
 {
     auto ret = _URC_END_OF_STACK;
@@ -183,7 +186,7 @@ _Unwind_RaiseException(_Unwind_Exception *exception_object)
     return _URC_FATAL_PHASE2_ERROR;
 }
 
-extern "C" EXPORT_SYM void
+extern "C" void
 _Unwind_Resume(_Unwind_Exception *exception_object)
 {
     auto registers = registers_intel_x64_t();
@@ -195,7 +198,7 @@ _Unwind_Resume(_Unwind_Exception *exception_object)
     private_phase2(&context);
 }
 
-extern "C" EXPORT_SYM void
+extern "C" void
 _Unwind_DeleteException(_Unwind_Exception *exception_object)
 {
     if (exception_object->exception_cleanup != nullptr) {
@@ -203,45 +206,45 @@ _Unwind_DeleteException(_Unwind_Exception *exception_object)
     }
 }
 
-extern "C" EXPORT_SYM uintptr_t
+extern "C" uintptr_t
 _Unwind_GetGR(_Unwind_Context *context, int index)
 {
     return context->state->get(static_cast<uint64_t>(index));
 }
 
-extern "C" EXPORT_SYM void
+extern "C" void
 _Unwind_SetGR(_Unwind_Context *context, int index, uintptr_t value)
 {
     context->state->set(static_cast<uint64_t>(index), value);
     context->state->commit();
 }
 
-extern "C" EXPORT_SYM uintptr_t
+extern "C" uintptr_t
 _Unwind_GetIP(_Unwind_Context *context)
 {
     return context->state->get_ip();
 }
 
-extern "C" EXPORT_SYM void
+extern "C" void
 _Unwind_SetIP(_Unwind_Context *context, uintptr_t value)
 {
     context->state->set_ip(value);
     context->state->commit();
 }
 
-extern "C" EXPORT_SYM uintptr_t
+extern "C" uintptr_t
 _Unwind_GetLanguageSpecificData(_Unwind_Context *context)
 {
     return context->fde.lsda();
 }
 
-extern "C" EXPORT_SYM uintptr_t
+extern "C" uintptr_t
 _Unwind_GetRegionStart(_Unwind_Context *context)
 {
     return context->fde.pc_begin();
 }
 
-extern "C" EXPORT_SYM uintptr_t
+extern "C" uintptr_t
 _Unwind_GetIPInfo(_Unwind_Context *context, int *ip_before_insn)
 {
     if (ip_before_insn == nullptr) {

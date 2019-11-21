@@ -1,105 +1,33 @@
 //
-// Bareflank Hypervisor
-// Copyright (C) 2015 Assured Information Security, Inc.
+// Copyright (C) 2019 Assured Information Security, Inc.
 //
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-// Lesser General Public License for more details.
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
 //
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 #include <hippomocks.h>
 #include <catch/catch.hpp>
 
-#define NEED_GSL_LITE
-#define GSL_ABORT ut_abort
-
-void ut_abort()
-{
-    std::cout << "test\n";
-}
-
 #include <bfgsl.h>
-#include <bftypes.h>
 
-#ifdef _HIPPOMOCKS__ENABLE_CFUNC_MOCKING_SUPPORT
-
-TEST_CASE("expects / ensures")
+TEST_CASE("memset")
 {
-    ut_abort();
-
-    {
-        MockRepository mocks;
-        mocks.ExpectCallFunc(ut_abort);
-        mocks.ExpectCallFunc(ut_abort);
-
-        expects(true);
-        ensures(true);
-
-        expects(false);
-        ensures(false);
-    }
-
-    // Note:
-    //
-    // Clang Tidy seems to have a bug and thinks that the Mock library
-    // has a dangling pointer if this is not done. This might be able to
-    // be removed when Clang Tidy is updated
-    //
-    HippoMocks::MockRepoInstanceHolder<0>::instance = nullptr;
-}
-
-TEST_CASE("narrow cast")
-{
-    auto var = gsl::narrow_cast<int>(42);
-}
-
-TEST_CASE("array")
-{
-    int count = 0;
     char buf[42] = {};
+    auto view = gsl::span(buf);
 
-    for (int i = 0; i < 42; i++) {
-        count += gsl::at(buf, i);
-    }
+    gsl::memset(view, 0);
 }
-
-TEST_CASE("const array")
-{
-    int count = 0;
-    const char buf[42] = {};
-
-    for (int i = 0; i < 42; i++) {
-        count += gsl::at(buf, i);
-    }
-}
-
-TEST_CASE("array with provided limit")
-{
-    int count = 0;
-    char buf[42] = {};
-
-    for (int i = 0; i < 42; i++) {
-        count += gsl::at(static_cast<char *>(buf), 42, i);
-    }
-}
-
-TEST_CASE("const array with provided limit")
-{
-    int count = 0;
-    const char buf[42] = {};
-
-    for (int i = 0; i < 42; i++) {
-        count += gsl::at(static_cast<const char *>(buf), 42, i);
-    }
-}
-
-#endif

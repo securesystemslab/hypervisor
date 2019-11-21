@@ -1,20 +1,23 @@
 /*
- * Bareflank Hypervisor
- * Copyright (C) 2015 Assured Information Security, Inc.
+ * Copyright (C) 2019 Assured Information Security, Inc.
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * Lesser General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #include <common.h>
@@ -103,7 +106,7 @@ private_add_raw_md_to_memory_manager(uint64_t virt, uint64_t type)
     md.type = type;
 
     ret = platform_call_vmm_on_core(
-        0, BF_REQUEST_ADD_MDL, (uintptr_t)&md, 0);
+              0, BF_REQUEST_ADD_MDL, (uintptr_t)&md, 0);
 
     if (ret != MEMORY_MANAGER_SUCCESS) {
         return ret;
@@ -160,7 +163,7 @@ private_add_tss_mdl(void)
     for (i = 0; i < g_tls_size; i += BAREFLANK_PAGE_SIZE) {
 
         int64_t ret = private_add_raw_md_to_memory_manager(
-                  (uint64_t)g_tls + i, MEMORY_TYPE_R | MEMORY_TYPE_W);
+                          (uint64_t)g_tls + i, MEMORY_TYPE_R | MEMORY_TYPE_W);
 
         if (ret != BF_SUCCESS) {
             return ret;
@@ -334,7 +337,7 @@ common_load_vmm(void)
         goto failure;
     }
 
-    ret = bfelf_load(g_modules, (uint64_t)g_num_modules,(void **)&_start_func, &g_info, &g_loader);
+    ret = bfelf_load(g_modules, (uint64_t)g_num_modules, (void **)&_start_func, &g_info, &g_loader);
     if (ret != BF_SUCCESS) {
         goto failure;
     }
@@ -344,7 +347,7 @@ common_load_vmm(void)
         goto failure;
     }
 
-    ret = platform_call_vmm_on_core(0, BF_REQUEST_SET_RSDP,  (uint64_t)g_rsdp, 0);
+    ret = platform_call_vmm_on_core(0, BF_REQUEST_SET_RSDP, (uint64_t)g_rsdp, 0);
     if (ret != BF_SUCCESS) {
         goto failure;
     }
@@ -461,7 +464,7 @@ common_stop_vmm(void)
 
     for (cpuid = g_num_cpus_started - 1; cpuid >= 0 ; cpuid--) {
         ret = platform_call_vmm_on_core(
-            (uint64_t)cpuid, BF_REQUEST_VMM_FINI, (uint64_t)cpuid, 0);
+                  (uint64_t)cpuid, BF_REQUEST_VMM_FINI, (uint64_t)cpuid, 0);
 
         if (ret != BFELF_SUCCESS) {
             goto corrupted;
@@ -493,7 +496,7 @@ common_dump_vmm(struct debug_ring_resources_t **drr, uint64_t vcpuid)
     }
 
     ret = platform_call_vmm_on_core(
-        0, BF_REQUEST_GET_DRR, (uint64_t)vcpuid, (uint64_t)drr);
+              0, BF_REQUEST_GET_DRR, (uint64_t)vcpuid, (uint64_t)drr);
 
     if (ret != BFELF_SUCCESS) {
         return ret;

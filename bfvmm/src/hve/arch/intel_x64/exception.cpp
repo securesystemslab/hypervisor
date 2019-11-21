@@ -1,30 +1,31 @@
 //
-// Bareflank Hypervisor
+// Copyright (C) 2019 Assured Information Security, Inc.
 //
-// Copyright (C) 2018 Assured Information Security, Inc.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
 //
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-// Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
-#include <cstdlib>
 #include <bfgsl.h>
 #include <bfdebug.h>
-#include <arch/x64/pm.h>
-#include <arch/intel_x64/crs.h>
-#include <arch/intel_x64/vmcs/32bit_control_fields.h>
-#include <arch/intel_x64/vmcs/32bit_guest_state_fields.h>
+
+#include <hve/arch/intel_x64/vcpu.h>
 #include <hve/arch/intel_x64/exception.h>
+
+#include <intrinsics.h>
 
 extern "C" void unlock_write(void);
 
@@ -56,69 +57,92 @@ vector_to_str(uint64_t vec) noexcept
     }
 }
 
-extern "C" EXPORT_SYM void
-default_esr(uint64_t vector, uint64_t ec, bool ec_valid, uint64_t *regs) noexcept
+extern "C" void
+default_esr(
+    uint64_t vector, uint64_t ec, bool ec_valid, uint64_t *regs, void *vcpu) noexcept
 {
-    // NOTE:
-    //
-    // If the 'write' function throws a hardware exception, this function will
-    // deadlock because it doesn't unlock the write mutex. If we end up with
-    // stability issues with the debugging logic, we should modify the code
-    // to detect when the same core attempts to get the lock, and unlock as
-    // needed. For now, this case is unlikely, so it is ignored.
-    //
+    // -------------------------------------------------------------------------
+    // NMIs
+    // -------------------------------------------------------------------------
+
+    if (vector == 2) {
+        static_cast<bfvmm::intel_x64::vcpu *>(vcpu)->queue_nmi();
+        return;
+    }
+
+    // -------------------------------------------------------------------------
+    // Everything Else (i.e. Errors)
+    // -------------------------------------------------------------------------
+
+    unlock_write();
+    auto view = gsl::span<uint64_t>(regs, 37);
 
     bfdebug_transaction(0, [&](std::string * msg) {
-        bferror_lnbr(0, msg);
-        bferror_lnbr(0, msg);
-        bferror_lnbr(0, msg);
-        bferror_brk1(0, msg);
-        bferror_info(0, "VMM Panic!!!", msg);
-        bferror_brk1(0, msg);
 
+        bferror_lnbr(0, msg);
+        bferror_lnbr(0, msg);
+        bferror_lnbr(0, msg);
+        bferror_info(0, "###############################################################", msg);
+        bferror_info(0, "# FATAL: VMM Exception Caught (Host State)                    #", msg);
+        bferror_info(0, "###############################################################", msg);
+
+        bferror_lnbr(0, msg);
         if (vector == 0x0E && ::intel_x64::cr2::get() == 0) {
             bferror_info(0, "fault: null dereference", msg);
         }
         else {
             bferror_info(0, vector_to_str(vector), msg);
         }
-
-        bferror_lnbr(0, msg);
+        bferror_brk1(0, msg);
 
         if (ec_valid) {
-            bferror_subnhex(0, "error code", ec, msg);
+            bferror_lnbr(0, msg);
+            bferror_info(0, "error code", msg);
+            bferror_subnhex(0, "val", ec, msg);
         }
 
-        auto view = gsl::span<uint64_t>(regs, 37);
+        bferror_lnbr(0, msg);
+        bferror_info(0, "general purpose registers", msg);
+        bferror_subnhex(0, "rax", view[14], msg);
+        bferror_subnhex(0, "rbx", view[13], msg);
+        bferror_subnhex(0, "rcx", view[12], msg);
+        bferror_subnhex(0, "rdx", view[11], msg);
+        bferror_subnhex(0, "rbp", view[10], msg);
+        bferror_subnhex(0, "rsi", view[9], msg);
+        bferror_subnhex(0, "rdi", view[8], msg);
+        bferror_subnhex(0, "r08", view[7], msg);
+        bferror_subnhex(0, "r09", view[6], msg);
+        bferror_subnhex(0, "r10", view[5], msg);
+        bferror_subnhex(0, "r11", view[4], msg);
+        bferror_subnhex(0, "r12", view[3], msg);
+        bferror_subnhex(0, "r13", view[2], msg);
+        bferror_subnhex(0, "r14", view[1], msg);
+        bferror_subnhex(0, "r15", view[0], msg);
+        if (ec_valid) {
+            bferror_subnhex(0, "rip", view[32], msg);
+            bferror_subnhex(0, "rsp", view[35], msg);
+        }
+        else {
+            bferror_subnhex(0, "rip", view[31], msg);
+            bferror_subnhex(0, "rsp", view[34], msg);
+        }
 
-        bferror_subnhex(0, "ss    ", view[36], msg);
-        bferror_subnhex(0, "rsp   ", view[35], msg);
-        bferror_subnhex(0, "rflags", view[34], msg);
-        bferror_subnhex(0, "cs    ", view[33], msg);
-        bferror_subnhex(0, "rip   ", view[32], msg);
-        bferror_subnhex(0, "rax   ", view[14], msg);
-        bferror_subnhex(0, "rbx   ", view[13], msg);
-        bferror_subnhex(0, "rcx   ", view[12], msg);
-        bferror_subnhex(0, "rdx   ", view[11], msg);
-        bferror_subnhex(0, "rbp   ", view[10], msg);
-        bferror_subnhex(0, "rsi   ", view[9], msg);
-        bferror_subnhex(0, "rdi   ", view[8], msg);
-        bferror_subnhex(0, "r8    ", view[7], msg);
-        bferror_subnhex(0, "r9    ", view[6], msg);
-        bferror_subnhex(0, "r10   ", view[5], msg);
-        bferror_subnhex(0, "r11   ", view[4], msg);
-        bferror_subnhex(0, "r12   ", view[3], msg);
-        bferror_subnhex(0, "r13   ", view[2], msg);
-        bferror_subnhex(0, "r14   ", view[1], msg);
-        bferror_subnhex(0, "r15   ", view[0], msg);
+        bferror_lnbr(0, msg);
+        bferror_info(0, "control registers", msg);
+        bferror_subnhex(0, "cr0", ::intel_x64::cr0::get(), msg);
+        bferror_subnhex(0, "cr2", ::intel_x64::cr2::get(), msg);
+        bferror_subnhex(0, "cr3", ::intel_x64::cr3::get(), msg);
+        bferror_subnhex(0, "cr4", ::intel_x64::cr4::get(), msg);
 
-        bferror_subnhex(0, "cr0   ", ::intel_x64::cr0::get(), msg);
-        bferror_subnhex(0, "cr2   ", ::intel_x64::cr2::get(), msg);
-        bferror_subnhex(0, "cr3   ", ::intel_x64::cr3::get(), msg);
-        bferror_subnhex(0, "cr4   ", ::intel_x64::cr4::get(), msg);
+        bferror_lnbr(0, msg);
+        bferror_lnbr(0, msg);
+        bferror_lnbr(0, msg);
+        bferror_info(0, "###############################################################", msg);
+        bferror_info(0, "# FATAL: VMM Exception Caught (Guest State)                   #", msg);
+        bferror_info(0, "###############################################################", msg);
     });
 
-    ::x64::pm::halt();
+    static_cast<bfvmm::intel_x64::vcpu *>(vcpu)->halt();
 }
 
 // -----------------------------------------------------------------------------
@@ -131,6 +155,7 @@ void set_default_esrs(
 {
     idt->set(0, _esr0, selector);
     idt->set(1, _esr1, selector);
+    idt->set(2, _esr2, selector);
     idt->set(3, _esr3, selector);
     idt->set(4, _esr4, selector);
     idt->set(5, _esr5, selector);

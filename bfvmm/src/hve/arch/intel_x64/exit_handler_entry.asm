@@ -1,20 +1,23 @@
 ;
-; Bareflank Hypervisor
-; Copyright (C) 2015 Assured Information Security, Inc.
+; Copyright (C) 2019 Assured Information Security, Inc.
 ;
-; This library is free software; you can redistribute it and/or
-; modify it under the terms of the GNU Lesser General Public
-; License as published by the Free Software Foundation; either
-; version 2.1 of the License, or (at your option) any later version.
+; Permission is hereby granted, free of charge, to any person obtaining a copy
+; of this software and associated documentation files (the "Software"), to deal
+; in the Software without restriction, including without limitation the rights
+; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+; copies of the Software, and to permit persons to whom the Software is
+; furnished to do so, subject to the following conditions:
 ;
-; This library is distributed in the hope that it will be useful,
-; but WITHOUT ANY WARRANTY; without even the implied warranty of
-; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-; Lesser General Public License for more details.
+; The above copyright notice and this permission notice shall be included in all
+; copies or substantial portions of the Software.
 ;
-; You should have received a copy of the GNU Lesser General Public
-; License along with this library; if not, write to the Free Software
-; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+; SOFTWARE.
 
 bits 64
 default rel
@@ -22,7 +25,7 @@ default rel
 %define VMCS_GUEST_RSP 0x0000681C
 %define VMCS_GUEST_RIP 0x0000681E
 
-extern _ZN5bfvmm9intel_x6412exit_handler6handleEPS1_
+extern handle_exit
 global exit_handler_entry:function
 
 section .text
@@ -68,8 +71,9 @@ exit_handler_entry:
     mov rdi, VMCS_GUEST_RSP
     vmread [gs:0x080], rdi
 
-    mov rdi, [gs:0x00A0]
-    call _ZN5bfvmm9intel_x6412exit_handler6handleEPS1_ wrt ..plt
+    mov rdi, [gs:0x0098]
+    mov rsi, [gs:0x00A0]
+    call handle_exit wrt ..plt
 
 ; The code should never get this far as the exit handler should resume back
 ; into the guest using the VMCS's resume function. If we get this far,

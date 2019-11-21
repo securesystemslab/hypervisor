@@ -1,13 +1,12 @@
 /*
- * Bareflank Hypervisor
- * Copyright (C) 2018 Assured Information Security, Inc.
+ * Copyright (C) 2019 Assured Information Security, Inc.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
- * of the Software, and to permit persons to whom the Software is furnished to do
- * so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
@@ -16,12 +15,19 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 #include <driver.h>
+
+extern int g_status;
+extern FAST_MUTEX g_status_mutex;
+
+/* -------------------------------------------------------------------------- */
+/* Driver                                                                     */
+/* -------------------------------------------------------------------------- */
 
 NTSTATUS
 DriverEntry(
@@ -43,7 +49,6 @@ DriverEntry(
         return status;
     }
 
-    BFDEBUG("DriverEntry: success\n");
     return STATUS_SUCCESS;
 }
 
@@ -69,7 +74,6 @@ bareflankEvtDeviceAdd(
         return status;
     }
 
-    BFDEBUG("bareflankEvtDeviceAdd: success\n");
     return STATUS_SUCCESS;
 }
 
@@ -79,11 +83,15 @@ bareflankEvtDriverContextCleanup(
 )
 {
     UNREFERENCED_PARAMETER(DriverObject);
+    ExAcquireFastMutex(&g_status_mutex);
 
     common_fini();
+    g_status = STATUS_STOPPED;
 
-    BFDEBUG("bareflankEvtDriverContextCleanup: success\n");
+    ExReleaseFastMutex(&g_status_mutex);
 }
+
+static int g_sleeping = 0;
 
 NTSTATUS
 bareflankEvtDeviceD0Entry(
@@ -94,7 +102,25 @@ bareflankEvtDeviceD0Entry(
     UNREFERENCED_PARAMETER(Device);
     UNREFERENCED_PARAMETER(PreviousState);
 
-    BFDEBUG("bareflankEvtDeviceD0Entry: success\n");
+    ExAcquireFastMutex(&g_status_mutex);
+
+    if (g_status != STATUS_SUSPEND) {
+        ExReleaseFastMutex(&g_status_mutex);
+        return STATUS_SUCCESS;
+    }
+
+    if (common_start_vmm() != BF_SUCCESS) {
+
+        common_fini();
+        g_status = STATUS_STOPPED;
+
+        ExReleaseFastMutex(&g_status_mutex);
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    g_status = STATUS_RUNNING;
+
+    ExReleaseFastMutex(&g_status_mutex);
     return STATUS_SUCCESS;
 }
 
@@ -107,8 +133,24 @@ bareflankEvtDeviceD0Exit(
     UNREFERENCED_PARAMETER(Device);
     UNREFERENCED_PARAMETER(TargetState);
 
-    common_fini();
+    ExAcquireFastMutex(&g_status_mutex);
 
-    BFDEBUG("bareflankEvtDeviceD0Entry: success\n");
+    if (g_status != STATUS_RUNNING) {
+        ExReleaseFastMutex(&g_status_mutex);
+        return STATUS_SUCCESS;
+    }
+
+    if (common_stop_vmm() != BF_SUCCESS) {
+
+        common_fini();
+        g_status = STATUS_STOPPED;
+
+        ExReleaseFastMutex(&g_status_mutex);
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    g_status = STATUS_SUSPEND;
+
+    ExReleaseFastMutex(&g_status_mutex);
     return STATUS_SUCCESS;
 }

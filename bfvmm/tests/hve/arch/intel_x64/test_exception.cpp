@@ -1,33 +1,33 @@
 //
-// Bareflank Hypervisor
+// Copyright (C) 2019 Assured Information Security, Inc.
 //
-// Copyright (C) 2018 Assured Information Security, Inc.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
 //
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-// Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
-#include <hippomocks.h>
 #include <catch/catch.hpp>
-#include <hve/arch/x64/idt.h>
-#include <hve/arch/intel_x64/exception.h>
-#include <arch/intel_x64/vmcs/32bit_control_fields.h>
+#include <hippomocks.h>
+
 #include <test/support.h>
 
 #ifdef _HIPPOMOCKS__ENABLE_CFUNC_MOCKING_SUPPORT
 
 uint64_t reg_data[38] = {0};
-uint64_t *reg = &reg_data[0];
+uint64_t *regs = &reg_data[0];
 
 TEST_CASE("vector_to_str")
 {
@@ -54,15 +54,31 @@ TEST_CASE("vector_to_str")
     CHECK(strcmp(vector_to_str(0x16U), "undefined") == 0);
 }
 
+bool
+ec_valid(unsigned int vector)
+{
+    switch (vector) {
+        case 8:
+        case 10:
+        case 11:
+        case 12:
+        case 13:
+        case 14:
+        case 17:
+            return true;
+
+        default:
+            return false;
+    };
+}
+
 TEST_CASE("default_esr")
 {
-    g_cr2 = 0U;
-    auto ec = 0U;
-    auto ec_valid = true;
+    MockRepository mocks;
+    auto vcpu = setup_vcpu(mocks);
 
     for (auto i = 0U; i < 32U; ++i) {
-        default_esr(i, ec, ec_valid, reg);
-        CHECK(::intel_x64::vmcs::vm_entry_interruption_information::valid_bit::is_disabled());
+        default_esr(i, 0, ec_valid(i), regs, vcpu);
     }
 }
 

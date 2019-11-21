@@ -1,20 +1,23 @@
 #
-# Bareflank Hypervisor
-# Copyright (C) 2015 Assured Information Security, Inc.
+# Copyright (C) 2019 Assured Information Security, Inc.
 #
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 2.1 of the License, or (at your option) any later version.
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# Lesser General Public License for more details.
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
 #
-# You should have received a copy of the GNU Lesser General Public
-# License along with this library; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 #
 # Configuration
@@ -49,13 +52,6 @@ before_script:
   # Update GCC
   #
   - |
-    if [[ -f "/usr/bin/gcc-6" ]]; then
-      sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 100
-      sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 100
-      sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-6 100
-    fi
-
-  - |
     if [[ -f "/usr/bin/gcc-7" ]]; then
       sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 100
       sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 100
@@ -67,6 +63,14 @@ before_script:
       sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 100
       sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 100
       sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-8 100
+    fi
+
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      CMAKE_URL="http://www.cmake.org/files/v3.13/cmake-3.13.4-Linux-x86_64.tar.gz"
+      mkdir cmake
+      travis_retry wget --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
+      export PATH=$(pwd)/cmake/bin:${PATH}
     fi
 
 #
@@ -121,6 +125,14 @@ matrix:
           git diff --check HEAD^
           exit -1
         fi
+      - cd ..
+      - |
+        if [[ -n $(./scripts/util/chk_perms.sh) ]]; then
+          echo "You checked in files that shouldn't be executable"
+          echo ""
+          ./scripts/util/chk_perms.sh
+          exit -1
+        fi
 
   #
   # Astyle Format
@@ -173,30 +185,6 @@ matrix:
       - make tidy
 
   #
-  # Codecov
-  #
-  - os: linux
-    addons:
-      apt:
-        sources:
-          - ubuntu-toolchain-r-test
-          - llvm-toolchain-trusty-6.0
-        packages:
-          - gcc-7
-          - g++-7
-          - clang-6.0
-          - nasm
-    env:
-      - TEST="Codecov"
-    script:
-      - export LD_BIN=ld.gold
-      - cmake -DCONFIG=travis_codecov ..
-      - make -j3
-      - make unittest
-      - cd ..
-      - bash <(curl -s https://codecov.io/bash)
-
-  #
   # Google Address Sanitizer
   #
   - os: linux
@@ -239,108 +227,70 @@ matrix:
       - make unittest
 
   #
-  # Clang 5.0 (Static Libraries)
+  # Clang 6.0
   #
   - os: linux
     addons:
       apt:
         sources:
           - ubuntu-toolchain-r-test
-          - llvm-toolchain-trusty-5.0
+          - llvm-toolchain-trusty-6.0
         packages:
           - gcc-8
           - g++-8
-          - clang-5.0
+          - clang-6.0
           - nasm
     env:
-      - TEST="Clang 5.0 (Static Libraries)"
+      - TEST="Clang 6.0"
     script:
-      - export CLANG_BIN=clang-5.0
+      - export CLANG_BIN=/usr/bin/clang-6.0
       - cmake -DCONFIG=travis_static ..
       - make -j3
+      - cat depends/newlib/x86_64-vmm-elf/stamp/newlib_x86_64-vmm-elf-build-out.log
 
   #
-  # Clang 6.0 (Static Libraries)
+  # Clang 7.0
   #
   - os: linux
     addons:
       apt:
         sources:
           - ubuntu-toolchain-r-test
-          - llvm-toolchain-trusty-6.0
+          - llvm-toolchain-trusty-7
         packages:
           - gcc-8
           - g++-8
-          - clang-6.0
+          - clang-7
           - nasm
     env:
-      - TEST="Clang 6.0 (Static Libraries)"
+      - TEST="Clang 7.0"
     script:
-      - export CLANG_BIN=clang-6.0
+      - export CLANG_BIN=/usr/bin/clang-7
       - cmake -DCONFIG=travis_static ..
       - make -j3
+      - cat depends/newlib/x86_64-vmm-elf/stamp/newlib_x86_64-vmm-elf-build-out.log
 
   #
-  # Clang 5.0 (Shared Libraries)
+  # Clang 8.0
   #
   - os: linux
     addons:
       apt:
         sources:
           - ubuntu-toolchain-r-test
-          - llvm-toolchain-trusty-5.0
+          - llvm-toolchain-trusty-8
         packages:
           - gcc-8
           - g++-8
-          - clang-5.0
+          - clang-8
           - nasm
     env:
-      - TEST="Clang 5.0 (Shared Libraries)"
+      - TEST="Clang 8.0"
     script:
-      - export CLANG_BIN=clang-5.0
-      - cmake -DCONFIG=travis_shared ..
+      - export CLANG_BIN=/usr/bin/clang-8
+      - cmake -DCONFIG=travis_static ..
       - make -j3
-
-  #
-  # Clang 6.0 (Shared Libraries)
-  #
-  - os: linux
-    addons:
-      apt:
-        sources:
-          - ubuntu-toolchain-r-test
-          - llvm-toolchain-trusty-6.0
-        packages:
-          - gcc-8
-          - g++-8
-          - clang-6.0
-          - nasm
-    env:
-      - TEST="Clang 6.0 (Shared Libraries)"
-    script:
-      - export CLANG_BIN=clang-6.0
-      - cmake -DCONFIG=travis_shared ..
-      - make -j3
-
-  #
-  # GCC 6
-  #
-  - os: linux
-    addons:
-      apt:
-        sources:
-          - ubuntu-toolchain-r-test
-          - llvm-toolchain-trusty-6.0
-        packages:
-          - gcc-6
-          - g++-6
-          - clang-6.0
-          - nasm
-    env:
-      - TEST="GCC 6"
-    script:
-      - cmake -DCONFIG=travis_shared ..
-      - make -j3
+      - cat depends/newlib/x86_64-vmm-elf/stamp/newlib_x86_64-vmm-elf-build-out.log
 
   #
   # GCC 7
@@ -359,7 +309,7 @@ matrix:
     env:
       - TEST="GCC 7"
     script:
-      - cmake -DCONFIG=travis_shared ..
+      - cmake -DCONFIG=travis_static ..
       - make -j3
 
   #
@@ -379,7 +329,7 @@ matrix:
     env:
       - TEST="GCC 8"
     script:
-      - cmake -DCONFIG=travis_shared ..
+      - cmake -DCONFIG=travis_static ..
       - make -j3
 
   #
@@ -400,7 +350,7 @@ matrix:
       - TEST="ld.gold"
     script:
       - export LD_BIN=ld.gold
-      - cmake -DCONFIG=travis_shared ..
+      - cmake -DCONFIG=travis_static ..
       - make -j3
 
   #
@@ -421,5 +371,25 @@ matrix:
       - TEST="ld.lld"
     script:
       - export LD_BIN=ld.lld
-      - cmake -DCONFIG=travis_shared ..
+      - cmake -DCONFIG=travis_static ..
+      - make -j3
+
+  #
+  # UEFI
+  #
+  - os: linux
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+          - llvm-toolchain-trusty-6.0
+        packages:
+          - gcc-8
+          - g++-8
+          - clang-6.0
+          - nasm
+    env:
+      - TEST="UEFI"
+    script:
+      - cmake -DCONFIG=travis_efi ..
       - make -j3

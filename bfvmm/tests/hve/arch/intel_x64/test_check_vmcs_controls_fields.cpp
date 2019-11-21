@@ -1,19 +1,23 @@
 //
-// Bareflank Hypervisor
-// Copyright (C) 2015 Assured Information Security, Inc.
+// Copyright (C) 2019 Assured Information Security, Inc.
 //
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-// Lesser General Public License for more details.
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
 //
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 #include "test_support.h"
 
@@ -884,24 +888,24 @@ setup_check_control_activate_and_save_preemption_timer_must_be_0_paths(
     std::vector<struct control_flow_path> &cfg)
 {
     g_path.setup = [&] {
-        pin_ctl_allow1(intel_x64::msrs::ia32_vmx_true_pinbased_ctls::activate_vmx_preemption_timer::mask);
-        pin_based_vm_execution_controls::activate_vmx_preemption_timer::enable();
+        pin_ctl_allow1(intel_x64::msrs::ia32_vmx_true_pinbased_ctls::activate_preemption_timer::mask);
+        pin_based_vm_execution_controls::activate_preemption_timer::enable();
     };
     g_path.throws_exception = false;
     cfg.push_back(g_path);
 
     g_path.setup = [&] {
-        pin_ctl_allow0(intel_x64::msrs::ia32_vmx_true_pinbased_ctls::activate_vmx_preemption_timer::mask);
-        exit_ctl_allow1(intel_x64::msrs::ia32_vmx_true_exit_ctls::save_vmx_preemption_timer_value::mask);
-        pin_based_vm_execution_controls::activate_vmx_preemption_timer::disable();
-        vm_exit_controls::save_vmx_preemption_timer_value::enable();
+        pin_ctl_allow0(intel_x64::msrs::ia32_vmx_true_pinbased_ctls::activate_preemption_timer::mask);
+        exit_ctl_allow1(intel_x64::msrs::ia32_vmx_true_exit_ctls::save_preemption_timer_value::mask);
+        pin_based_vm_execution_controls::activate_preemption_timer::disable();
+        vm_exit_controls::save_preemption_timer_value::enable();
     };
     g_path.throws_exception = true;
     cfg.push_back(g_path);
 
     g_path.setup = [&] {
-        exit_ctl_allow0(intel_x64::msrs::ia32_vmx_true_exit_ctls::save_vmx_preemption_timer_value::mask);
-        vm_exit_controls::save_vmx_preemption_timer_value::disable();
+        exit_ctl_allow0(intel_x64::msrs::ia32_vmx_true_exit_ctls::save_preemption_timer_value::mask);
+        vm_exit_controls::save_preemption_timer_value::disable();
     };
     g_path.throws_exception = false;
     cfg.push_back(g_path);

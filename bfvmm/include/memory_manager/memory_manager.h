@@ -1,20 +1,23 @@
 //
-// Bareflank Hypervisor
-// Copyright (C) 2015 Assured Information Security, Inc.
+// Copyright (C) 2019 Assured Information Security, Inc.
 //
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-// Lesser General Public License for more details.
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
 //
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 #ifndef MEMORY_MANAGER_H
 #define MEMORY_MANAGER_H
@@ -27,27 +30,6 @@
 
 #include "buddy_allocator.h"
 #include "object_allocator.h"
-
-// -----------------------------------------------------------------------------
-// Exports
-// -----------------------------------------------------------------------------
-
-#include <bfexports.h>
-
-#ifndef STATIC_MEMORY_MANAGER
-#ifdef SHARED_MEMORY_MANAGER
-#define EXPORT_MEMORY_MANAGER EXPORT_SYM
-#else
-#define EXPORT_MEMORY_MANAGER IMPORT_SYM
-#endif
-#else
-#define EXPORT_MEMORY_MANAGER
-#endif
-
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4251)
-#endif
 
 // -----------------------------------------------------------------------------
 // Definitions
@@ -94,7 +76,7 @@ namespace bfvmm
 ///     class to inherit that provides shared APIs for both ARM and Intel. For
 ///     now the memory manager is Intel specific
 ///
-class EXPORT_MEMORY_MANAGER memory_manager
+class memory_manager
 {
 public:
 
@@ -422,15 +404,15 @@ private:
     buddy_allocator g_huge_pool;
     buddy_allocator g_mem_map_pool;
 
-    basic_object_allocator slab010;
-    basic_object_allocator slab020;
-    basic_object_allocator slab030;
-    basic_object_allocator slab040;
-    basic_object_allocator slab080;
-    basic_object_allocator slab100;
-    basic_object_allocator slab200;
-    basic_object_allocator slab400;
-    basic_object_allocator slab800;
+    object_allocator slab010;
+    object_allocator slab020;
+    object_allocator slab030;
+    object_allocator slab040;
+    object_allocator slab080;
+    object_allocator slab100;
+    object_allocator slab200;
+    object_allocator slab400;
+    object_allocator slab800;
 
 public:
 
@@ -479,8 +461,24 @@ extern "C" void *alloc_page();
 ///
 extern "C" void free_page(void *ptr);
 
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
+/// Page Pointer
+template<typename T>
+using page_ptr = std::unique_ptr<T, void(*)(void *)>;
+
+/// Make Page
+///
+/// @return returns a std::unique_ptr with a single page
+///
+template<typename T>
+page_ptr<T> make_page()
+{ return page_ptr<T>(static_cast<T *>(alloc_page()), free_page); }
+
+/// Make Page
+///
+/// @return returns a std::unique_ptr with a single page
+///
+template<typename T>
+page_ptr<T> make_nullptr_page()
+{ return page_ptr<T>(nullptr, free_page); }
 
 #endif

@@ -1,30 +1,32 @@
 //
-// Bareflank Hypervisor
-// Copyright (C) 2015 Assured Information Security, Inc.
+// Copyright (C) 2019 Assured Information Security, Inc.
 //
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-// Lesser General Public License for more details.
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
 //
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 #ifndef BFMANAGER_H
 #define BFMANAGER_H
 
-#include <map>
 #include <mutex>
 #include <memory>
+#include <unordered_map>
 
 #include <bfgsl.h>
-#include <bfobject.h>
 
 /// Manager
 ///
@@ -65,89 +67,92 @@ public:
     /// @expects none
     /// @ensures none
     ///
-    /// @param id the t to initialize
-    /// @param obj object that can be passed around as needed
-    ///     by extensions of Bareflank
+    /// @param id the T to initialize
+    /// @param data a pointer to user defined data
     ///
-    void create(tid id, bfobject *obj = nullptr)
+    void create(tid id, void *data = nullptr)
     {
-        auto ___ = gsl::on_failure([&] {
-            std::lock_guard<std::mutex> guard(m_mutex);
-            m_ts.erase(id);
-        });
+        std::lock_guard<std::mutex> guard(m_mutex);
 
-        if (auto &&t = add_t(id, obj)) {
-            t->init(obj);
+        if (auto iter = m_ts.find(id); iter != m_ts.end()) {
+            throw std::runtime_error("bfmanager: id already exists");
         }
+
+        if (auto t = m_T_factory->make(id, data)) {
+            m_ts[id] = std::move(t);
+            return;
+        }
+
+        throw std::runtime_error("bfmanager: factory returned a nullptr");
     }
 
     /// Destroy T
     ///
-    /// Deletes T.
-    ///
-    /// @param id the t to destroy
-    /// @param obj object that can be passed around as needed
-    ///     by extensions of Bareflank
-    ///
-    void destroy(tid id, bfobject *obj = nullptr)
-    {
-        auto ___ = gsl::finally([&] {
-            std::lock_guard<std::mutex> guard(m_mutex);
-            m_ts.erase(id);
-        });
-
-        if (auto &&t = get_t(id)) {
-            t->fini(obj);
-        }
-    }
-
-    /// Run T
-    ///
-    /// Executes T.
-    ///
-    /// @expects t exists
+    /// @expects none
     /// @ensures none
     ///
-    /// @param id the t to run
-    /// @param obj object that can be passed around as needed
-    ///     by extensions of Bareflank
+    /// @param id the T to destroy
     ///
-    void run(tid id, bfobject *obj = nullptr)
+    void destroy(tid id)
     {
-        if (auto &&t = get_t(id)) {
-            t->run(obj);
-        }
+        std::lock_guard<std::mutex> guard(m_mutex);
+        m_ts.erase(id);
     }
 
-    /// Halt T
+    /// For Each
     ///
-    /// Halts T.
+    /// Loops through all of the Ts that are being managed and calls a
+    /// provided callback for each T.
     ///
     /// @expects none
     /// @ensures none
     ///
-    /// @param id the t to halt
-    /// @param obj object that can be passed around as needed
-    ///     by extensions of Bareflank
+    /// @param func the callback to call for each T
     ///
-    void hlt(tid id, bfobject *obj = nullptr)
+    void foreach (void(*func)(T *))
     {
-        if (auto &&t = get_t(id)) {
-            t->hlt(obj);
+        for (auto &t : m_ts) {
+            func(&t);
         }
     }
 
-    /// Set Factory
-    ///
-    /// Should only be used by unit tests
+    /// Get
     ///
     /// @expects none
     /// @ensures none
     ///
-    /// @param factory the new factory to use
+    /// @param id the T to get
+    /// @param err the error to display
+    /// @return returns a pointer to the T associated with tid
     ///
-    void set_factory(std::unique_ptr<T_factory> factory)
-    { m_T_factory = std::move(factory); }
+    gsl::not_null<T *> get(tid id, const char *err = nullptr)
+    {
+        std::lock_guard<std::mutex> guard(m_mutex);
+
+        if (auto iter = m_ts.find(id); iter != m_ts.end()) {
+            return iter->second.get();
+        }
+
+        if (err != nullptr) {
+            throw std::runtime_error(err);
+        }
+        else {
+            throw std::runtime_error("bfmanager: failed to get T");
+        }
+    }
+
+    /// Get (Dynamic Cast)
+    ///
+    /// @expects none
+    /// @ensures none
+    ///
+    /// @param id the T to get
+    /// @param err the error to display
+    /// @return returns a pointer to the T associated with tid
+    ///
+    template<typename U>
+    gsl::not_null<U> get(tid id, const char *err = nullptr)
+    { return dynamic_cast<U>(get(id, err).get()); }
 
 private:
 
@@ -155,32 +160,21 @@ private:
         m_T_factory(std::make_unique<T_factory>())
     { }
 
-    std::unique_ptr<T> &add_t(tid id, bfobject *obj)
-    {
-        if (auto &&t = get_t(id)) {
-            return t;
-        }
-
-        if (auto t = m_T_factory->make(id, obj)) {
-            std::lock_guard<std::mutex> guard(m_mutex);
-            return m_ts[id] = std::move(t);
-        }
-
-        throw std::runtime_error("make returned a nullptr");
-    }
-
-    std::unique_ptr<T> &get_t(tid id)
-    {
-        std::lock_guard<std::mutex> guard(m_mutex);
-        return m_ts[id];
-    }
-
 private:
 
     std::unique_ptr<T_factory> m_T_factory;
-    std::map<tid, std::unique_ptr<T>> m_ts;
+    std::unordered_map<tid, std::unique_ptr<T>> m_ts;
 
     mutable std::mutex m_mutex;
+
+public:
+
+    /// @cond
+
+    void set_factory(std::unique_ptr<T_factory> factory)
+    { m_T_factory = std::move(factory); }
+
+    /// @endcond
 
 public:
 

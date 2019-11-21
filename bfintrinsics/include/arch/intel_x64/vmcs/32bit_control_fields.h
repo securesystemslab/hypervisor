@@ -1,20 +1,23 @@
 //
-// Bareflank Hypervisor
-// Copyright (C) 2015 Assured Information Security, Inc.
+// Copyright (C) 2019 Assured Information Security, Inc.
 //
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-// Lesser General Public License for more details.
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
 //
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 #ifndef VMCS_INTEL_X64_32BIT_CONTROL_FIELDS_H
 #define VMCS_INTEL_X64_32BIT_CONTROL_FIELDS_H
@@ -193,11 +196,11 @@ namespace pin_based_vm_execution_controls
         { dump_vm_control(level, exists(), is_allowed1(), is_enabled_if_exists(), name, msg); }
     }
 
-    namespace activate_vmx_preemption_timer
+    namespace activate_preemption_timer
     {
         constexpr const auto mask = 0x0000000000000040ULL;
         constexpr const auto from = 6ULL;
-        constexpr const auto name = "activate_vmx_preemption_timer";
+        constexpr const auto name = "activate_preemption_timer";
 
         inline auto is_enabled()
         { return is_bit_set(get_vmcs_field(addr, name, exists()), from); }
@@ -212,10 +215,10 @@ namespace pin_based_vm_execution_controls
         { return is_bit_cleared(get_vmcs_field_if_exists(addr, name, verbose, exists()), from); }
 
         inline auto is_allowed0()
-        { return msrs::ia32_vmx_true_pinbased_ctls::activate_vmx_preemption_timer::is_allowed0(); }
+        { return msrs::ia32_vmx_true_pinbased_ctls::activate_preemption_timer::is_allowed0(); }
 
         inline auto is_allowed1()
-        { return msrs::ia32_vmx_true_pinbased_ctls::activate_vmx_preemption_timer::is_allowed1(); }
+        { return msrs::ia32_vmx_true_pinbased_ctls::activate_preemption_timer::is_allowed1(); }
 
         inline void enable()
         { enable_vm_control(addr, from, is_allowed1(), name, exists()); }
@@ -291,7 +294,7 @@ namespace pin_based_vm_execution_controls
         external_interrupt_exiting::dump(level, msg);
         nmi_exiting::dump(level, msg);
         virtual_nmis::dump(level, msg);
-        activate_vmx_preemption_timer::dump(level, msg);
+        activate_preemption_timer::dump(level, msg);
         process_posted_interrupts::dump(level, msg);
     }
 }
@@ -1793,11 +1796,11 @@ namespace vm_exit_controls
         { dump_vm_control(level, exists(), is_allowed1(), is_enabled_if_exists(), name, msg); }
     }
 
-    namespace save_vmx_preemption_timer_value
+    namespace save_preemption_timer_value
     {
         constexpr const auto mask = 0x0000000000400000ULL;
         constexpr const auto from = 22ULL;
-        constexpr const auto name = "save_vmx_preemption_timer_value";
+        constexpr const auto name = "save_preemption_timer_value";
 
         inline auto is_enabled()
         { return is_bit_set(get_vmcs_field(addr, name, exists()), from); }
@@ -1812,10 +1815,10 @@ namespace vm_exit_controls
         { return is_bit_cleared(get_vmcs_field_if_exists(addr, name, verbose, exists()), from); }
 
         inline auto is_allowed0()
-        { return msrs::ia32_vmx_true_exit_ctls::save_vmx_preemption_timer_value::is_allowed0(); }
+        { return msrs::ia32_vmx_true_exit_ctls::save_preemption_timer_value::is_allowed0(); }
 
         inline auto is_allowed1()
-        { return msrs::ia32_vmx_true_exit_ctls::save_vmx_preemption_timer_value::is_allowed1(); }
+        { return msrs::ia32_vmx_true_exit_ctls::save_preemption_timer_value::is_allowed1(); }
 
         inline void enable()
         { enable_vm_control(addr, from, is_allowed1(), name, exists()); }
@@ -1942,7 +1945,7 @@ namespace vm_exit_controls
         load_ia32_pat::dump(level, msg);
         save_ia32_efer::dump(level, msg);
         load_ia32_efer::dump(level, msg);
-        save_vmx_preemption_timer_value::dump(level, msg);
+        save_preemption_timer_value::dump(level, msg);
         clear_ia32_bndcfgs::dump(level, msg);
         pt_conceal_vm_exits::dump(level, msg);
     }

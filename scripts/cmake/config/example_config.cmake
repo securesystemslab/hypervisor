@@ -1,37 +1,36 @@
 #
-# Bareflank Hypervisor
-# Copyright (C) 2015 Assured Information Security, Inc.
+# Copyright (C) 2019 Assured Information Security, Inc.
 #
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 2.1 of the License, or (at your option) any later version.
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
 #
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# Lesser General Public License for more details.
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
 #
-# You should have received a copy of the GNU Lesser General Public
-# License along with this library; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 # ------------------------------------------------------------------------------
 # README
 # ------------------------------------------------------------------------------
 
 # To use this config, put this file in the same folder that contains the
-# hypervisor and build folder, (and extended apis if your using them), and
-# rename it to "config.cmake". For example:
+# hypervisor and build folder and rename it to "config.cmake".
+# For example:
 #
 # - working
 #   - build
 #   - hypervisor
-#   - extended_apis                     # optional
-#   - hypervisor_example_vpid           # optional
-#   - hypervisor_example_rdtsc          # optional
-#   - hypervisor_example_cpuidcount     # optional
-#   - hypervisor_example_msr_bitmap     # optional
+#   - boxy # optional
 #   - config.cmake
 #
 # Change the options as needed, and then from the build folder, run the
@@ -51,6 +50,21 @@
 # Options
 # ------------------------------------------------------------------------------
 
+# Boxy
+#
+# This option enables the use of the boxy. It assumes that
+# boxy is located in the same directory as this configuration file as stated
+# in the example working directory above.
+#
+set(ENABLE_BOXY OFF)
+
+# Enable EFI
+#
+# This will enable building EFI targets after the VMM has compiled. Note that
+# this only works on Linux (or the Linux subsystem for Windows)
+#
+set(ENABLE_BUILD_EFI OFF)
+
 # Developer Mode
 #
 # Turns on build options useful for developers. If you plan to submit a PR to
@@ -59,119 +73,59 @@
 #
 set(ENABLE_DEVELOPER_MODE OFF)
 
-# Tests only
-#
-# If you are only interested in compiling the tests, this option can speed up
-# your build times .
-#
-set(ENABLE_TESTS_ONLY OFF)
-
-# Extended APIs
-#
-# This option enables the use of the extended APIs. It assumes the extended
-# APIs are located in the same directory as this configuration file.
-#
-set(ENABLE_EXTENDED_APIS OFF)
-
-# Enable EFI
-#
-# This will enable building EFI targets after the VMM has compiled. Note that
-# this forces static build, disables testing, ASAN, codecov and clang tidy,
-# and requries the VMM be compiled
-#
-set(ENABLE_BUILD_EFI OFF)
-
-# Examples
-#
-# These options enable the examples
-#
-set(ENABLE_HYPERVISOR_EXAMPLE_VPID OFF)
-set(ENABLE_HYPERVISOR_EXAMPLE_RDTSC OFF)
-set(ENABLE_HYPERVISOR_EXAMPLE_CPUIDCOUNT OFF)
-set(ENABLE_HYPERVISOR_EXAMPLE_MSR_BITMAP OFF)
-set(ENABLE_EXTENDED_APIS_EXAMPLE_HOOK OFF)
+# ------------------------------------------------------------------------------
+# Override Options
+# ------------------------------------------------------------------------------
 
 # Override VMM
 #
-# If the override VMM is set, this VMM will be used instead of the default VMM
-# based on the current configuration. Note that you can also set the override
-# VMM target to use, which might be needed for EFI so that EFI knows which
-# target to wait for
+# Setting the OVERRIDE_VMM variable is the same as setting the DEFAULT_VMM
+# from the command line. Use this to change which VMM the build system will
+# load when you run 'make load` or `make quick`.
 #
 # set(OVERRIDE_VMM <name>)
+
+# Override VMM Target
+#
+# This is only needed if you also turn on EFI. If you are building EFI from
+# your own extension, you will need to tell the build system what the target
+# name is for your VMM so that it will know what target the EFI portion of
+# the build system depends on. This simply ensures that the build system
+# first compiles your custom VMM before compiling the bareflank.efi. In other
+# words, within the build system, this will add a call to add_dependency()
+# with the value you provide.
+#
 # set(OVERRIDE_VMM_TARGET <name>)
 
-# Override Compiler Warnings
+# Override Linux
 #
-# Tells the configuration that you want -Werror enabled regardless of the
-# setting of developer mode
+# This is only useful when Boxy is enabled. This allows you to override the
+# Linux repo that you are using. By default, if you do not set this variable,
+# Boxy will download our version of Linux for you. If you are however a
+# developer working on our version of Linux, you will need your own forked
+# version of our Linux. This allows you to specify the location of your forked
+# version so that Boxy will use your version instead of its default version.
 #
-# set(OVERRIDE_COMPILER_WARNINGS ON)
+# set(LINUX_DIR <path>)
 
-# ------------------------------------------------------------------------------
-# Config Variables (No Need To Modify)
-# ------------------------------------------------------------------------------
+# ==============================================================================
+# DO NOT MODIFY BELOW
+# ==============================================================================
 
-# Build Type
-#
-# Defines the type of hypervisor that is built. Possible values are Release
-# and Debug. Release mode turns on all optimizations and is the default
-#
-if(ENABLE_DEVELOPER_MODE)
-    set(CMAKE_BUILD_TYPE Debug)
-else()
-    set(CMAKE_BUILD_TYPE Release)
-endif()
-
-# Shared vs Static Builds
-#
-# By default shared libraries are built, and shared libraries must be enabled
-# if unit testing is enabled. The library type only applies to the VMM. When
-# building using static libraries, the main executables are linked against all
-# of the VMM libraries resulting in a single binary that's as small as it's
-# going to get. This is the ideal build type but requires open sourcing your
-# object files due to the LGPL restriction. If this is not acceptable, please
-# contact AIS, Inc at quinnr@ainfosec.com. Finally, both binary types can be
-# built simultaniously.
-#
-if(ENABLE_DEVELOPER_MODE AND NOT ENABLE_BUILD_EFI)
-    set(BUILD_SHARED_LIBS ON)
-    set(BUILD_STATIC_LIBS OFF)
-else()
-    set(BUILD_SHARED_LIBS OFF)
-    set(BUILD_STATIC_LIBS ON)
-endif()
-
-# Cache
-#
-# THe build system maintains it's own cache of all external dependencies to
-# eliminate the need to download these dependencies multiple times. The default
-# location is in the build folder, but if you plan to do more than one build,
-# moving this cache outside of the build folder will speed up build times, and
-# prevent needless downloading.
-#
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/cache)
 set(CACHE_DIR ${CMAKE_CURRENT_LIST_DIR}/cache)
 
-# Enable Bits
-#
-# There are several enable bits that can be used to enable additional
-# functionality, or reduce which portions of the hypervisor are built.
-#
-if(ENABLE_TESTS_ONLY)
-    set(ENABLE_BUILD_VMM OFF)
-    set(ENABLE_BUILD_USERSPACE OFF)
-else()
-    set(ENABLE_BUILD_VMM ON)
-    set(ENABLE_BUILD_USERSPACE ON)
-endif()
-
-if(ENABLE_DEVELOPER_MODE AND NOT ENABLE_BUILD_EFI)
+if(ENABLE_DEVELOPER_MODE)
     set(ENABLE_BUILD_TEST ON)
+    set(CMAKE_BUILD_TYPE Debug)
+    set(ENABLE_COMPILER_WARNINGS OFF)
 else()
     set(ENABLE_BUILD_TEST OFF)
+    set(CMAKE_BUILD_TYPE Release)
+    set(ENABLE_COMPILER_WARNINGS ON)
 endif()
 
-if(ENABLE_DEVELOPER_MODE AND NOT ENABLE_BUILD_EFI AND NOT WIN32)
+if(ENABLE_DEVELOPER_MODE AND NOT WIN32 AND NOT CYGWIN)
     set(ENABLE_ASAN ON)
     set(ENABLE_TIDY ON)
     set(ENABLE_FORMAT ON)
@@ -179,74 +133,16 @@ if(ENABLE_DEVELOPER_MODE AND NOT ENABLE_BUILD_EFI AND NOT WIN32)
 else()
     set(ENABLE_ASAN OFF)
     set(ENABLE_TIDY OFF)
-    set(ENABLE_FORMAT ON)
+    set(ENABLE_FORMAT OFF)
     set(ENABLE_CODECOV OFF)
 endif()
 
-# Compiler Warnings
-#
-# Enables compiler warnings. This option should always be on when developing.
-# Not that Release builds add "-Werror".
-#
-if(ENABLE_DEVELOPER_MODE AND NOT OVERRIDE_COMPILER_WARNINGS)
-    set(ENABLE_COMPILER_WARNINGS OFF)
-else()
-    set(ENABLE_COMPILER_WARNINGS ON)
-endif()
-
-# ------------------------------------------------------------------------------
-# Extended APIs
-# ------------------------------------------------------------------------------
-
-if(ENABLE_EXTENDED_APIS)
-    set_bfm_vmm(eapis_bfvmm)
+if(ENABLE_BOXY)
+    set_bfm_vmm(boxy_vmm)
     list(APPEND EXTENSION
-        ${CMAKE_CURRENT_LIST_DIR}/extended_apis
+        ${CMAKE_CURRENT_LIST_DIR}/boxy
     )
 endif()
-
-# ------------------------------------------------------------------------------
-# Examples
-# ------------------------------------------------------------------------------
-
-if(ENABLE_HYPERVISOR_EXAMPLE_VPID)
-    set_bfm_vmm(example_vmm)
-    list(APPEND EXTENSION
-        ${CMAKE_CURRENT_LIST_DIR}/hypervisor_example_vpid
-    )
-endif()
-
-if(ENABLE_HYPERVISOR_EXAMPLE_RDTSC)
-    set_bfm_vmm(example_vmm)
-    list(APPEND EXTENSION
-        ${CMAKE_CURRENT_LIST_DIR}/hypervisor_example_rdtsc
-    )
-endif()
-
-if(ENABLE_HYPERVISOR_EXAMPLE_CPUIDCOUNT)
-    set_bfm_vmm(example_vmm)
-    list(APPEND EXTENSION
-        ${CMAKE_CURRENT_LIST_DIR}/hypervisor_example_cpuidcount
-    )
-endif()
-
-if(ENABLE_HYPERVISOR_EXAMPLE_MSR_BITMAP)
-    set_bfm_vmm(example_vmm)
-    list(APPEND EXTENSION
-        ${CMAKE_CURRENT_LIST_DIR}/hypervisor_example_msr_bitmap
-    )
-endif()
-
-if(ENABLE_EXTENDED_APIS_EXAMPLE_HOOK)
-    set_bfm_vmm(example_vmm)
-    list(APPEND EXTENSION
-        ${CMAKE_CURRENT_LIST_DIR}/extended_apis_example_hook
-    )
-endif()
-
-# ------------------------------------------------------------------------------
-# Override VMM
-# ------------------------------------------------------------------------------
 
 if(OVERRIDE_VMM)
     if(OVERRIDE_VMM_TARGET)

@@ -1,59 +1,37 @@
 //
-// Bareflank Hypervisor
-// Copyright (C) 2015 Assured Information Security, Inc.
+// Copyright (C) 2019 Assured Information Security, Inc.
 //
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-// Lesser General Public License for more details.
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
 //
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
 #ifndef VMCS_INTEL_X64_H
 #define VMCS_INTEL_X64_H
 
-#include <bftypes.h>
-#include <bfvcpuid.h>
-
-#include "save_state.h"
-#include "check.h"
-
-// -----------------------------------------------------------------------------
-// Exports
-// -----------------------------------------------------------------------------
-
-#include <bfexports.h>
-
-#ifndef STATIC_HVE
-#ifdef SHARED_HVE
-#define EXPORT_HVE EXPORT_SYM
-#else
-#define EXPORT_HVE IMPORT_SYM
-#endif
-#else
-#define EXPORT_HVE
-#endif
-
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4251)
-#endif
+#include "../../../memory_manager/memory_manager.h"
 
 // -----------------------------------------------------------------------------
 // Definitions
 // -----------------------------------------------------------------------------
 
-namespace bfvmm
+namespace bfvmm::intel_x64
 {
-namespace intel_x64
-{
+
+class vcpu;
 
 /// Intel x86_64 VMCS
 ///
@@ -72,7 +50,7 @@ namespace intel_x64
 /// for more details. Pro tip: auto-complete works great with the VMCS
 /// namespace logic.
 ///
-class EXPORT_HVE vmcs
+class vmcs
 {
 public:
 
@@ -81,9 +59,9 @@ public:
     /// @expects none
     /// @ensures none
     ///
-    /// @param vcpuid the vcpuid for this VMCS
+    /// @param vcpu The vCPU associated with this VMCS
     ///
-    vmcs(vcpuid::type vcpuid);
+    vmcs(gsl::not_null<vcpu *> vcpu);
 
     /// Destructor
     ///
@@ -163,31 +141,37 @@ public:
     ///
     VIRTUAL void load();
 
-    /// Save State
+    /// Clear
     ///
-    /// Returns the VMCS's save state. This is state that is above and beyond
-    /// what the VMCS stores, includng the CPU's registers, vcpuid and
-    /// exit handler pointer.
+    /// This function clears the VMCS. This is needed for two main reasons:
+    /// - During a VMCS migration, the way to do this is to clear the VMCS
+    ///   and then do a VMLanuch again.
+    /// - During initialization, we need to clear the VMCS just in case the
+    ///   VMCS is given the same physical address twice, which does actually
+    ///   happen.
     ///
     /// @expects none
     /// @ensures none
     ///
-    /// @return returns the VMCS's save state.
+    VIRTUAL void clear();
+
+    /// Check
     ///
-    VIRTUAL save_state_t *save_state() const
-    { return m_save_state.get(); }
-
-protected:
-
-    /// @cond
-
-    std::unique_ptr<save_state_t> m_save_state;
-
-    /// @endcond
+    /// This function checks to see if the VMCS is configured improperly.
+    ///
+    /// @expects none
+    /// @ensures none
+    ///
+    /// @return returns true if the VMCS is configured properly, false
+    ///     otherwise
+    ///
+    VIRTUAL bool check() const noexcept;
 
 private:
 
-    std::unique_ptr<uint32_t, void(*)(void *)> m_vmcs_region;
+    vcpu *m_vcpu;
+
+    page_ptr<uint32_t> m_vmcs_region;
     uintptr_t m_vmcs_region_phys;
 
 public:
@@ -204,10 +188,9 @@ public:
 };
 
 }
-}
 
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
+/// Base vmcs type
+///
+using vmcs_t = bfvmm::intel_x64::vmcs;
 
 #endif
