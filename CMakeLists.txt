@@ -156,6 +156,7 @@ endif()
 # External Components
 # ------------------------------------------------------------------------------
 
+list(APPEND EXTENSION ${SOURCE_EXAMPLES_DIR}/safestackeval)
 list(APPEND EXTENSION ${SOURCE_EXAMPLES_DIR}/cpuidcount)
 list(APPEND EXTENSION ${SOURCE_EXAMPLES_DIR}/hook)
 list(APPEND EXTENSION ${SOURCE_EXAMPLES_DIR}/rdtsc)
