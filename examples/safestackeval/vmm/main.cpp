@@ -21,20 +21,15 @@
 
 #include <vmm.h>
 
-int
-main(int argc, char *argv[])
+void
+global_init()
 {
-    bfdebug_info(0, "Running SafeStack evaluation...");
-
-    // Should be stored on the stack
-    auto stack_ptr = 5;
     // SafeStack static analysis should determine that this needs to be stored on the unsafe
-    // stack. 
-    char buf[4];
-    memcpy(buf, argv, 4);
+    // stack due to interprocedural flow to bfdebug_nhex. 
+    uint64_t unsafe_stack_flag;
 
-
-    bfdebug_info(0, buf);
-    bfdebug_nhex(0, "flag:", &buf);
-    bfdebug_nhex(0, "stack_ptr:", &stack_ptr);
+    bfdebug_nhex(0, "unsafe_stack_ptr_bottom:", __builtin___get_unsafe_stack_bottom());
+    bfdebug_nhex(0, "unsafe_stack_ptr_top:", __builtin___get_unsafe_stack_top());
+    bfdebug_nhex(0, "unsafe_stack_ptr:", __builtin___get_unsafe_stack_ptr());
+    bfdebug_nhex(0, "flag:", &unsafe_stack_flag);
 }
