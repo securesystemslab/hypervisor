@@ -94,7 +94,6 @@ if(PREFIX STREQUAL vmm)
         ${CMAKE_INSTALL_PREFIX}/lib/libm.a
         ${CMAKE_INSTALL_PREFIX}/lib/libc.a
         vmm::bfsyscall
-        ${SAFESTACK_RUNTIME_LIB}
     )
 
     add_subdirectory(src/main)
@@ -103,6 +102,16 @@ if(PREFIX STREQUAL vmm)
     )
 
     set(INT integration/arch/intel_x64)
+
+    if (ENABLE_CODE_LAYOUT_RANDO)
+        target_link_libraries(bfvmm INTERFACE
+            --whole-archive
+            ${CMAKE_INSTALL_PREFIX}/lib/generic/libclang_rt.code_layout_rando_hook-x86_64.a
+            ${CMAKE_INSTALL_PREFIX}/lib/generic/libclang_rt.code_layout_rando_start-x86_64.a
+            --no-whole-archive
+            ${CMAKE_INSTALL_PREFIX}/lib/generic/libclang_rt.code_layout_rando-x86_64.a
+        )
+    endif()
 
     if(ENABLE_BUILD_EFI)
         add_executable(test_efi ${INT}/efi/test_efi.cpp)

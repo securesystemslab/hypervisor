@@ -646,6 +646,20 @@ add_config(
     DESCRIPTION "Enable astyle formatting"
 )
 
+add_config(
+    CONFIG_NAME ENABLE_SELFRANDO
+    CONFIG_TYPE BOOL
+    DEFAULT_VAL ON
+    DESCRIPTION "Enable vmm randomization"
+)
+
+add_config(
+    CONFIG_NAME ENABLE_CODE_LAYOUT_RANDO
+    CONFIG_TYPE BOOL
+    DEFAULT_VAL ON
+    DESCRIPTION "Enable vmm run-time code layout randomization"
+)
+
 # ------------------------------------------------------------------------------
 # Toolchains
 # ------------------------------------------------------------------------------
@@ -852,6 +866,15 @@ set(GNUEFI_URL "https://github.com/Bareflank/gnu-efi/archive/v2.0.zip"
 set(GNUEFI_URL_MD5 "3cd10dc9c14f4a3891f8537fd78ed04f"
     CACHE INTERNAL FORCE
     "gnu-efi URL MD5 hash")
+
+## TODO: Update this URL and MD5 hash to Bareflank repo
+set(SELFRANDO_URL "https://github.com/immunant/selfrando/archive/40d1409c6620f78dc39585799c6b7915a72e0f3a.zip"
+    CACHE INTERNAL FORCE
+    "Selfrando URL")
+
+set(SELFRANDO_URL_MD5 "8633eb84259660bbf357942c8e8a0ccc"
+    CACHE INTERNAL FORCE
+    "Selfrando URL MD5 hash")
 
 # ------------------------------------------------------------------------------
 # BFM Configs

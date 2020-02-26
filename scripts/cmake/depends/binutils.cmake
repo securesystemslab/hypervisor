@@ -24,13 +24,15 @@ if((ENABLE_BUILD_VMM OR ENABLE_BUILD_TEST) AND NOT WIN32 AND ENABLE_BUILD_BINUTI
 
     download_dependency(
         binutils
-        URL         ${BINUTILS_URL}
-        URL_MD5     ${BINUTILS_URL_MD5}
+	URL ${BINUTILS_URL}
+        URL_MD5 ${BINUTILS_URL_MD5}
     )
 
     list(APPEND BINUTILS_CONFIGURE_FLAGS
         --disable-nls
         --disable-werror
+        --disable-gdb
+        --enable-gold
         --with-sysroot
         --prefix=${PREFIXES_DIR}
         --target=${VMM_PREFIX}

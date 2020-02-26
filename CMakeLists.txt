@@ -104,11 +104,13 @@ add_subproject(bfroot userspace SOURCE_DIR ${SOURCE_CMAKE_DIR})
 # VMM Components
 # ------------------------------------------------------------------------------
 
+include_dependency(SOURCE_DEPENDS_DIR selfrando)
 include_dependency(SOURCE_DEPENDS_DIR binutils)
 include_dependency(SOURCE_DEPENDS_DIR newlib)
 include_dependency(SOURCE_DEPENDS_DIR llvm)
 include_dependency(SOURCE_DEPENDS_DIR libcxxabi)
 include_dependency(SOURCE_DEPENDS_DIR libcxx)
+include_dependency(SOURCE_DEPENDS_DIR libcode_layout_rando)
 
 add_subproject(bfsdk vmm DEPENDS bfroot)
 
@@ -119,7 +121,7 @@ endif()
 
 if(ENABLE_BUILD_VMM)
     add_subproject(bfintrinsics vmm DEPENDS bfruntime)
-    add_subproject(bfvmm vmm DEPENDS bfunwind bfintrinsics bfsdk)
+    add_subproject(bfvmm vmm DEPENDS bfunwind bfintrinsics bfsdk libcode_layout_rando)
 endif()
 
 # ------------------------------------------------------------------------------
@@ -156,7 +158,6 @@ endif()
 # External Components
 # ------------------------------------------------------------------------------
 
-list(APPEND EXTENSION ${SOURCE_EXAMPLES_DIR}/safestackeval)
 list(APPEND EXTENSION ${SOURCE_EXAMPLES_DIR}/cpuidcount)
 list(APPEND EXTENSION ${SOURCE_EXAMPLES_DIR}/hook)
 list(APPEND EXTENSION ${SOURCE_EXAMPLES_DIR}/rdtsc)

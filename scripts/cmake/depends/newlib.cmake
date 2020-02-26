@@ -19,10 +19,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# TODO: Not sure if this is idiomatic CMake, investigate proper way to get
-# clang binary from VMM toolchain in here.
-include(${VMM_TOOLCHAIN_PATH})
-
 if((ENABLE_BUILD_VMM OR ENABLE_BUILD_TEST) AND NOT WIN32)
     message(STATUS "Including dependency: newlib")
 
@@ -32,12 +28,16 @@ if((ENABLE_BUILD_VMM OR ENABLE_BUILD_TEST) AND NOT WIN32)
         URL_MD5     ${NEWLIB_URL_MD5}
     )
 
-    set(CC_FOR_TARGET ${CLANG_BIN})
-    set(CXX_FOR_TARGET ${CLANG_BIN})
+    if(DEFINED ENV{CLANG_BIN})
+        set(CC_FOR_TARGET $ENV{CLANG_BIN})
+        set(CXX_FOR_TARGET $ENV{CLANG_BIN})
+    else()
+        message(FATAL_ERROR "Unable to find clang")
+    endif()
 
-    set(AR_FOR_TARGET ${AR_BIN})
-    set(AS_FOR_TARGET ${AS_BIN})
-    set(NM_FOR_TARGET ${NM_BIN})
+    set(AR_FOR_TARGET ar)
+    set(AS_FOR_TARGET as)
+    set(NM_FOR_TARGET nm)
     set(OBJCOPY_FOR_TARGET objcopy)
     set(OBJDUMP_FOR_TARGET objdump)
     set(RANLIB_FOR_TARGET ranlib)
