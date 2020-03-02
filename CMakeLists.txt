@@ -121,7 +121,7 @@ endif()
 
 if(ENABLE_BUILD_VMM)
     add_subproject(bfintrinsics vmm DEPENDS bfruntime)
-    add_subproject(bfvmm vmm DEPENDS bfunwind bfintrinsics bfsdk libcode_layout_rando)
+    add_subproject(bfvmm vmm DEPENDS bfunwind bfintrinsics bfsdk)
 endif()
 
 # ------------------------------------------------------------------------------
@@ -158,6 +158,7 @@ endif()
 # External Components
 # ------------------------------------------------------------------------------
 
+list(APPEND EXTENSION ${SOURCE_EXAMPLES_DIR}/code_layout_rando)
 list(APPEND EXTENSION ${SOURCE_EXAMPLES_DIR}/cpuidcount)
 list(APPEND EXTENSION ${SOURCE_EXAMPLES_DIR}/hook)
 list(APPEND EXTENSION ${SOURCE_EXAMPLES_DIR}/rdtsc)
