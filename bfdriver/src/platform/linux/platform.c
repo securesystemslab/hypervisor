@@ -30,6 +30,7 @@
 #include <linux/vmalloc.h>
 #include <linux/version.h>
 #include <linux/cpumask.h>
+#include <linux/random.h>
 #include <linux/sched.h>
 #include <linux/kallsyms.h>
 
@@ -239,3 +240,7 @@ platform_unload_info(struct platform_info_t *info)
 
 
 #endif
+
+uint64_t platform_get_random_int64(void) {
+  return get_random_u64();
+}

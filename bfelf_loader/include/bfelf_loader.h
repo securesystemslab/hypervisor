@@ -145,6 +145,16 @@ private_strcmp(const char *s1, const char *s2)
     return *s1 == *s2 ? BFELF_SUCCESS : BFELF_ERROR_MISMATCH;
 }
 
+static inline int64_t
+private_strstarts(const char *s, const char* prefix)
+{
+    while ((*prefix != 0) && (*s != 0) && (*s == *prefix)) {
+        s++; prefix++;
+    }
+
+    return *prefix == 0? BFELF_SUCCESS : BFELF_ERROR_MISMATCH;
+}
+
 /* @endcond */
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -270,6 +280,15 @@ struct bfelf_file_t {
 
     bfelf64_addr eh_frame;
     bfelf64_xword eh_framesz;
+
+    bfelf64_xword static_strtabsz;
+    const char* static_strtab;
+
+    bfelf64_xword static_symnum;
+    const struct bfelf_sym* static_symtab;
+
+    bfelf64_xword relanum_text;
+    const struct bfelf_rela *relatab_text;
 
     bfelf64_xword flags_1;
     bfelf64_xword stack_flags;
@@ -852,29 +871,6 @@ struct bfelf_phdr {
 /* ELF Loader Definition                                                                          */
 /* ---------------------------------------------------------------------------------------------- */
 
-/*
- * ELF Loader
- *
- * The following structure is used to create an ELF loader, which groups up
- * all of the ELF files used by a single program, mainly needed for global
- * symbol searching.
- *
- * @cond
- */
-struct bfelf_loader_t {
-    bfelf64_word num;
-    bfelf64_word relocated;
-    struct bfelf_file_t *efs[MAX_NUM_MODULES];
-};
-
-/* @endcond */
-
-/* ---------------------------------------------------------------------------------------------- */
-/* ELF Symbol Table Implementation                                                                */
-/* ---------------------------------------------------------------------------------------------- */
-
-/* @cond */
-
 static inline unsigned long
 private_hash(const char *name)
 {
@@ -901,6 +897,32 @@ private_hash(const char *name)
 
     return h;
 }
+
+#include "bfelf_loader_rando.h"
+
+/*
+ * ELF Loader
+ *
+ * The following structure is used to create an ELF loader, which groups up
+ * all of the ELF files used by a single program, mainly needed for global
+ * symbol searching.
+ *
+ * @cond
+ */
+struct bfelf_loader_t {
+    bfelf64_word num;
+    bfelf64_word relocated;
+    struct bfelf_file_t *efs[MAX_NUM_MODULES];
+    struct bfelf_lt_rando_t lt_rando;
+};
+
+/* @endcond */
+
+/* ---------------------------------------------------------------------------------------------- */
+/* ELF Symbol Table Implementation                                                                */
+/* ---------------------------------------------------------------------------------------------- */
+
+/* @cond */
 
 static inline int64_t
 private_get_sym_by_hash(
@@ -1061,6 +1083,28 @@ private_relocate_symbols(struct bfelf_loader_t *loader, struct bfelf_file_t *ef)
             return ret;
         }
     }
+
+#if defined(BF_X64)
+
+#ifndef LT_RANDO_COOKIE_PREFIX
+#define LT_RANDO_COOKIE_PREFIX  ("__multicompiler_ltr.")
+#endif
+
+    for (i = 0; i < ef->relanum_text; i++) {
+        const struct bfelf_rela *rela = &(ef->relatab_text[i]);
+        const struct bfelf_sym *sym = &(ef->static_symtab[BFELF_REL_SYM(rela->r_info)]);
+        const char *str = &(ef->static_strtab[sym->st_name]);
+        if (private_strstarts(str, LT_RANDO_COOKIE_PREFIX) != BFELF_SUCCESS) {
+          // Skip
+          continue;
+        }
+
+        ret = private_lt_rando_patch_cookie(loader, ef, rela);
+        if (ret != BFELF_SUCCESS) {
+            return ret;
+        }
+    }
+#endif
 
     return BFELF_SUCCESS;
 }
@@ -1384,6 +1428,27 @@ bfelf_file_init(const char *file, uint64_t filesz, struct bfelf_file_t *ef)
         if (private_strcmp(name, ".dtors") == BFELF_SUCCESS) {
             ef->fini_array = shdr->sh_addr;
             ef->fini_arraysz = shdr->sh_size;
+            continue;
+        }
+
+        if (private_strcmp(name, ".strtab") == BFELF_SUCCESS) {
+            ef->static_strtab = bfrcast(const char*,
+                                        ef->file + shdr->sh_offset);
+            ef->static_strtabsz = shdr->sh_size;
+            continue;
+        }
+
+        if (private_strcmp(name, ".symtab") == BFELF_SUCCESS) {
+            ef->static_symtab = bfrcast(const struct bfelf_sym*,
+                                        ef->file + shdr->sh_offset);
+            ef->static_symnum = shdr->sh_size / sizeof(struct bfelf_sym);
+            continue;
+        }
+
+        if (private_strcmp(name, ".rela.text") == BFELF_SUCCESS) {
+            ef->relatab_text = bfrcast(const struct bfelf_rela *,
+                                       ef->file + shdr->sh_offset);
+            ef->relanum_text = shdr->sh_size / sizeof(struct bfelf_rela);
             continue;
         }
     }

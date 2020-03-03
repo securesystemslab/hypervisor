@@ -16,13 +16,24 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+cmake_minimum_required(VERSION 3.6)
+project(bflt_rando_rt C CXX)
+
+include(${SOURCE_CMAKE_DIR}/project.cmake)
+init_project(
+    INCLUDES ${CMAKE_CURRENT_LIST_DIR}/../include
+)
+
 list(APPEND SOURCES
-    entry.cpp
+    lt_rando_compiler_rt.c
+)
+
+add_shared_library(
+    bflt_rando_rt
+    SOURCES ${SOURCES}
 )
 
 add_static_library(
-    bfvmm_entry
+    bflt_rando_rt
     SOURCES ${SOURCES}
-    ALWAYS
-    LTRANDO "private_add_md"
 )

@@ -1135,7 +1135,7 @@ endmacro(invalid_config)
 #
 function(add_shared_library NAME)
     set(options ALWAYS)
-    set(multiVal SOURCES DEFINES DEPENDS)
+    set(multiVal SOURCES DEFINES DEPENDS LTRANDO)
     cmake_parse_arguments(ARG "${options}" "" "${multiVal}" ${ARGN})
 
     if(NOT ARG_SOURCES)
@@ -1155,6 +1155,17 @@ function(add_shared_library NAME)
         add_library(${NAME}_shared SHARED ${ARG_SOURCES})
         set_target_properties(${NAME}_shared PROPERTIES LINKER_LANGUAGE C)
         target_compile_definitions(${NAME}_shared PRIVATE ${ARG_DEFINES})
+        if(ARG_LTRANDO)
+            set(LTRANDO_FUNCS "")
+            foreach(f ${ARG_LTRANDO})
+              set(LTRANDO_FUNCS "${LTRANDO_FUNCS} -flt-rando-func=${f}")
+            endforeach()
+            set_target_properties(${NAME}_shared PROPERTIES COMPILE_FLAGS
+                                  "-flt-rando ${LTRANDO_FUNCS}")
+            list(APPEND DEPENDS
+                 --emit-relocs
+                 bflt_rando_rt_shared)
+        endif()
         target_link_libraries(${NAME}_shared ${DEPENDS})
         install(TARGETS ${NAME}_shared DESTINATION lib)
     endif()
@@ -1172,7 +1183,7 @@ endfunction(add_shared_library)
 #
 function(add_static_library NAME)
     set(options ALWAYS)
-    set(multiVal SOURCES DEFINES)
+    set(multiVal SOURCES DEFINES LTRANDO)
     cmake_parse_arguments(ARG "${options}" "" "${multiVal}" ${ARGN})
 
     if(NOT ARG_SOURCES)
@@ -1187,6 +1198,14 @@ function(add_static_library NAME)
         add_library(${NAME}_static STATIC ${ARG_SOURCES})
         set_target_properties(${NAME}_static PROPERTIES LINKER_LANGUAGE C)
         target_compile_definitions(${NAME}_static PRIVATE ${ARG_DEFINES})
+        if(ARG_LTRANDO)
+            set(LTRANDO_FUNCS "")
+            foreach(f ${ARG_LTRANDO})
+              set(LTRANDO_FUNCS "${LTRANDO_FUNCS} -flt-rando-func=${f} ")
+            endforeach()
+            set_target_properties(${NAME}_static PROPERTIES COMPILE_FLAGS
+                                  "-flt-rando ${LTRANDO_FUNCS}")
+        endif()
         install(TARGETS ${NAME}_static DESTINATION lib)
     endif()
 endfunction(add_static_library)
@@ -1239,7 +1258,7 @@ endfunction(target_link_static_libraries)
 #
 function(add_vmm_executable NAME)
     set(options NOVMMLIBS)
-    set(multiVal LIBRARIES SOURCES DEFINES)
+    set(multiVal LIBRARIES SOURCES DEFINES LTRANDO)
     cmake_parse_arguments(ARG "${options}" "" "${multiVal}" ${ARGN})
 
     if(NOT ARG_SOURCES)
@@ -1251,9 +1270,21 @@ function(add_vmm_executable NAME)
         set(ARG_SOURCES ${CMAKE_BINARY_DIR}/null.cpp)
     endif()
 
+    if(ARG_LTRANDO)
+        set(LTRANDO_FUNCS "")
+        foreach(f ${ARG_LTRANDO})
+          set(LTRANDO_FUNCS "${LTRANDO_FUNCS} -flt-rando-func=${f} ")
+        endforeach()
+        set(LTRANDO_FLAGS "-flt-rando ${LTRANDO_FUNCS}")
+    endif()
+
     if(BUILD_SHARED_LIBS)
         add_executable(${NAME}_shared ${ARG_SOURCES})
         target_compile_definitions(${NAME}_shared PRIVATE ${ARG_DEFINES})
+        if(ARG_LTRANDO)
+          set_target_properties(${NAME}_shared PROPERTIES COMPILE_FLAGS
+                                "${LTRANDO_FLAGS}")
+        endif()
 
         set(LIBRARIES "")
         foreach(d ${ARG_LIBRARIES})
@@ -1269,6 +1300,13 @@ function(add_vmm_executable NAME)
                 ${CMAKE_INSTALL_PREFIX}/lib/libbfvmm_debug_shared.so
                 ${CMAKE_INSTALL_PREFIX}/lib/libbfintrinsics_shared.so
             )
+        endif()
+
+        if(ARG_LTRANDO)
+          list(APPEND LIBRARIES
+               --emit-relocs
+               ${CMAKE_INSTALL_PREFIX}/lib/libbflt_rando_rt_shared.so
+          )
         endif()
 
         list(APPEND LIBRARIES
@@ -1290,6 +1328,11 @@ function(add_vmm_executable NAME)
         add_executable(${NAME}_static ${ARG_SOURCES})
         target_compile_definitions(${NAME}_static PRIVATE ${ARG_DEFINES})
 
+        if(ARG_LTRANDO)
+          set_target_properties(${NAME}_static PROPERTIES COMPILE_FLAGS
+                                "${LTRANDO_FLAGS}")
+        endif()
+
         set(LIBRARIES "")
         foreach(d ${ARG_LIBRARIES})
             list(APPEND LIBRARIES "${CMAKE_INSTALL_PREFIX}/lib/lib${d}_static.a")
@@ -1298,12 +1341,20 @@ function(add_vmm_executable NAME)
         if(NOT ARG_NOVMMLIBS)
             list(APPEND LIBRARIES
                 --whole-archive ${CMAKE_INSTALL_PREFIX}/lib/libbfvmm_entry_static.a --no-whole-archive
+                -q
                 ${CMAKE_INSTALL_PREFIX}/lib/libbfvmm_vcpu_static.a
                 ${CMAKE_INSTALL_PREFIX}/lib/libbfvmm_hve_static.a
                 ${CMAKE_INSTALL_PREFIX}/lib/libbfvmm_memory_manager_static.a
                 ${CMAKE_INSTALL_PREFIX}/lib/libbfvmm_debug_static.a
                 ${CMAKE_INSTALL_PREFIX}/lib/libbfintrinsics_static.a
             )
+        endif()
+
+        if(ARG_LTRANDO)
+           list(APPEND LIBRARIES
+                --emit-relocs
+                ${CMAKE_INSTALL_PREFIX}/lib/libbflt_rando_rt_static.a
+           )
         endif()
 
         list(APPEND LIBRARIES

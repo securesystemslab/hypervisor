@@ -35,4 +35,5 @@ endif()
 add_vmm_executable(
     bfvmm
     SOURCES ${SOURCES}
+    LTRANDO "private_add_md"
 )

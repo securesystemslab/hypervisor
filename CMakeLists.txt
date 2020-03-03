@@ -146,6 +146,10 @@ endif()
 
 if(ENABLE_BUILD_VMM)
     add_subproject(
+        bflt_rando_rt vmm
+    )
+
+    add_subproject(
         bfintrinsics vmm
         DEPENDS bfunwind
     )
@@ -153,12 +157,14 @@ if(ENABLE_BUILD_VMM)
     add_subproject(
         bfvmm vmm
         DEPENDS bfunwind
+        DEPENDS bflt_rando_rt
     )
 
     add_subproject(
         bfvmm_main vmm
         DEPENDS bfvmm
         DEPENDS bfintrinsics
+        DEPENDS bflt_rando_rt
         SOURCE_DIR ${SOURCE_BFVMM_DIR}/src/main
     )
 endif()

@@ -30,6 +30,7 @@
  * @cond
  */
 #define BFR_X86_64_64 bfscast(bfelf64_xword, 1)
+#define BFR_X86_64_PC32 bfscast(bfelf64_xword, 2)
 #define BFR_X86_64_GLOB_DAT bfscast(bfelf64_xword, 6)
 #define BFR_X86_64_JUMP_SLOT bfscast(bfelf64_xword, 7)
 #define BFR_X86_64_RELATIVE bfscast(bfelf64_xword, 8)
@@ -90,4 +91,40 @@ private_relocate_symbol(
     return BFELF_SUCCESS;
 }
 
+static inline int64_t
+private_lt_rando_patch_cookie(
+    struct bfelf_loader_t *loader, struct bfelf_file_t *ef, const struct bfelf_rela *rela)
+{
+    const struct bfelf_sym *sym = &(ef->static_symtab[BFELF_REL_SYM(rela->r_info)]);
+    const char *str = &(ef->static_strtab[sym->st_name]);
+    struct bfelf_lt_rando_t *lt_rando = &loader->lt_rando;
+    bfelf64_off patch_offset = bfrcast(bfelf64_off, ef->exec_addr + rela->r_offset - ef->start_addr);
+    bfelf64_addr *ptr = bfrcast(bfelf64_addr *, patch_offset);
+    uint64_t random_cookie = 0U;
+
+    BFDEBUG("[LT-RANDO] Ready to patch %s\n", str);
+
+    // See if there is existing random cookie
+    if (private_lt_rando_cookie_query(lt_rando, str, &random_cookie)) {
+      // Create a new random cookie
+      random_cookie = private_lt_rando_cookie_add(lt_rando, str);
+    }
+
+    switch (BFELF_REL_TYPE(rela->r_info)) {
+    case BFR_X86_64_PC32: {
+      bfelf64_word *ptr32 = bfrcast(bfelf64_word*, ptr);
+      bfelf64_addr next_pc = patch_offset + bfscast(bfelf64_addr, rela->r_addend);
+      bfelf64_word patch_value = bfscast(bfelf64_word, bfscast(bfelf64_addr, random_cookie) - next_pc);
+      BFDEBUG("[LT-RANDO] %s has 32-bits pc-relative relocation type\n", str);
+      BFDEBUG("[LT-RANDO] Cookie=0x%llx, NextPC=0x%llx, Patched=0x%x\n",
+              random_cookie, next_pc, patch_value);
+      *ptr32 = patch_value;
+      break;
+    }
+    default:
+        return bfunsupported_rel(str);
+    }
+
+    return BFELF_SUCCESS;
+}
 /* @endcond */

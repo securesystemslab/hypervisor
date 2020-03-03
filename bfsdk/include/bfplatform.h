@@ -215,6 +215,11 @@ int64_t platform_populate_info(struct platform_info_t *info);
  */
 void platform_unload_info(struct platform_info_t *info);
 
+/*
+ * Get a 64-bit random number
+ * @return a 64-bit random number
+ * */
+uint64_t platform_get_random_int64(void);
 #ifdef __cplusplus
 }
 #endif
